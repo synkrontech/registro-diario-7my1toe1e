@@ -63,11 +63,23 @@ export default function Login() {
   // Fetch projects for registration demo
   useEffect(() => {
     const fetchProjects = async () => {
-      const { data } = await supabase.from('projects').select('*')
+      const { data, error } = await supabase.from('projects').select('*')
+
+      if (error) {
+        console.error('Error fetching projects:', error)
+        toast({
+          title: 'Error de conexión',
+          description:
+            'No se pudieron cargar los proyectos. Intente recargar la página.',
+          variant: 'destructive',
+        })
+        return
+      }
+
       if (data) setProjects(data as Project[])
     }
     fetchProjects()
-  }, [])
+  }, [toast])
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -135,8 +147,7 @@ export default function Login() {
         className: 'bg-green-50 text-green-800 border-green-200',
       })
 
-      // Auto login or ask to login? Usually sign up signs you in automatically if email confirm is off.
-      // We'll check session and redirect if signed in
+      // Auto login check
       const { data: sessionData } = await supabase.auth.getSession()
       if (sessionData.session) {
         navigate(from, { replace: true })
