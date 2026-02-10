@@ -11,13 +11,15 @@ import {
   getWeek,
 } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { ChevronRight } from 'lucide-react'
+import { Download } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import useTimeStore from '@/stores/useTimeStore'
 import { DayDetailsSheet } from '@/components/day-details-sheet'
+import { downloadMonthlyCsv } from '@/lib/csv-export'
 
 interface CalendarViewProps {
   currentDate: Date
@@ -61,11 +63,15 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
   )
   const totalMonthlyHours = (totalMonthlyMinutes / 60).toFixed(1)
 
+  const handleExport = () => {
+    downloadMonthlyCsv(monthlyEntries, currentDate)
+  }
+
   return (
     <>
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between bg-white p-4 rounded-lg border shadow-sm">
-          <div className="flex flex-col">
+        <div className="flex flex-col md:flex-row items-center justify-between bg-white p-4 rounded-lg border shadow-sm gap-4">
+          <div className="flex flex-col items-center md:items-start w-full md:w-auto">
             <span className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">
               Total Mensual
             </span>
@@ -74,13 +80,25 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
               <span className="text-lg text-slate-500 font-normal">horas</span>
             </div>
           </div>
-          <div className="hidden sm:block text-right">
-            <span className="text-xs text-muted-foreground">
-              Registros en {format(currentDate, 'MMMM', { locale: es })}
-            </span>
-            <p className="font-medium text-slate-900">
-              {monthlyEntries.length} actividades
-            </p>
+
+          <div className="flex flex-col-reverse md:flex-row items-center gap-4 w-full md:w-auto">
+            <div className="hidden sm:block text-center md:text-right">
+              <span className="text-xs text-muted-foreground">
+                Registros en {format(currentDate, 'MMMM', { locale: es })}
+              </span>
+              <p className="font-medium text-slate-900">
+                {monthlyEntries.length} actividades
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="w-full md:w-auto bg-white hover:bg-slate-50 text-slate-600"
+              onClick={handleExport}
+              disabled={monthlyEntries.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exportar CSV
+            </Button>
           </div>
         </div>
 

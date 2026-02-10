@@ -7,15 +7,16 @@ import { CalendarView } from '@/components/calendar-view'
 import { TimeEntry } from '@/lib/types'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { List, Calendar as CalendarIcon } from 'lucide-react'
+import useTimeStore from '@/stores/useTimeStore'
 
 const Index = () => {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
+  const { viewDate, setViewDate } = useTimeStore()
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
 
   const handleEdit = (entry: TimeEntry) => {
     setEditingEntry(entry)
     // Switch the view to the entry's month so the user stays in context of the edit
-    setSelectedDate(entry.date)
+    setViewDate(entry.date)
     // Scroll to form
     const formElement = document.getElementById('entry-form')
     if (formElement) {
@@ -45,10 +46,7 @@ const Index = () => {
           aria-label="Navegación Mensual"
           className="sticky top-0 z-20 bg-slate-50/95 backdrop-blur py-2"
         >
-          <MonthNavigation
-            currentDate={selectedDate}
-            onDateChange={setSelectedDate}
-          />
+          <MonthNavigation currentDate={viewDate} onDateChange={setViewDate} />
         </section>
 
         <Tabs defaultValue="list" className="w-full">
@@ -71,21 +69,21 @@ const Index = () => {
               <div className="lg:col-span-8 space-y-8">
                 <section aria-label="Formulario de registro" id="entry-form">
                   <TimeEntryForm
-                    currentDate={selectedDate}
-                    onDateChange={setSelectedDate}
+                    currentDate={viewDate}
+                    onDateChange={setViewDate}
                     entryToEdit={editingEntry}
                     onCancelEdit={handleCancelEdit}
                   />
                 </section>
 
                 <section aria-label="Tabla de registros">
-                  <TimeEntryTable date={selectedDate} onEdit={handleEdit} />
+                  <TimeEntryTable date={viewDate} onEdit={handleEdit} />
                 </section>
               </div>
 
               <div className="lg:col-span-4 space-y-8 sticky top-32">
                 <section aria-label="Reporte Mensual">
-                  <MonthlyReport date={selectedDate} />
+                  <MonthlyReport date={viewDate} />
                 </section>
               </div>
             </div>
@@ -95,7 +93,7 @@ const Index = () => {
             value="calendar"
             className="animate-fade-in focus-visible:outline-none focus-visible:ring-0"
           >
-            <CalendarView currentDate={selectedDate} />
+            <CalendarView currentDate={viewDate} />
           </TabsContent>
         </Tabs>
       </div>

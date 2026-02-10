@@ -1,9 +1,12 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import useTimeStore from '@/stores/useTimeStore'
-import { BarChart, Clock, CalendarDays } from 'lucide-react'
+import { BarChart, Clock, CalendarDays, Download } from 'lucide-react'
 import { PROJECTS } from '@/lib/types'
+import { downloadMonthlyCsv } from '@/lib/csv-export'
+import { cn } from '@/lib/utils'
 
 export function MonthlyReport({ date }: { date: Date }) {
   const { getEntriesByMonth } = useTimeStore()
@@ -29,14 +32,31 @@ export function MonthlyReport({ date }: { date: Date }) {
     .filter((stat) => stat.minutes > 0)
     .sort((a, b) => b.minutes - a.minutes)
 
+  const handleExport = () => {
+    downloadMonthlyCsv(entries, date)
+  }
+
   return (
     <Card className="border-none shadow-md bg-white overflow-hidden">
       <CardHeader className="pb-4 bg-slate-50 border-b border-slate-100">
-        <div className="flex flex-col gap-1">
-          <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
-            <BarChart className="h-5 w-5 text-indigo-500" />
-            Resumen Mensual
-          </CardTitle>
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
+              <BarChart className="h-5 w-5 text-indigo-500" />
+              Resumen Mensual
+            </CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 bg-white hover:bg-slate-50 text-slate-600 border-slate-200"
+              onClick={handleExport}
+              disabled={entries.length === 0}
+              title="Exportar registros del mes a CSV"
+            >
+              <Download className="mr-2 h-3.5 w-3.5" />
+              Exportar CSV
+            </Button>
+          </div>
           <p className="text-sm text-muted-foreground capitalize flex items-center gap-1">
             <CalendarDays className="h-3 w-3" />
             {format(date, 'MMMM yyyy', { locale: es })}

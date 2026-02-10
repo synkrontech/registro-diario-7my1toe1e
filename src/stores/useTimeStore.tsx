@@ -10,15 +10,15 @@ import {
   isSameDay,
   isSameMonth,
   isSameYear,
-  subDays,
   addDays,
-  startOfMonth,
   setHours,
   setMinutes,
 } from 'date-fns'
 
 interface TimeState {
   entries: TimeEntry[]
+  viewDate: Date
+  setViewDate: (date: Date) => void
   addEntry: (entry: TimeEntryFormValues) => void
   updateEntry: (id: string, entry: TimeEntryFormValues) => void
   getEntriesByDate: (date: Date) => TimeEntry[]
@@ -46,7 +46,7 @@ const generateMockData = (): TimeEntry[] => {
     const endTime = `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`
     const durationMinutes = endH * 60 + endM - (startH * 60 + startM)
 
-    // Set the time on the date object for sorting/accuracy if needed, though we store time strings
+    // Set the time on the date object for sorting/accuracy if needed
     const entryDate = setMinutes(setHours(new Date(date), startH), startM)
 
     return {
@@ -103,6 +103,7 @@ const generateMockData = (): TimeEntry[] => {
 export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
   // Initialize with mock data
   const [entries, setEntries] = useState<TimeEntry[]>([])
+  const [viewDate, setViewDate] = useState<Date>(new Date())
 
   // Load mock data on mount
   useEffect(() => {
@@ -163,6 +164,8 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
     {
       value: {
         entries,
+        viewDate,
+        setViewDate,
         addEntry,
         updateEntry,
         getEntriesByDate,

@@ -19008,6 +19008,20 @@ var Clock = createLucideIcon("clock", [["path", {
 	r: "10",
 	key: "1mglay"
 }]]);
+var Download = createLucideIcon("download", [
+	["path", {
+		d: "M12 15V3",
+		key: "m9g1x1"
+	}],
+	["path", {
+		d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4",
+		key: "ih7n3h"
+	}],
+	["path", {
+		d: "m7 10 5 5 5-5",
+		key: "brsn70"
+	}]
+]);
 var Eye = createLucideIcon("eye", [["path", {
 	d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
 	key: "1nclc0"
@@ -35735,6 +35749,7 @@ var generateMockData = () => {
 };
 const TimeStoreProvider = ({ children }) => {
 	const [entries, setEntries] = (0, import_react.useState)([]);
+	const [viewDate, setViewDate] = (0, import_react.useState)(/* @__PURE__ */ new Date());
 	(0, import_react.useEffect)(() => {
 		setEntries(generateMockData());
 	}, []);
@@ -35773,6 +35788,8 @@ const TimeStoreProvider = ({ children }) => {
 	};
 	return import_react.createElement(TimeStoreContext.Provider, { value: {
 		entries,
+		viewDate,
+		setViewDate,
 		addEntry,
 		updateEntry,
 		getEntriesByDate,
@@ -36719,6 +36736,43 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 		})]
 	});
 }
+const downloadMonthlyCsv = (entries, date$3) => {
+	if (!entries.length) return;
+	const filename = `registro-tiempos-${format(date$3, "MMMM-yyyy", { locale: es })}.csv`;
+	const headers = [
+		"Fecha",
+		"Proyecto",
+		"Hora Inicio",
+		"Hora Fin",
+		"Duración",
+		"Descripción"
+	];
+	const rows = entries.map((entry) => {
+		const durationStr = `${Math.floor(entry.durationMinutes / 60)}:${(entry.durationMinutes % 60).toString().padStart(2, "0")}`;
+		return [
+			format(entry.date, "yyyy-MM-dd"),
+			entry.project,
+			entry.startTime,
+			entry.endTime,
+			durationStr,
+			entry.description
+		];
+	});
+	const csvContent = "﻿" + [headers.join(","), ...rows.map((row) => row.map((field) => {
+		const stringField = String(field);
+		if (stringField.includes(",") || stringField.includes("\"") || stringField.includes("\n")) return `"${stringField.replace(/"/g, "\"\"")}"`;
+		return stringField;
+	}).join(","))].join("\n");
+	const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+	const url = URL.createObjectURL(blob);
+	const link = document.createElement("a");
+	link.setAttribute("href", url);
+	link.setAttribute("download", filename);
+	link.style.visibility = "hidden";
+	document.body.appendChild(link);
+	link.click();
+	document.body.removeChild(link);
+};
 function MonthlyReport({ date: date$3 }) {
 	const { getEntriesByMonth } = useTimeStore_default();
 	const entries = getEntriesByMonth(date$3);
@@ -36733,15 +36787,29 @@ function MonthlyReport({ date: date$3 }) {
 			hours: (minutes / 60).toFixed(1)
 		};
 	}).filter((stat) => stat.minutes > 0).sort((a$1, b$1) => b$1.minutes - a$1.minutes);
+	const handleExport = () => {
+		downloadMonthlyCsv(entries, date$3);
+	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 		className: "border-none shadow-md bg-white overflow-hidden",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
 			className: "pb-4 bg-slate-50 border-b border-slate-100",
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "flex flex-col gap-1",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-					className: "text-lg font-semibold text-slate-800 flex items-center gap-2",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartNoAxesColumnIncreasing, { className: "h-5 w-5 text-indigo-500" }), "Resumen Mensual"]
+				className: "flex flex-col gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center justify-between",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+						className: "text-lg font-semibold text-slate-800 flex items-center gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartNoAxesColumnIncreasing, { className: "h-5 w-5 text-indigo-500" }), "Resumen Mensual"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						variant: "outline",
+						size: "sm",
+						className: "h-8 bg-white hover:bg-slate-50 text-slate-600 border-slate-200",
+						onClick: handleExport,
+						disabled: entries.length === 0,
+						title: "Exportar registros del mes a CSV",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "mr-2 h-3.5 w-3.5" }), "Exportar CSV"]
+					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 					className: "text-sm text-muted-foreground capitalize flex items-center gap-1",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { className: "h-3 w-3" }), format(date$3, "MMMM yyyy", { locale: es })]
@@ -37711,12 +37779,15 @@ function CalendarView({ currentDate }) {
 	};
 	const monthlyEntries = getEntriesByMonth(currentDate);
 	const totalMonthlyHours = (monthlyEntries.reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60).toFixed(1);
+	const handleExport = () => {
+		downloadMonthlyCsv(monthlyEntries, currentDate);
+	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(import_jsx_runtime.Fragment, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		className: "space-y-6 animate-fade-in",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "flex items-center justify-between bg-white p-4 rounded-lg border shadow-sm",
+			className: "flex flex-col md:flex-row items-center justify-between bg-white p-4 rounded-lg border shadow-sm gap-4",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "flex flex-col",
+				className: "flex flex-col items-center md:items-start w-full md:w-auto",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 					className: "text-sm text-muted-foreground uppercase tracking-wider font-semibold",
 					children: "Total Mensual"
@@ -37732,13 +37803,22 @@ function CalendarView({ currentDate }) {
 					]
 				})]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "hidden sm:block text-right",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-					className: "text-xs text-muted-foreground",
-					children: ["Registros en ", format(currentDate, "MMMM", { locale: es })]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-					className: "font-medium text-slate-900",
-					children: [monthlyEntries.length, " actividades"]
+				className: "flex flex-col-reverse md:flex-row items-center gap-4 w-full md:w-auto",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "hidden sm:block text-center md:text-right",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "text-xs text-muted-foreground",
+						children: ["Registros en ", format(currentDate, "MMMM", { locale: es })]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+						className: "font-medium text-slate-900",
+						children: [monthlyEntries.length, " actividades"]
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					variant: "outline",
+					className: "w-full md:w-auto bg-white hover:bg-slate-50 text-slate-600",
+					onClick: handleExport,
+					disabled: monthlyEntries.length === 0,
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, { className: "mr-2 h-4 w-4" }), "Exportar CSV"]
 				})]
 			})]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
@@ -38171,11 +38251,11 @@ var TabsContent = import_react.forwardRef(({ className, ...props }, ref) => /* @
 }));
 TabsContent.displayName = Content.displayName;
 var Index = () => {
-	const [selectedDate, setSelectedDate] = (0, import_react.useState)(/* @__PURE__ */ new Date());
+	const { viewDate, setViewDate } = useTimeStore_default();
 	const [editingEntry, setEditingEntry] = (0, import_react.useState)(null);
 	const handleEdit = (entry) => {
 		setEditingEntry(entry);
-		setSelectedDate(entry.date);
+		setViewDate(entry.date);
 		const formElement = document.getElementById("entry-form");
 		if (formElement) formElement.scrollIntoView({ behavior: "smooth" });
 	};
@@ -38199,8 +38279,8 @@ var Index = () => {
 				"aria-label": "Navegación Mensual",
 				className: "sticky top-0 z-20 bg-slate-50/95 backdrop-blur py-2",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MonthNavigation, {
-					currentDate: selectedDate,
-					onDateChange: setSelectedDate
+					currentDate: viewDate,
+					onDateChange: setViewDate
 				})
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
 				defaultValue: "list",
@@ -38229,15 +38309,15 @@ var Index = () => {
 									"aria-label": "Formulario de registro",
 									id: "entry-form",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryForm, {
-										currentDate: selectedDate,
-										onDateChange: setSelectedDate,
+										currentDate: viewDate,
+										onDateChange: setViewDate,
 										entryToEdit: editingEntry,
 										onCancelEdit: handleCancelEdit
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
 									"aria-label": "Tabla de registros",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryTable, {
-										date: selectedDate,
+										date: viewDate,
 										onEdit: handleEdit
 									})
 								})]
@@ -38245,7 +38325,7 @@ var Index = () => {
 								className: "lg:col-span-4 space-y-8 sticky top-32",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
 									"aria-label": "Reporte Mensual",
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MonthlyReport, { date: selectedDate })
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MonthlyReport, { date: viewDate })
 								})
 							})]
 						})
@@ -38253,7 +38333,7 @@ var Index = () => {
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
 						value: "calendar",
 						className: "animate-fade-in focus-visible:outline-none focus-visible:ring-0",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarView, { currentDate: selectedDate })
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarView, { currentDate: viewDate })
 					})
 				]
 			})]
@@ -38974,9 +39054,12 @@ var AvatarFallback = import_react.forwardRef(({ className, ...props }, ref) => /
 }));
 AvatarFallback.displayName = Fallback.displayName;
 function LayoutContent() {
-	const { getTotalHoursToday } = useTimeStore_default();
+	const { viewDate, getEntriesByMonth } = useTimeStore_default();
+	const monthlyEntries = getEntriesByMonth(viewDate);
+	const totalHours = (monthlyEntries.reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60).toFixed(1);
+	const uniqueProjects = new Set(monthlyEntries.map((e) => e.project)).size;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarProvider, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppSidebar, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarInset, {
-		className: "bg-slate-50/50",
+		className: "bg-slate-50/50 flex flex-col h-full min-h-screen",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
 				className: "sticky top-0 z-10 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4 shadow-sm",
@@ -39017,15 +39100,57 @@ function LayoutContent() {
 				className: "flex-1 overflow-auto",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {})
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("footer", {
-				className: "border-t bg-background p-4 text-center text-sm text-muted-foreground flex flex-col md:flex-row justify-between items-center gap-2",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "© 2024 TimeLog Inc. Todos los derechos reservados." }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "flex items-center gap-2",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Total Horas Hoy:" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						className: "font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-md",
-						children: getTotalHoursToday()
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("footer", {
+				className: "border-t bg-background p-4 text-sm text-muted-foreground shadow-[0_-1px_3px_rgba(0,0,0,0.05)] z-20",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "container mx-auto flex flex-col md:flex-row justify-between items-center gap-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "© 2024 TimeLog Inc. Todos los derechos reservados." }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex flex-col md:flex-row md:items-center gap-1 md:gap-4",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+								className: "font-semibold text-slate-700",
+								children: "Resumen Mensual:"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-center gap-3 text-xs md:text-sm",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "flex items-center gap-1.5",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "text-slate-500",
+											children: "Horas:"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+											className: "font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md",
+											children: [totalHours, "h"]
+										})]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Separator, {
+										orientation: "vertical",
+										className: "h-4"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "flex items-center gap-1.5",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "text-slate-500",
+											children: "Proyectos:"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+											className: "font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded-md",
+											children: uniqueProjects
+										})]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Separator, {
+										orientation: "vertical",
+										className: "h-4 hidden md:block"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "text-slate-400 capitalize hidden md:block",
+										children: format(viewDate, "MMMM", { locale: es })
+									})
+								]
+							})]
+						})
 					})]
-				})]
+				})
 			})
 		]
 	})] });
@@ -39056,4 +39181,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-sfhyvreS.js.map
+//# sourceMappingURL=index-BCbxnHa7.js.map
