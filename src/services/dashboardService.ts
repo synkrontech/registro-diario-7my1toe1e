@@ -129,10 +129,10 @@ export const dashboardService = {
     if (entriesError) throw entriesError
 
     // 3. Get pending count (Total pending for these projects, not just in range, usually)
-    // Updated to use select('*', { count: 'exact', head: true }) pattern to avoid JSON parsing errors
+    // FIX: Removed head: true to avoid JSON parsing error on empty body response
     const { count: pendingCount, error: pendingError } = await supabase
       .from('time_entries')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .in('project_id', projectIds)
       .eq('status', 'pendiente')
 
@@ -236,10 +236,10 @@ export const dashboardService = {
     if (error) throw error
 
     // Fetch active projects count (Global)
-    // Updated to use select('*', { count: 'exact', head: true }) pattern to avoid JSON parsing errors
+    // FIX: Removed head: true to avoid JSON parsing error on empty body response
     const { count: activeProjectsCount, error: countError } = await supabase
       .from('projects')
-      .select('*', { count: 'exact', head: true })
+      .select('id', { count: 'exact' })
       .eq('status', 'activo')
 
     if (countError) {
