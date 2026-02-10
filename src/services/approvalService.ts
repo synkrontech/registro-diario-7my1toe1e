@@ -67,7 +67,7 @@ export const approvalService = {
       startTime: item.startTime,
       endTime: item.endTime,
       description: item.description,
-      durationMinutes: item.durationMinutes,
+      durationMinutes: item.durationminutes, // Map from lowercase DB column
       status: item.status,
       project_name: item.projects?.nombre || 'Desconocido',
       client_name: item.projects?.clients?.nombre || '-',
@@ -145,7 +145,7 @@ export const approvalService = {
       startTime: item.startTime,
       endTime: item.endTime,
       description: item.description,
-      durationMinutes: item.durationMinutes,
+      durationMinutes: item.durationminutes, // Map from lowercase DB column
       status: item.status,
       project_name: item.projects?.nombre || 'Desconocido',
       client_name: item.projects?.clients?.nombre || '-',

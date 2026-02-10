@@ -33,6 +33,7 @@ export const dashboardService = {
       project_name: e.projects?.nombre,
       client_name: e.projects?.clients?.nombre,
       date: new Date(e.fecha),
+      durationMinutes: e.durationminutes, // Correctly map from DB column (lowercase)
     }))
 
     // Calc KPIs
@@ -62,8 +63,7 @@ export const dashboardService = {
       }
     })
 
-    // Last 5 Records (Fetch separately to get truly last 5 regardless of month view, or just slice current?)
-    // User story implies "Last 5 records" generally. Let's fetch the absolute last 5.
+    // Last 5 Records
     const { data: lastEntriesData, error: lastError } = await supabase
       .from('time_entries')
       .select('*, projects(nombre)')
@@ -76,6 +76,7 @@ export const dashboardService = {
       ...e,
       project_name: e.projects?.nombre,
       date: new Date(e.fecha),
+      durationMinutes: e.durationminutes, // Correctly map from DB column (lowercase)
     }))
 
     return {
@@ -137,8 +138,9 @@ export const dashboardService = {
     if (pendingError) throw pendingError
 
     // KPIs
+    // Use durationminutes (lowercase) for raw DB entities
     const totalHours =
-      entries.reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60
+      entries.reduce((acc, curr) => acc + curr.durationminutes, 0) / 60
     const uniqueConsultants = new Set(entries.map((e) => e.user_id)).size
 
     // Top 5 Consultants
@@ -153,7 +155,7 @@ export const dashboardService = {
             projects: new Set<string>(),
           }
         }
-        acc[uid].hours += curr.durationMinutes / 60
+        acc[uid].hours += curr.durationminutes / 60
         acc[uid].projects.add(curr.projects?.nombre || 'Unknown')
         return acc
       },
@@ -182,7 +184,7 @@ export const dashboardService = {
       (acc, curr) => {
         const pName = curr.projects?.nombre || 'Unknown'
         if (!acc[pName]) acc[pName] = 0
-        acc[pName] += curr.durationMinutes / 60
+        acc[pName] += curr.durationminutes / 60
         return acc
       },
       {} as Record<string, number>,
@@ -214,7 +216,7 @@ export const dashboardService = {
       .from('time_entries')
       .select(
         `
-        durationMinutes, 
+        durationminutes, 
         status, 
         user_id,
         projects (
@@ -237,13 +239,14 @@ export const dashboardService = {
       .eq('status', 'activo')
 
     // KPIs
+    // Use durationminutes (lowercase) as requested from DB
     const totalMinutes = entries.reduce(
-      (acc, curr) => acc + curr.durationMinutes,
+      (acc, curr) => acc + curr.durationminutes,
       0,
     )
     const approvedMinutes = entries
       .filter((e) => e.status === 'aprobado')
-      .reduce((acc, curr) => acc + curr.durationMinutes, 0, 0)
+      .reduce((acc, curr) => acc + curr.durationminutes, 0, 0)
 
     // Active consultants in this period (who logged time)
     const activeConsultants = new Set(entries.map((e) => e.user_id)).size
@@ -261,7 +264,7 @@ export const dashboardService = {
       (acc, curr: any) => {
         const name = curr.projects?.clients?.nombre || 'Unknown'
         if (!acc[name]) acc[name] = 0
-        acc[name] += curr.durationMinutes / 60
+        acc[name] += curr.durationminutes / 60
         return acc
       },
       {} as Record<string, number>,
@@ -272,7 +275,7 @@ export const dashboardService = {
       (acc, curr: any) => {
         const name = curr.projects?.systems?.nombre || 'N/A'
         if (!acc[name]) acc[name] = 0
-        acc[name] += curr.durationMinutes / 60
+        acc[name] += curr.durationminutes / 60
         return acc
       },
       {} as Record<string, number>,
@@ -283,13 +286,13 @@ export const dashboardService = {
       (acc, curr: any) => {
         const name = curr.projects?.work_front || 'Otro'
         if (!acc[name]) acc[name] = 0
-        acc[name] += curr.durationMinutes / 60
+        acc[name] += curr.durationminutes / 60
         return acc
       },
       {} as Record<string, number>,
     )
 
-    // Top 10 Projects (By Total Hours - Requirements say "Most Hours", usually implies total activity, but could be approved. Let's use Total Logged for "Most Hours")
+    // Top 10 Projects (By Total Hours)
     const projectStats = entries.reduce(
       (acc, curr: any) => {
         const pid = curr.projects?.id
@@ -304,7 +307,7 @@ export const dashboardService = {
             hours: 0,
           }
         }
-        acc[pid].hours += curr.durationMinutes / 60
+        acc[pid].hours += curr.durationminutes / 60
         return acc
       },
       {} as Record<string, any>,

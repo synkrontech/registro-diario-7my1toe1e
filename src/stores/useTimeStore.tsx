@@ -141,7 +141,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         startTime: item.startTime,
         endTime: item.endTime,
         description: item.description,
-        durationMinutes: item.durationMinutes,
+        durationMinutes: item.durationminutes, // Correctly map from DB column (lowercase)
         status: item.status,
         project_name: item.projects?.nombre || 'Desconocido',
         client_name: item.projects?.clients?.nombre || '-',
@@ -217,7 +217,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         startTime: data.startTime,
         endTime: data.endTime,
         description: data.description,
-        durationMinutes,
+        durationminutes: durationMinutes, // Use lowercase DB column name
         status: 'pendiente',
       })
 
@@ -242,7 +242,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
           startTime: data.startTime,
           endTime: data.endTime,
           description: data.description,
-          durationMinutes,
+          durationminutes: durationMinutes, // Use lowercase DB column name
         })
         .eq('id', id)
 
