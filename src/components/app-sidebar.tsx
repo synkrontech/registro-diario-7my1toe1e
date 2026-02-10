@@ -1,7 +1,6 @@
 import {
   Clock,
   PieChart,
-  Settings,
   Users,
   Bell,
   Mail,
@@ -41,7 +40,6 @@ export function AppSidebar() {
   const isAdmin = profile?.role === 'admin'
   const isDirector = profile?.role === 'director'
   const isManager = profile?.role === 'gerente'
-  const isConsultant = profile?.role === 'consultor'
 
   const hasManagementAccess = isAdmin || isDirector
   const hasApprovalAccess = isAdmin || isDirector || isManager
@@ -77,12 +75,6 @@ export function AppSidebar() {
       title: t('sidebar.profile'),
       url: '/profile',
       icon: UserCircle,
-      visible: true,
-    },
-    {
-      title: t('sidebar.settings'),
-      url: '/settings',
-      icon: Settings,
       visible: true,
     },
   ]

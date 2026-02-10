@@ -41,4 +41,16 @@ export const userService = {
 
     return data as UserPreferences
   },
+
+  async updateUserProfile(
+    userId: string,
+    data: { nombre: string; apellido: string },
+  ) {
+    const { error } = await supabase.from('users').update(data).eq('id', userId)
+
+    if (error) {
+      console.error('Error updating user profile:', error)
+      throw error
+    }
+  },
 }
