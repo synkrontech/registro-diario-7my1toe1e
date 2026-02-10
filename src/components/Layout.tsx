@@ -7,11 +7,8 @@ import { Separator } from '@/components/ui/separator'
 import { AppSidebar } from '@/components/app-sidebar'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Outlet } from 'react-router-dom'
-import useTimeStore from '@/stores/useTimeStore'
-import { format } from 'date-fns'
 import { useAuth } from '@/components/AuthProvider'
 import { LogOut } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,23 +17,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { LanguageSelector, useDateLocale } from '@/components/LanguageSelector'
+import { LanguageSelector } from '@/components/LanguageSelector'
 import { useTranslation } from 'react-i18next'
 
 function LayoutContent() {
   const { t } = useTranslation()
-  const dateLocale = useDateLocale()
-  const { viewDate, getEntriesByMonth } = useTimeStore()
   const { profile, signOut } = useAuth()
-
-  // Calculate monthly stats for the footer
-  const monthlyEntries = getEntriesByMonth(viewDate)
-  const totalMinutes = monthlyEntries.reduce(
-    (acc, curr) => acc + curr.durationMinutes,
-    0,
-  )
-  const totalHours = (totalMinutes / 60).toFixed(1)
-  const uniqueProjects = new Set(monthlyEntries.map((e) => e.project_id)).size
 
   return (
     <SidebarProvider>
@@ -96,40 +82,8 @@ function LayoutContent() {
           <Outlet />
         </main>
         <footer className="border-t bg-background p-4 text-sm text-muted-foreground shadow-[0_-1px_3px_rgba(0,0,0,0.05)] z-20">
-          <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+          <div className="container mx-auto flex items-center justify-center">
             <span>© 2026 Synkron Tech. Todos los derechos reservados.</span>
-
-            <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
-              <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
-                <span className="font-semibold text-slate-700">
-                  {t('timeEntry.monthlyReport')}:
-                </span>
-                <div className="flex items-center gap-3 text-xs md:text-sm">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-500">Horas:</span>
-                    <span className="font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
-                      {totalHours}h
-                    </span>
-                  </div>
-                  <Separator orientation="vertical" className="h-4" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-slate-500">
-                      {t('timeEntry.project')}:
-                    </span>
-                    <span className="font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
-                      {uniqueProjects}
-                    </span>
-                  </div>
-                  <Separator
-                    orientation="vertical"
-                    className="h-4 hidden md:block"
-                  />
-                  <span className="text-slate-400 capitalize hidden md:block">
-                    {format(viewDate, 'MMMM', { locale: dateLocale })}
-                  </span>
-                </div>
-              </div>
-            </div>
           </div>
         </footer>
       </SidebarInset>
