@@ -15,6 +15,7 @@ import PendingApproval from './pages/PendingApproval'
 import UserManagement from './pages/admin/UserManagement'
 import NotificationsPage from './pages/admin/NotificationsPage'
 import EmailSettingsPage from './pages/admin/EmailSettingsPage'
+import ClientManagement from './pages/admin/ClientManagement'
 import Layout from './components/Layout'
 import { TimeStoreProvider } from '@/stores/useTimeStore'
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
@@ -56,6 +57,24 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) return null
 
   if (profile?.role !== 'admin') {
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
+
+const RoleRoute = ({
+  children,
+  allowedRoles,
+}: {
+  children: React.ReactNode
+  allowedRoles: string[]
+}) => {
+  const { profile, loading } = useAuth()
+
+  if (loading) return null
+
+  if (!profile || !allowedRoles.includes(profile.role)) {
     return <Navigate to="/" replace />
   }
 
@@ -115,6 +134,14 @@ const App = () => (
                   <AdminRoute>
                     <EmailSettingsPage />
                   </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/clients"
+                element={
+                  <RoleRoute allowedRoles={['admin', 'director']}>
+                    <ClientManagement />
+                  </RoleRoute>
                 }
               />
             </Route>

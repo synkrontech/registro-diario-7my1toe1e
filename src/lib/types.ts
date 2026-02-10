@@ -44,6 +44,7 @@ export interface Client {
   codigo: string
   pais: string
   activo: boolean
+  created_at?: string
 }
 
 export interface System {
@@ -151,3 +152,12 @@ export const timeEntrySchema = z
   )
 
 export type TimeEntryFormValues = z.infer<typeof timeEntrySchema>
+
+export const clientSchema = z.object({
+  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  codigo: z.string().min(2, 'El código debe tener al menos 2 caracteres'),
+  pais: z.string().min(1, 'Selecciona un país'),
+  activo: z.boolean().default(true),
+})
+
+export type ClientFormValues = z.infer<typeof clientSchema>
