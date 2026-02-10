@@ -1,6 +1,21 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react'
-import { TimeEntry, TimeEntryFormValues } from '@/lib/types'
-import { isSameDay, isSameMonth, isSameYear } from 'date-fns'
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from 'react'
+import { TimeEntry, TimeEntryFormValues, PROJECTS } from '@/lib/types'
+import {
+  isSameDay,
+  isSameMonth,
+  isSameYear,
+  subDays,
+  addDays,
+  startOfMonth,
+  setHours,
+  setMinutes,
+} from 'date-fns'
 
 interface TimeState {
   entries: TimeEntry[]
@@ -13,8 +28,86 @@ interface TimeState {
 
 const TimeStoreContext = createContext<TimeState | undefined>(undefined)
 
+// Helper to generate mock data
+const generateMockData = (): TimeEntry[] => {
+  const entries: TimeEntry[] = []
+  const today = new Date()
+
+  const createEntry = (
+    date: Date,
+    project: string,
+    startH: number,
+    startM: number,
+    endH: number,
+    endM: number,
+    desc: string,
+  ): TimeEntry => {
+    const startTime = `${startH.toString().padStart(2, '0')}:${startM.toString().padStart(2, '0')}`
+    const endTime = `${endH.toString().padStart(2, '0')}:${endM.toString().padStart(2, '0')}`
+    const durationMinutes = endH * 60 + endM - (startH * 60 + startM)
+
+    // Set the time on the date object for sorting/accuracy if needed, though we store time strings
+    const entryDate = setMinutes(setHours(new Date(date), startH), startM)
+
+    return {
+      id: crypto.randomUUID(),
+      date: entryDate,
+      project,
+      startTime,
+      endTime,
+      description: desc,
+      durationMinutes,
+    }
+  }
+
+  // Generate data for the last 30 days and next 5 days
+  for (let i = -20; i <= 5; i++) {
+    const date = addDays(today, i)
+    // Skip some weekends randomly
+    if (Math.random() > 0.8) continue
+
+    // Add 1-3 entries per day
+    const numEntries = Math.floor(Math.random() * 3) + 1
+
+    let currentHour = 9
+    for (let j = 0; j < numEntries; j++) {
+      const duration = Math.floor(Math.random() * 120) + 60 // 1-3 hours
+      const project = PROJECTS[Math.floor(Math.random() * PROJECTS.length)]
+
+      const startH = currentHour
+      const startM = 0
+      const endTotalM = startH * 60 + startM + duration
+      const endH = Math.floor(endTotalM / 60)
+      const endM = endTotalM % 60
+
+      entries.push(
+        createEntry(
+          date,
+          project,
+          startH,
+          startM,
+          endH,
+          endM,
+          `Trabajo en ${project} - Tarea #${Math.floor(Math.random() * 1000)}`,
+        ),
+      )
+
+      currentHour = endH + 1 // Gap of 1 hour
+      if (currentHour > 18) break
+    }
+  }
+
+  return entries
+}
+
 export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
+  // Initialize with mock data
   const [entries, setEntries] = useState<TimeEntry[]>([])
+
+  // Load mock data on mount
+  useEffect(() => {
+    setEntries(generateMockData())
+  }, [])
 
   const calculateDuration = (startTime: string, endTime: string) => {
     const [startH, startM] = startTime.split(':').map(Number)
