@@ -73,7 +73,8 @@
     "emailTemplates": "Plantillas de Correo",
     "admin": "Administración",
     "mainMenu": "Menú Principal",
-    "approvals": "Aprobaciones"
+    "approvals": "Aprobaciones",
+    "timeRegistry": "Registro de Tiempo"
   },
   "dashboard": {
     "consultant": {

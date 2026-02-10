@@ -60,7 +60,7 @@ export function AppSidebar() {
     // Only consultants (or admins acting as such) need the Timesheet detailed view in sidebar
     // Though usually helpful for everyone to log their own time
     {
-      title: t('timeEntry.detailedView'),
+      title: t('sidebar.timeRegistry'),
       url: '/timesheet',
       icon: CalendarDays,
       visible: true,

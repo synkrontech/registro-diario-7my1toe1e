@@ -73,7 +73,8 @@
     "emailTemplates": "Modelos de E-mail",
     "admin": "Administração",
     "mainMenu": "Menu Principal",
-    "approvals": "Aprovações"
+    "approvals": "Aprovações",
+    "timeRegistry": "Registro de Tempo"
   },
   "dashboard": {
     "consultant": {

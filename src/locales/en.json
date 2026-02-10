@@ -73,7 +73,8 @@
     "emailTemplates": "Email Templates",
     "admin": "Administration",
     "mainMenu": "Main Menu",
-    "approvals": "Approvals"
+    "approvals": "Approvals",
+    "timeRegistry": "Time Registry"
   },
   "dashboard": {
     "consultant": {
