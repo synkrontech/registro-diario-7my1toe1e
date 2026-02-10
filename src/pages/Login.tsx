@@ -126,16 +126,21 @@ export default function Login() {
   async function onRegister(data: RegisterFormValues) {
     setIsLoading(true)
     try {
+      // Clean up metadata to avoid sending undefined values or invalid data to the trigger
+      const metadata = {
+        nombre: data.nombre,
+        apellido: data.apellido,
+        role: data.role,
+        // Only send projectId if role is consultor and a project is selected
+        projectId:
+          data.role === 'consultor' && data.projectId ? data.projectId : null,
+      }
+
       const { error } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
         options: {
-          data: {
-            nombre: data.nombre,
-            apellido: data.apellido,
-            role: data.role,
-            projectId: data.projectId,
-          },
+          data: metadata,
         },
       })
 
@@ -151,11 +156,15 @@ export default function Login() {
       const { data: sessionData } = await supabase.auth.getSession()
       if (sessionData.session) {
         navigate(from, { replace: true })
+      } else {
+        // If not auto-logged in (e.g. email confirmation required), switch to login tab
+        // Or just let the user initiate login manually as per UI feedback
       }
     } catch (error: any) {
+      console.error('Registration Error:', error)
       toast({
         title: 'Error de registro',
-        description: error.message,
+        description: error.message || 'Ocurrió un error al crear la cuenta',
         variant: 'destructive',
       })
     } finally {
