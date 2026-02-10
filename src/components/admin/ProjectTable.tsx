@@ -50,6 +50,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useTranslation } from 'react-i18next'
 
 interface ProjectTableProps {
   projects: Project[]
@@ -68,6 +69,7 @@ export function ProjectTable({
   onDelete,
   onAssign,
 }: ProjectTableProps) {
+  const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [clientFilter, setClientFilter] = useState('all')
@@ -108,7 +110,7 @@ export function ProjectTable({
         <div className="relative flex-1 min-w-[200px]">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre o código..."
+            placeholder={t('common.search')}
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -116,11 +118,11 @@ export function ProjectTable({
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full md:w-[150px]">
-            <SelectValue placeholder="Estado" />
+            <SelectValue placeholder={t('common.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos (Estado)</SelectItem>
-            <SelectItem value="activo">Activo</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="activo">{t('common.active')}</SelectItem>
             <SelectItem value="pausado">Pausado</SelectItem>
             <SelectItem value="finalizado">Finalizado</SelectItem>
           </SelectContent>
@@ -128,10 +130,10 @@ export function ProjectTable({
 
         <Select value={clientFilter} onValueChange={setClientFilter}>
           <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Cliente" />
+            <SelectValue placeholder={t('timeEntry.client')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos (Clientes)</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             {clients.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.nombre}
@@ -142,10 +144,10 @@ export function ProjectTable({
 
         <Select value={managerFilter} onValueChange={setManagerFilter}>
           <SelectTrigger className="w-full md:w-[180px]">
-            <SelectValue placeholder="Gerente" />
+            <SelectValue placeholder={t('projects.manager')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos (Gerentes)</SelectItem>
+            <SelectItem value="all">Todos</SelectItem>
             {managers.map((m) => (
               <SelectItem key={m.id} value={m.id!}>
                 {m.nombre} {m.apellido}
@@ -159,13 +161,15 @@ export function ProjectTable({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Código</TableHead>
-              <TableHead>Proyecto</TableHead>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Gerente</TableHead>
-              <TableHead>Equipo</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead>{t('clients.code')}</TableHead>
+              <TableHead>{t('timeEntry.project')}</TableHead>
+              <TableHead>{t('timeEntry.client')}</TableHead>
+              <TableHead>{t('projects.manager')}</TableHead>
+              <TableHead>{t('projects.team')}</TableHead>
+              <TableHead>{t('common.status')}</TableHead>
+              <TableHead className="text-right">
+                {t('common.actions')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -193,8 +197,7 @@ export function ProjectTable({
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-slate-50">
                         <Users className="mr-1 h-3 w-3 text-slate-500" />
-                        {project.consultant_count} Consultor
-                        {project.consultant_count !== 1 ? 'es' : ''}
+                        {project.consultant_count}
                       </Badge>
                     </div>
                   </TableCell>
@@ -221,12 +224,12 @@ export function ProjectTable({
                             >
                               <UserPlus className="h-4 w-4" />
                               <span className="sr-only">
-                                Asignar Consultores
+                                {t('projects.assignTeam')}
                               </span>
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p>Asignar Consultores</p>
+                            <p>{t('projects.assignTeam')}</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -239,18 +242,23 @@ export function ProjectTable({
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuLabel>
+                            {t('common.actions')}
+                          </DropdownMenuLabel>
                           <DropdownMenuItem onClick={() => onAssign(project)}>
-                            <Users className="mr-2 h-4 w-4" /> Asignar Equipo
+                            <Users className="mr-2 h-4 w-4" />{' '}
+                            {t('projects.assignTeam')}
                           </DropdownMenuItem>
                           <DropdownMenuItem onClick={() => onEdit(project)}>
-                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                            <Pencil className="mr-2 h-4 w-4" />{' '}
+                            {t('common.edit')}
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             className="text-red-600 focus:text-red-600 focus:bg-red-50"
                             onClick={() => setDeleteId(project.id)}
                           >
-                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                            <Trash2 className="mr-2 h-4 w-4" />{' '}
+                            {t('common.delete')}
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
@@ -269,14 +277,13 @@ export function ProjectTable({
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente
-              el proyecto.
+              {t('common.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.noCancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={() => {
@@ -284,7 +291,7 @@ export function ProjectTable({
                 setDeleteId(null)
               }}
             >
-              Eliminar
+              {t('common.yesDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

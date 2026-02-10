@@ -13,8 +13,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Loader2, Plus, MonitorSmartphone } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function SystemManagement() {
+  const { t } = useTranslation()
   const { toast } = useToast()
   const [systems, setSystems] = useState<System[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -97,17 +99,15 @@ export default function SystemManagement() {
         <div className="flex flex-col gap-2">
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <MonitorSmartphone className="h-8 w-8 text-indigo-600" />
-            Gestión de Sistemas
+            {t('systems.title')}
           </h2>
-          <p className="text-muted-foreground">
-            Administra el catálogo de sistemas y plataformas de la organización.
-          </p>
+          <p className="text-muted-foreground">{t('systems.subtitle')}</p>
         </div>
         <Button
           onClick={handleCreate}
           className="bg-indigo-600 hover:bg-indigo-700"
         >
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Sistema
+          <Plus className="mr-2 h-4 w-4" /> {t('systems.newSystem')}
         </Button>
       </div>
 
@@ -127,7 +127,7 @@ export default function SystemManagement() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {editingSystem ? 'Editar Sistema' : 'Nuevo Sistema'}
+              {editingSystem ? t('systems.editSystem') : t('systems.newSystem')}
             </DialogTitle>
             <DialogDescription>
               {editingSystem

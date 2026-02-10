@@ -8,8 +8,10 @@ import {
   CardTitle,
 } from '@/components/ui/card'
 import { LogOut, ShieldAlert } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function PendingApproval() {
+  const { t } = useTranslation()
   const { signOut, profile } = useAuth()
 
   return (
@@ -20,18 +22,14 @@ export default function PendingApproval() {
             <ShieldAlert className="h-8 w-8 text-orange-600" />
           </div>
           <CardTitle className="text-xl font-bold text-slate-900">
-            Cuenta Pendiente de Aprobación
+            {t('auth.pendingApproval')}
           </CardTitle>
           <CardDescription>
-            Hola, {profile?.nombre || 'Usuario'}.
+            {t('common.welcome')}, {profile?.nombre || 'Usuario'}.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6 text-center">
-          <p className="text-slate-600">
-            Tu cuenta ha sido creada exitosamente y tu correo verificado, pero
-            aún requieres la aprobación de un administrador para acceder al
-            sistema.
-          </p>
+          <p className="text-slate-600">{t('auth.pendingMessage')}</p>
           <p className="text-sm text-muted-foreground">
             Por favor, contacta a tu supervisor o al administrador del sistema
             para activar tu cuenta.
@@ -43,7 +41,7 @@ export default function PendingApproval() {
             className="w-full border-slate-200 hover:bg-slate-100"
           >
             <LogOut className="mr-2 h-4 w-4" />
-            Cerrar Sesión
+            {t('common.logout')}
           </Button>
         </CardContent>
       </Card>

@@ -34,25 +34,11 @@ import {
 } from '@/components/ui/select'
 import { Project } from '@/lib/types'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-
-const loginSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-})
-
-const registerSchema = z.object({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-  nombre: z.string().min(2, 'Nombre requerido'),
-  apellido: z.string().min(2, 'Apellido requerido'),
-  role: z.enum(['admin', 'director', 'gerente', 'consultor']),
-  projectId: z.string().optional(),
-})
-
-type LoginFormValues = z.infer<typeof loginSchema>
-type RegisterFormValues = z.infer<typeof registerSchema>
+import { LanguageSelector } from '@/components/LanguageSelector'
+import { useTranslation } from 'react-i18next'
 
 export default function Login() {
+  const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
@@ -61,6 +47,24 @@ export default function Login() {
   const { toast } = useToast()
 
   const from = location.state?.from?.pathname || '/'
+
+  // Schemas with translation
+  const loginSchema = z.object({
+    email: z.string().email(t('validation.emailInvalid')),
+    password: z.string().min(6, t('validation.minChar', { min: 6 })),
+  })
+
+  const registerSchema = z.object({
+    email: z.string().email(t('validation.emailInvalid')),
+    password: z.string().min(6, t('validation.minChar', { min: 6 })),
+    nombre: z.string().min(2, t('validation.minChar', { min: 2 })),
+    apellido: z.string().min(2, t('validation.minChar', { min: 2 })),
+    role: z.enum(['admin', 'director', 'gerente', 'consultor']),
+    projectId: z.string().optional(),
+  })
+
+  type LoginFormValues = z.infer<typeof loginSchema>
+  type RegisterFormValues = z.infer<typeof registerSchema>
 
   // Fetch projects for registration demo
   useEffect(() => {
@@ -113,7 +117,7 @@ export default function Login() {
         ) {
           setUnverifiedEmail(data.email)
           toast({
-            title: 'Email no verificado',
+            title: t('auth.verifyEmail'),
             description:
               'Por favor verifica tu correo electrónico para continuar.',
             variant: 'destructive',
@@ -127,7 +131,7 @@ export default function Login() {
       navigate(from, { replace: true })
     } catch (error: any) {
       toast({
-        title: 'Error de autenticación',
+        title: t('auth.errorAuth'),
         description: error.message || 'Credenciales incorrectas',
         variant: 'destructive',
       })
@@ -159,9 +163,8 @@ export default function Login() {
       if (error) throw error
 
       toast({
-        title: 'Registro exitoso',
-        description:
-          'Tu cuenta ha sido creada. Hemos enviado un correo de verificación.',
+        title: t('auth.successRegister'),
+        description: t('auth.pendingMessage'),
         className: 'bg-green-50 text-green-800 border-green-200',
       })
 
@@ -179,7 +182,7 @@ export default function Login() {
     } catch (error: any) {
       console.error('Registration Error:', error)
       toast({
-        title: 'Error de registro',
+        title: t('auth.errorRegister'),
         description: error.message || 'Ocurrió un error al crear la cuenta',
         variant: 'destructive',
       })
@@ -218,14 +221,17 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4 relative">
+      <div className="absolute top-4 right-4">
+        <LanguageSelector />
+      </div>
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center text-slate-900">
-            Registro Diario
+            {t('auth.loginTitle')}
           </CardTitle>
           <CardDescription className="text-center">
-            Sistema de gestión de tiempos
+            {t('auth.loginSubtitle')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -233,7 +239,7 @@ export default function Login() {
             <div className="space-y-4 animate-fade-in">
               <Alert variant="destructive">
                 <MailWarning className="h-4 w-4" />
-                <AlertTitle>Verificación Pendiente</AlertTitle>
+                <AlertTitle>{t('auth.verifyEmail')}</AlertTitle>
                 <AlertDescription>
                   El correo {unverifiedEmail} no ha sido verificado aún.
                 </AlertDescription>
@@ -248,21 +254,21 @@ export default function Login() {
                 ) : (
                   <Send className="mr-2 h-4 w-4" />
                 )}
-                Reenviar Correo de Verificación
+                {t('auth.resendEmail')}
               </Button>
               <Button
                 variant="ghost"
                 className="w-full"
                 onClick={() => setUnverifiedEmail(null)}
               >
-                Volver al inicio de sesión
+                {t('auth.backToLogin')}
               </Button>
             </div>
           ) : (
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-                <TabsTrigger value="register">Registrarse</TabsTrigger>
+                <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
+                <TabsTrigger value="register">{t('auth.register')}</TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
@@ -276,7 +282,7 @@ export default function Login() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Correo Electrónico</FormLabel>
+                          <FormLabel>{t('auth.email')}</FormLabel>
                           <FormControl>
                             <Input
                               placeholder="usuario@empresa.com"
@@ -292,7 +298,7 @@ export default function Login() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contraseña</FormLabel>
+                          <FormLabel>{t('auth.password')}</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -314,7 +320,7 @@ export default function Login() {
                       ) : (
                         <LogIn className="mr-2 h-4 w-4" />
                       )}
-                      Ingresar
+                      {t('auth.login')}
                     </Button>
                   </form>
                 </Form>
@@ -332,7 +338,7 @@ export default function Login() {
                         name="nombre"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Nombre</FormLabel>
+                            <FormLabel>{t('auth.name')}</FormLabel>
                             <FormControl>
                               <Input placeholder="Juan" {...field} />
                             </FormControl>
@@ -345,7 +351,7 @@ export default function Login() {
                         name="apellido"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Apellido</FormLabel>
+                            <FormLabel>{t('auth.lastName')}</FormLabel>
                             <FormControl>
                               <Input placeholder="Pérez" {...field} />
                             </FormControl>
@@ -360,7 +366,7 @@ export default function Login() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Correo</FormLabel>
+                          <FormLabel>{t('auth.email')}</FormLabel>
                           <FormControl>
                             <Input placeholder="juan@ejemplo.com" {...field} />
                           </FormControl>
@@ -374,7 +380,7 @@ export default function Login() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Contraseña</FormLabel>
+                          <FormLabel>{t('auth.password')}</FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -392,14 +398,16 @@ export default function Login() {
                       name="role"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Rol (Solicitado)</FormLabel>
+                          <FormLabel>{t('auth.role')}</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Selecciona un rol" />
+                                <SelectValue
+                                  placeholder={t('auth.selectRole')}
+                                />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
@@ -422,7 +430,7 @@ export default function Login() {
                         name="projectId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Proyecto Inicial</FormLabel>
+                            <FormLabel>{t('auth.initialProject')}</FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
@@ -456,7 +464,7 @@ export default function Login() {
                       ) : (
                         <UserPlus className="mr-2 h-4 w-4" />
                       )}
-                      Crear Cuenta
+                      {t('auth.createAccount')}
                     </Button>
                   </form>
                 </Form>
@@ -466,7 +474,7 @@ export default function Login() {
         </CardContent>
         <CardFooter className="flex justify-center flex-col gap-2">
           <p className="text-xs text-muted-foreground text-center">
-            Las nuevas cuentas requieren aprobación de un administrador.
+            {t('auth.pendingMessage')}
           </p>
         </CardFooter>
       </Card>

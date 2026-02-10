@@ -124,68 +124,80 @@ export interface EmailTemplate {
   updated_at: string
 }
 
-export const timeEntrySchema = z
-  .object({
-    date: z.date({
-      required_error: 'La fecha es requerida',
-    }),
-    projectId: z
-      .string({
-        required_error: 'Selecciona un proyecto',
-      })
-      .min(1, 'Selecciona un proyecto'),
-    startTime: z
-      .string()
-      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido'),
-    endTime: z
-      .string()
-      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido'),
-    description: z
-      .string()
-      .min(5, 'La descripción debe tener al menos 5 caracteres'),
-  })
-  .refine(
-    (data) => {
-      const [startH, startM] = data.startTime.split(':').map(Number)
-      const [endH, endM] = data.endTime.split(':').map(Number)
-      const startTotal = startH * 60 + startM
-      const endTotal = endH * 60 + endM
-      return endTotal > startTotal
-    },
-    {
-      message: 'La hora de fin debe ser posterior a la de inicio',
-      path: ['endTime'],
-    },
-  )
+// Schemas factories for i18n
+export const createTimeEntrySchema = (
+  t: (key: string, options?: any) => string,
+) =>
+  z
+    .object({
+      date: z.date({
+        required_error: t('validation.required'),
+      }),
+      projectId: z
+        .string({
+          required_error: t('validation.selectProject'),
+        })
+        .min(1, t('validation.selectProject')),
+      startTime: z
+        .string()
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido'),
+      endTime: z
+        .string()
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido'),
+      description: z.string().min(5, t('validation.minChar', { min: 5 })),
+    })
+    .refine(
+      (data) => {
+        const [startH, startM] = data.startTime.split(':').map(Number)
+        const [endH, endM] = data.endTime.split(':').map(Number)
+        const startTotal = startH * 60 + startM
+        const endTotal = endH * 60 + endM
+        return endTotal > startTotal
+      },
+      {
+        message: t('validation.endTimeAfterStart'),
+        path: ['endTime'],
+      },
+    )
 
+// Static schema for types
+export const timeEntrySchema = createTimeEntrySchema((k) => k)
 export type TimeEntryFormValues = z.infer<typeof timeEntrySchema>
 
-export const clientSchema = z.object({
-  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  codigo: z.string().min(2, 'El código debe tener al menos 2 caracteres'),
-  pais: z.string().min(1, 'Selecciona un país'),
-  activo: z.boolean().default(true),
-})
+export const createClientSchema = (t: (key: string, options?: any) => string) =>
+  z.object({
+    nombre: z.string().min(2, t('validation.minChar', { min: 2 })),
+    codigo: z.string().min(2, t('validation.minChar', { min: 2 })),
+    pais: z.string().min(1, t('validation.selectCountry')),
+    activo: z.boolean().default(true),
+  })
 
+export const clientSchema = createClientSchema((k) => k)
 export type ClientFormValues = z.infer<typeof clientSchema>
 
-export const systemSchema = z.object({
-  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  codigo: z.string().min(2, 'El código debe tener al menos 2 caracteres'),
-  descripcion: z.string().optional(),
-  activo: z.boolean().default(true),
-})
+export const createSystemSchema = (t: (key: string, options?: any) => string) =>
+  z.object({
+    nombre: z.string().min(2, t('validation.minChar', { min: 2 })),
+    codigo: z.string().min(2, t('validation.minChar', { min: 2 })),
+    descripcion: z.string().optional(),
+    activo: z.boolean().default(true),
+  })
 
+export const systemSchema = createSystemSchema((k) => k)
 export type SystemFormValues = z.infer<typeof systemSchema>
 
-export const projectSchema = z.object({
-  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  codigo: z.string().min(2, 'El código debe tener al menos 2 caracteres'),
-  client_id: z.string().min(1, 'Selecciona un cliente'),
-  gerente_id: z.string().optional(),
-  system_id: z.string().optional(),
-  work_front: z.enum(['Procesos', 'SAP IBP', 'SAP MDG', 'Otro']).optional(),
-  status: z.enum(['activo', 'pausado', 'finalizado']),
-})
+export const createProjectSchema = (
+  t: (key: string, options?: any) => string,
+) =>
+  z.object({
+    nombre: z.string().min(2, t('validation.minChar', { min: 2 })),
+    codigo: z.string().min(2, t('validation.minChar', { min: 2 })),
+    client_id: z.string().min(1, t('validation.selectClient')),
+    gerente_id: z.string().optional(),
+    system_id: z.string().optional(),
+    work_front: z.enum(['Procesos', 'SAP IBP', 'SAP MDG', 'Otro']).optional(),
+    status: z.enum(['activo', 'pausado', 'finalizado']),
+  })
 
+export const projectSchema = createProjectSchema((k) => k)
 export type ProjectFormValues = z.infer<typeof projectSchema>

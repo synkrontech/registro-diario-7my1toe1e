@@ -22,8 +22,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Loader2, Plus, Briefcase } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function ProjectManagement() {
+  const { t } = useTranslation()
   const { toast } = useToast()
 
   const [projects, setProjects] = useState<Project[]>([])
@@ -165,17 +167,15 @@ export default function ProjectManagement() {
         <div className="flex flex-col gap-2">
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <Briefcase className="h-8 w-8 text-indigo-600" />
-            Gestión de Proyectos
+            {t('projects.title')}
           </h2>
-          <p className="text-muted-foreground">
-            Administra los proyectos, asignaciones y frentes de trabajo.
-          </p>
+          <p className="text-muted-foreground">{t('projects.subtitle')}</p>
         </div>
         <Button
           onClick={handleCreate}
           className="bg-indigo-600 hover:bg-indigo-700"
         >
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Proyecto
+          <Plus className="mr-2 h-4 w-4" /> {t('projects.newProject')}
         </Button>
       </div>
 
@@ -199,7 +199,9 @@ export default function ProjectManagement() {
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
             <DialogTitle>
-              {editingProject ? 'Editar Proyecto' : 'Nuevo Proyecto'}
+              {editingProject
+                ? t('projects.editProject')
+                : t('projects.newProject')}
             </DialogTitle>
             <DialogDescription>
               {editingProject

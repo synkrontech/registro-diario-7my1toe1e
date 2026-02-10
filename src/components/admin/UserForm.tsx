@@ -22,23 +22,7 @@ import {
 } from '@/components/ui/select'
 import { UserProfile, Role } from '@/lib/types'
 import { Loader2 } from 'lucide-react'
-
-// Schemas
-const baseSchema = z.object({
-  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
-  apellido: z.string().min(2, 'El apellido debe tener al menos 2 caracteres'),
-  role_id: z.string().min(1, 'Selecciona un rol'),
-  activo: z.boolean(),
-})
-
-const createSchema = baseSchema.extend({
-  email: z.string().email('Email inválido'),
-  password: z.string().min(6, 'La contraseña debe tener al menos 6 caracteres'),
-})
-
-const updateSchema = baseSchema.extend({
-  email: z.string().email().optional(), // Read only
-})
+import { useTranslation } from 'react-i18next'
 
 type UserFormProps = {
   initialData?: UserProfile | null
@@ -55,7 +39,24 @@ export function UserForm({
   onCancel,
   isSubmitting,
 }: UserFormProps) {
+  const { t } = useTranslation()
   const isEditing = !!initialData
+
+  const baseSchema = z.object({
+    nombre: z.string().min(2, t('validation.minChar', { min: 2 })),
+    apellido: z.string().min(2, t('validation.minChar', { min: 2 })),
+    role_id: z.string().min(1, t('auth.selectRole')),
+    activo: z.boolean(),
+  })
+
+  const createSchema = baseSchema.extend({
+    email: z.string().email(t('validation.emailInvalid')),
+    password: z.string().min(6, t('validation.minChar', { min: 6 })),
+  })
+
+  const updateSchema = baseSchema.extend({
+    email: z.string().email().optional(), // Read only
+  })
 
   const form = useForm({
     resolver: zodResolver(isEditing ? updateSchema : createSchema),
@@ -78,7 +79,7 @@ export function UserForm({
             name="nombre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre</FormLabel>
+                <FormLabel>{t('auth.name')}</FormLabel>
                 <FormControl>
                   <Input placeholder="Juan" {...field} />
                 </FormControl>
@@ -91,7 +92,7 @@ export function UserForm({
             name="apellido"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Apellido</FormLabel>
+                <FormLabel>{t('auth.lastName')}</FormLabel>
                 <FormControl>
                   <Input placeholder="Pérez" {...field} />
                 </FormControl>
@@ -106,7 +107,7 @@ export function UserForm({
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Email</FormLabel>
+              <FormLabel>{t('auth.email')}</FormLabel>
               <FormControl>
                 <Input
                   placeholder="usuario@empresa.com"
@@ -125,7 +126,7 @@ export function UserForm({
             name="password"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Contraseña</FormLabel>
+                <FormLabel>{t('auth.password')}</FormLabel>
                 <FormControl>
                   <Input
                     type="password"
@@ -135,7 +136,7 @@ export function UserForm({
                   />
                 </FormControl>
                 <FormDescription>
-                  Mínimo 6 caracteres. El usuario podrá cambiarla después.
+                  {t('validation.minChar', { min: 6 })}
                 </FormDescription>
                 <FormMessage />
               </FormItem>
@@ -149,7 +150,7 @@ export function UserForm({
             name="role_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Rol</FormLabel>
+                <FormLabel>{t('auth.role')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -157,7 +158,7 @@ export function UserForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar rol" />
+                      <SelectValue placeholder={t('auth.selectRole')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -178,7 +179,7 @@ export function UserForm({
             name="activo"
             render={({ field }) => (
               <FormItem className="flex flex-col gap-2">
-                <FormLabel>Estado</FormLabel>
+                <FormLabel>{t('common.status')}</FormLabel>
                 <div className="flex items-center gap-2 h-10">
                   <FormControl>
                     <Switch
@@ -187,7 +188,7 @@ export function UserForm({
                     />
                   </FormControl>
                   <span className="text-sm text-muted-foreground">
-                    {field.value ? 'Activo' : 'Inactivo'}
+                    {field.value ? t('common.active') : t('common.inactive')}
                   </span>
                 </div>
               </FormItem>
@@ -197,11 +198,11 @@ export function UserForm({
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {isEditing ? 'Guardar Cambios' : 'Crear Usuario'}
+            {isEditing ? t('common.save') : t('auth.createAccount')}
           </Button>
         </div>
       </form>

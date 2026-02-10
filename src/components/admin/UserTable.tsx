@@ -21,6 +21,7 @@ import { Button } from '@/components/ui/button'
 import { UserProfile, Role } from '@/lib/types'
 import { Search, ArrowUpDown, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useTranslation } from 'react-i18next'
 
 interface UserTableProps {
   users: UserProfile[]
@@ -31,6 +32,7 @@ interface UserTableProps {
 type SortField = 'created_at' | 'nombre'
 
 export function UserTable({ users, roles, onEdit }: UserTableProps) {
+  const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -85,7 +87,7 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre o email..."
+            placeholder={t('common.search')}
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -94,10 +96,10 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
         <div className="flex gap-2">
           <Select value={roleFilter} onValueChange={setRoleFilter}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Filtrar Rol" />
+              <SelectValue placeholder={t('auth.role')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos los roles</SelectItem>
+              <SelectItem value="all">Todos</SelectItem>
               {roles.map((r) => (
                 <SelectItem key={r.id} value={r.id}>
                   {r.name}
@@ -108,12 +110,12 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
 
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Estado" />
+              <SelectValue placeholder={t('common.status')} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
-              <SelectItem value="active">Activos</SelectItem>
-              <SelectItem value="inactive">Inactivos</SelectItem>
+              <SelectItem value="active">{t('common.active')}</SelectItem>
+              <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -129,13 +131,17 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
                   className="p-0 hover:bg-transparent font-bold"
                   onClick={() => handleSort('nombre')}
                 >
-                  Nombre Completo <ArrowUpDown className="ml-2 h-4 w-4" />
+                  {t('auth.name')} <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
-              <TableHead className="hidden md:table-cell">Email</TableHead>
-              <TableHead>Rol</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className="hidden md:table-cell">
+                {t('auth.email')}
+              </TableHead>
+              <TableHead>{t('auth.role')}</TableHead>
+              <TableHead>{t('common.status')}</TableHead>
+              <TableHead className="text-right">
+                {t('common.actions')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -189,7 +195,7 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
                         user.activo ? 'bg-emerald-600' : '',
                       )}
                     >
-                      {user.activo ? 'Activo' : 'Inactivo'}
+                      {user.activo ? t('common.active') : t('common.inactive')}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -198,9 +204,10 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
                       size="sm"
                       onClick={() => onEdit(user)}
                       className="h-8 w-8 p-0"
+                      title={t('common.edit')}
                     >
                       <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Editar</span>
+                      <span className="sr-only">{t('common.edit')}</span>
                     </Button>
                   </TableCell>
                 </TableRow>

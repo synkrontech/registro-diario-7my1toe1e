@@ -9,7 +9,6 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Outlet } from 'react-router-dom'
 import useTimeStore from '@/stores/useTimeStore'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { useAuth } from '@/components/AuthProvider'
 import { LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -21,8 +20,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { LanguageSelector, useDateLocale } from '@/components/LanguageSelector'
+import { useTranslation } from 'react-i18next'
 
 function LayoutContent() {
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const { viewDate, getEntriesByMonth } = useTimeStore()
   const { profile, signOut } = useAuth()
 
@@ -44,9 +47,11 @@ function LayoutContent() {
           <Separator orientation="vertical" className="mr-2 h-4" />
           <div className="flex flex-1 items-center justify-between">
             <h1 className="text-lg font-semibold text-slate-800">
-              Registro de Tiempos
+              {t('auth.loginTitle')}
             </h1>
             <div className="flex items-center gap-3">
+              <LanguageSelector variant="minimal" />
+
               <div className="hidden md:flex flex-col items-end mr-2">
                 <span className="text-sm font-medium text-slate-900">
                   {profile
@@ -71,14 +76,14 @@ function LayoutContent() {
                   </Avatar>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('common.myAccount')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={signOut}
                     className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
                   >
                     <LogOut className="mr-2 h-4 w-4" />
-                    Cerrar Sesión
+                    {t('common.logout')}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -95,7 +100,7 @@ function LayoutContent() {
             <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
               <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
                 <span className="font-semibold text-slate-700">
-                  Resumen Mensual:
+                  {t('timeEntry.monthlyReport')}:
                 </span>
                 <div className="flex items-center gap-3 text-xs md:text-sm">
                   <div className="flex items-center gap-1.5">
@@ -106,7 +111,9 @@ function LayoutContent() {
                   </div>
                   <Separator orientation="vertical" className="h-4" />
                   <div className="flex items-center gap-1.5">
-                    <span className="text-slate-500">Proyectos:</span>
+                    <span className="text-slate-500">
+                      {t('timeEntry.project')}:
+                    </span>
                     <span className="font-bold text-slate-900 bg-white border border-slate-200 px-2 py-0.5 rounded-md">
                       {uniqueProjects}
                     </span>
@@ -116,7 +123,7 @@ function LayoutContent() {
                     className="h-4 hidden md:block"
                   />
                   <span className="text-slate-400 capitalize hidden md:block">
-                    {format(viewDate, 'MMMM', { locale: es })}
+                    {format(viewDate, 'MMMM', { locale: dateLocale })}
                   </span>
                 </div>
               </div>

@@ -1,11 +1,15 @@
 import { TimeEntry } from '@/lib/types'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { Locale } from 'date-fns'
 
-export const downloadMonthlyCsv = (entries: TimeEntry[], date: Date) => {
+export const downloadMonthlyCsv = (
+  entries: TimeEntry[],
+  date: Date,
+  locale: Locale,
+) => {
   if (!entries.length) return
 
-  const monthName = format(date, 'MMMM-yyyy', { locale: es })
+  const monthName = format(date, 'MMMM-yyyy', { locale })
   const filename = `registro-tiempos-${monthName}.csv`
 
   const headers = [

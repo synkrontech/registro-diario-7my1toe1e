@@ -32,6 +32,7 @@ import {
 import { Plus, Pencil, ShieldAlert } from 'lucide-react'
 import { useAuth } from '@/components/AuthProvider'
 import { useToast } from '@/hooks/use-toast'
+import { useTranslation } from 'react-i18next'
 
 interface RoleManagerProps {
   roles: Role[]
@@ -49,6 +50,7 @@ export function RoleManager({
   permissions: initialPermissions,
   onSaveRole,
 }: RoleManagerProps) {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { toast } = useToast()
 
@@ -167,7 +169,9 @@ export function RoleManager({
               <TableHead>Nombre</TableHead>
               <TableHead>Descripción</TableHead>
               <TableHead>Permisos</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead className="text-right">
+                {t('common.actions')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -367,10 +371,10 @@ export function RoleManager({
 
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsOpen(false)}>
-              Cancelar
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleSave} disabled={isLoading}>
-              {isLoading ? 'Guardando...' : 'Guardar'}
+              {isLoading ? t('common.loading') : t('common.save')}
             </Button>
           </DialogFooter>
         </DialogContent>

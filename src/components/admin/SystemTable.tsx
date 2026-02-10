@@ -36,6 +36,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { MoreHorizontal, Pencil, Trash2, Search } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 interface SystemTableProps {
   systems: System[]
@@ -44,6 +45,7 @@ interface SystemTableProps {
 }
 
 export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
+  const { t } = useTranslation()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -67,7 +69,7 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar por nombre o código..."
+            placeholder={t('common.search')}
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -75,12 +77,12 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Estado" />
+            <SelectValue placeholder={t('common.status')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="active">Activos</SelectItem>
-            <SelectItem value="inactive">Inactivos</SelectItem>
+            <SelectItem value="active">{t('common.active')}</SelectItem>
+            <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -92,8 +94,10 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
               <TableHead>Nombre</TableHead>
               <TableHead>Código</TableHead>
               <TableHead>Descripción</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead>{t('common.status')}</TableHead>
+              <TableHead className="text-right">
+                {t('common.actions')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -126,7 +130,9 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
                           : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                       }
                     >
-                      {system.activo ? 'Activo' : 'Inactivo'}
+                      {system.activo
+                        ? t('common.active')
+                        : t('common.inactive')}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -138,15 +144,18 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                          {t('common.actions')}
+                        </DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => onEdit(system)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Editar
+                          <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-red-600 focus:text-red-600 focus:bg-red-50"
                           onClick={() => setDeleteId(system.id)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                          <Trash2 className="mr-2 h-4 w-4" />{' '}
+                          {t('common.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -164,14 +173,13 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente
-              el sistema y podría afectar a los proyectos asociados.
+              {t('common.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.noCancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={() => {
@@ -179,7 +187,7 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
                 setDeleteId(null)
               }}
             >
-              Eliminar
+              {t('common.yesDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

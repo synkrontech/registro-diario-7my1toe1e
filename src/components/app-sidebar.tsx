@@ -23,8 +23,10 @@ import {
 } from '@/components/ui/sidebar'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/components/AuthProvider'
+import { useTranslation } from 'react-i18next'
 
 export function AppSidebar() {
+  const { t } = useTranslation()
   const location = useLocation()
   const { profile } = useAuth()
   const isAdmin = profile?.role === 'admin'
@@ -33,19 +35,19 @@ export function AppSidebar() {
 
   const items = [
     {
-      title: 'Registro Diario',
+      title: t('sidebar.dashboard'),
       url: '/',
       icon: Clock,
       visible: true,
     },
     {
-      title: 'Reportes',
+      title: t('sidebar.reports'),
       url: '/reports',
       icon: PieChart,
       visible: true,
     },
     {
-      title: 'Configuración',
+      title: t('sidebar.settings'),
       url: '/settings',
       icon: Settings,
       visible: true,
@@ -54,37 +56,37 @@ export function AppSidebar() {
 
   const adminItems = [
     {
-      title: 'Usuarios',
+      title: t('sidebar.users'),
       url: '/admin/users',
       icon: Users,
       visible: isAdmin,
     },
     {
-      title: 'Clientes',
+      title: t('sidebar.clients'),
       url: '/admin/clients',
       icon: Building2,
       visible: hasManagementAccess,
     },
     {
-      title: 'Proyectos',
+      title: t('sidebar.projects'),
       url: '/admin/projects',
       icon: Briefcase,
       visible: hasManagementAccess,
     },
     {
-      title: 'Sistemas',
+      title: t('sidebar.systems'),
       url: '/admin/systems',
       icon: MonitorSmartphone,
       visible: hasManagementAccess,
     },
     {
-      title: 'Notificaciones',
+      title: t('sidebar.notifications'),
       url: '/admin/notifications',
       icon: Bell,
       visible: isAdmin,
     },
     {
-      title: 'Plantillas de Correo',
+      title: t('sidebar.emailTemplates'),
       url: '/admin/settings/emails',
       icon: Mail,
       visible: isAdmin,
@@ -112,7 +114,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('sidebar.mainMenu')}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items
@@ -137,7 +139,7 @@ export function AppSidebar() {
 
         {hasManagementAccess && (
           <SidebarGroup>
-            <SidebarGroupLabel>Administración</SidebarGroupLabel>
+            <SidebarGroupLabel>{t('sidebar.admin')}</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 {adminItems

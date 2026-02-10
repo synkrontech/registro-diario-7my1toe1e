@@ -1,7 +1,7 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  projectSchema,
+  createProjectSchema,
   ProjectFormValues,
   Project,
   Client,
@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface ProjectFormProps {
   initialData?: Project | null
@@ -46,6 +47,9 @@ export function ProjectForm({
   onCancel,
   isSubmitting,
 }: ProjectFormProps) {
+  const { t } = useTranslation()
+  const projectSchema = createProjectSchema(t)
+
   const form = useForm<ProjectFormValues>({
     resolver: zodResolver(projectSchema),
     defaultValues: {
@@ -106,7 +110,7 @@ export function ProjectForm({
             name="codigo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Código</FormLabel>
+                <FormLabel>{t('clients.code')}</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej. PRJ-2024-001" {...field} />
                 </FormControl>
@@ -122,7 +126,7 @@ export function ProjectForm({
             name="client_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Cliente</FormLabel>
+                <FormLabel>{t('timeEntry.client')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -130,7 +134,7 @@ export function ProjectForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Cliente" />
+                      <SelectValue placeholder={t('validation.selectClient')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -151,7 +155,7 @@ export function ProjectForm({
             name="gerente_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Gerente Asignado</FormLabel>
+                <FormLabel>{t('projects.manager')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -159,7 +163,7 @@ export function ProjectForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Gerente" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -182,7 +186,7 @@ export function ProjectForm({
             name="system_id"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Sistema</FormLabel>
+                <FormLabel>{t('timeEntry.system')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -190,7 +194,7 @@ export function ProjectForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Sistema" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -211,7 +215,7 @@ export function ProjectForm({
             name="work_front"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Frente de Trabajo</FormLabel>
+                <FormLabel>{t('projects.workFront')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -219,7 +223,7 @@ export function ProjectForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar Frente" />
+                      <SelectValue placeholder="Seleccionar" />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -240,7 +244,7 @@ export function ProjectForm({
           name="status"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Estado</FormLabel>
+              <FormLabel>{t('common.status')}</FormLabel>
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
@@ -252,7 +256,7 @@ export function ProjectForm({
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="activo">Activo</SelectItem>
+                  <SelectItem value="activo">{t('common.active')}</SelectItem>
                   <SelectItem value="pausado">Pausado</SelectItem>
                   <SelectItem value="finalizado">Finalizado</SelectItem>
                 </SelectContent>
@@ -264,14 +268,14 @@ export function ProjectForm({
 
         <div className="flex justify-end gap-2 pt-4">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
-              ? 'Guardando...'
+              ? t('common.loading')
               : initialData
-                ? 'Actualizar Proyecto'
-                : 'Crear Proyecto'}
+                ? t('common.save')
+                : t('projects.newProject')}
           </Button>
         </div>
       </form>

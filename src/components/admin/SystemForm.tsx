@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { systemSchema, SystemFormValues, System } from '@/lib/types'
+import { createSystemSchema, SystemFormValues, System } from '@/lib/types'
 import {
   Form,
   FormControl,
@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface SystemFormProps {
   initialData?: System | null
@@ -29,6 +30,9 @@ export function SystemForm({
   onCancel,
   isSubmitting,
 }: SystemFormProps) {
+  const { t } = useTranslation()
+  const systemSchema = createSystemSchema(t)
+
   const form = useForm<SystemFormValues>({
     resolver: zodResolver(systemSchema),
     defaultValues: {
@@ -112,9 +116,11 @@ export function SystemForm({
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Estado Activo</FormLabel>
+                <FormLabel className="text-base">
+                  {t('common.status')} {t('common.active')}
+                </FormLabel>
                 <FormDescription>
-                  Los sistemas inactivos no aparecerán en nuevas selecciones.
+                  Los sistemas inactivos no aparecerán en novas selecciones.
                 </FormDescription>
               </div>
               <FormControl>
@@ -129,14 +135,14 @@ export function SystemForm({
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
-              ? 'Guardando...'
+              ? t('common.loading')
               : initialData
-                ? 'Actualizar'
-                : 'Crear Sistema'}
+                ? t('common.save')
+                : t('systems.newSystem')}
           </Button>
         </div>
       </form>

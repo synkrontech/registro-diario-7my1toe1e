@@ -10,8 +10,9 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { TimeEntry } from '@/lib/types'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Clock, Calendar, Briefcase, Building2, Monitor } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
+import { useDateLocale } from '@/components/LanguageSelector'
 
 interface DayDetailsSheetProps {
   isOpen: boolean
@@ -32,6 +33,9 @@ export function DayDetailsSheet({
   date,
   entries,
 }: DayDetailsSheetProps) {
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
+
   if (!date) return null
 
   const totalMinutes = entries.reduce(
@@ -45,11 +49,11 @@ export function DayDetailsSheet({
         <SheetHeader className="pb-4 border-b">
           <SheetTitle className="flex items-center gap-2 text-xl">
             <Calendar className="h-5 w-5 text-indigo-600" />
-            {format(date, "EEEE, d 'de' MMMM", { locale: es })}
+            {format(date, "EEEE, d 'de' MMMM", { locale: dateLocale })}
           </SheetTitle>
           <SheetDescription className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
-            Total del día:{' '}
+            Total:{' '}
             <span className="font-semibold text-slate-900">
               {formatDuration(totalMinutes)}
             </span>
@@ -62,7 +66,7 @@ export function DayDetailsSheet({
               <div className="bg-slate-100 p-4 rounded-full mb-4">
                 <Briefcase className="h-8 w-8 text-slate-300" />
               </div>
-              <p>No hay actividades registradas para este día.</p>
+              <p>{t('timeEntry.noEntries')}</p>
             </div>
           ) : (
             <div className="space-y-6">

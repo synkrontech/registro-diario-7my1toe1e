@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CalendarIcon, Plus, Save, X, Loader2 } from 'lucide-react'
 import { format, isSameMonth } from 'date-fns'
-import { es } from 'date-fns/locale'
 
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
@@ -31,9 +30,15 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TimeEntryFormValues, timeEntrySchema, TimeEntry } from '@/lib/types'
+import {
+  TimeEntryFormValues,
+  createTimeEntrySchema,
+  TimeEntry,
+} from '@/lib/types'
 import useTimeStore from '@/stores/useTimeStore'
 import { useToast } from '@/hooks/use-toast'
+import { useTranslation } from 'react-i18next'
+import { useDateLocale } from '@/components/LanguageSelector'
 
 interface TimeEntryFormProps {
   currentDate: Date
@@ -48,11 +53,15 @@ export function TimeEntryForm({
   entryToEdit,
   onCancelEdit,
 }: TimeEntryFormProps) {
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const { addEntry, updateEntry, projects } = useTimeStore()
   const { toast } = useToast()
 
+  const formSchema = createTimeEntrySchema(t)
+
   const form = useForm<TimeEntryFormValues>({
-    resolver: zodResolver(timeEntrySchema),
+    resolver: zodResolver(formSchema),
     defaultValues: {
       date: currentDate,
       startTime: '',
@@ -95,16 +104,16 @@ export function TimeEntryForm({
       if (entryToEdit) {
         await updateEntry(entryToEdit.id, data)
         toast({
-          title: 'Registro actualizado',
-          description: 'La actividad ha sido modificada correctamente.',
+          title: t('timeEntry.editEntry'),
+          description: t('timeEntry.saveChanges'),
           className: 'bg-blue-50 border-blue-200 text-blue-800',
         })
         onCancelEdit()
       } else {
         await addEntry(data)
         toast({
-          title: 'Registro guardado',
-          description: 'Tu actividad ha sido registrada exitosamente.',
+          title: t('timeEntry.newEntry'),
+          description: t('timeEntry.register'),
           className: 'bg-emerald-50 border-emerald-200 text-emerald-800',
         })
       }
@@ -151,7 +160,9 @@ export function TimeEntryForm({
             ) : (
               <div className="h-2 w-2 rounded-full bg-indigo-500" />
             )}
-            <span>{entryToEdit ? 'Modificar Registro' : 'Nuevo Registro'}</span>
+            <span>
+              {entryToEdit ? t('timeEntry.editEntry') : t('timeEntry.newEntry')}
+            </span>
           </div>
           {entryToEdit && (
             <Button
@@ -160,7 +171,7 @@ export function TimeEntryForm({
               onClick={handleCancel}
               className="text-slate-500 hover:text-slate-700 hover:bg-slate-100"
             >
-              <X className="mr-1 h-4 w-4" /> Cancelar Edición
+              <X className="mr-1 h-4 w-4" /> {t('common.cancel')}
             </Button>
           )}
         </CardTitle>
@@ -174,7 +185,7 @@ export function TimeEntryForm({
                 name="date"
                 render={({ field }) => (
                   <FormItem className="flex flex-col">
-                    <FormLabel>Fecha</FormLabel>
+                    <FormLabel>{t('timeEntry.date')}</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -186,9 +197,9 @@ export function TimeEntryForm({
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP', { locale: es })
+                              format(field.value, 'PPP', { locale: dateLocale })
                             ) : (
-                              <span>Selecciona una fecha</span>
+                              <span>{t('timeEntry.date')}</span>
                             )}
                             <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                           </Button>
@@ -202,6 +213,7 @@ export function TimeEntryForm({
                           disabled={(date) =>
                             date > new Date() || date < new Date('1900-01-01')
                           }
+                          locale={dateLocale}
                           initialFocus
                         />
                       </PopoverContent>
@@ -216,7 +228,7 @@ export function TimeEntryForm({
                 name="projectId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Proyecto</FormLabel>
+                    <FormLabel>{t('timeEntry.project')}</FormLabel>
                     <Select
                       onValueChange={field.onChange}
                       defaultValue={field.value}
@@ -224,7 +236,9 @@ export function TimeEntryForm({
                     >
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Selecciona un proyecto..." />
+                          <SelectValue
+                            placeholder={t('validation.selectProject')}
+                          />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
@@ -253,7 +267,7 @@ export function TimeEntryForm({
                 name="startTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hora Inicio</FormLabel>
+                    <FormLabel>{t('timeEntry.startTime')}</FormLabel>
                     <FormControl>
                       <Input type="time" {...field} />
                     </FormControl>
@@ -267,7 +281,7 @@ export function TimeEntryForm({
                 name="endTime"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Hora Fin</FormLabel>
+                    <FormLabel>{t('timeEntry.endTime')}</FormLabel>
                     <FormControl>
                       <Input type="time" {...field} />
                     </FormControl>
@@ -282,10 +296,10 @@ export function TimeEntryForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Descripción de Actividades</FormLabel>
+                  <FormLabel>{t('timeEntry.description')}</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Detalla las tareas realizadas..."
+                      placeholder={t('timeEntry.descriptionPlaceholder')}
                       className="resize-none min-h-[100px]"
                       {...field}
                     />
@@ -313,7 +327,9 @@ export function TimeEntryForm({
               ) : (
                 <Plus className="mr-2 h-4 w-4" />
               )}
-              {entryToEdit ? 'Guardar Cambios' : 'Registrar Actividad'}
+              {entryToEdit
+                ? t('timeEntry.saveChanges')
+                : t('timeEntry.register')}
             </Button>
           </form>
         </Form>

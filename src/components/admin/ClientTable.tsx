@@ -37,7 +37,8 @@ import {
 } from '@/components/ui/select'
 import { MoreHorizontal, Pencil, Trash2, Search } from 'lucide-react'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
+import { useDateLocale } from '@/components/LanguageSelector'
 
 interface ClientTableProps {
   clients: Client[]
@@ -46,6 +47,8 @@ interface ClientTableProps {
 }
 
 export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [deleteId, setDeleteId] = useState<string | null>(null)
@@ -69,7 +72,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar clientes por nombre..."
+            placeholder={t('common.search')}
             className="pl-9"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
@@ -77,12 +80,12 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Estado" />
+            <SelectValue placeholder={t('common.status')} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="active">Activos</SelectItem>
-            <SelectItem value="inactive">Inactivos</SelectItem>
+            <SelectItem value="active">{t('common.active')}</SelectItem>
+            <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -92,11 +95,13 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Nombre</TableHead>
-              <TableHead>Código</TableHead>
-              <TableHead>País</TableHead>
+              <TableHead>{t('clients.code')}</TableHead>
+              <TableHead>{t('clients.country')}</TableHead>
               <TableHead>Fecha Creación</TableHead>
-              <TableHead>Estado</TableHead>
-              <TableHead className="text-right">Acciones</TableHead>
+              <TableHead>{t('common.status')}</TableHead>
+              <TableHead className="text-right">
+                {t('common.actions')}
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -118,7 +123,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
                   <TableCell>
                     {client.created_at
                       ? format(new Date(client.created_at), 'dd MMM yyyy', {
-                          locale: es,
+                          locale: dateLocale,
                         })
                       : '-'}
                   </TableCell>
@@ -131,7 +136,9 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
                           : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
                       }
                     >
-                      {client.activo ? 'Activo' : 'Inactivo'}
+                      {client.activo
+                        ? t('common.active')
+                        : t('common.inactive')}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -143,15 +150,18 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                        <DropdownMenuLabel>
+                          {t('common.actions')}
+                        </DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => onEdit(client)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Editar
+                          <Pencil className="mr-2 h-4 w-4" /> {t('common.edit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           className="text-red-600 focus:text-red-600 focus:bg-red-50"
                           onClick={() => setDeleteId(client.id)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                          <Trash2 className="mr-2 h-4 w-4" />{' '}
+                          {t('common.delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -169,14 +179,13 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta acción no se puede deshacer. Esto eliminará permanentemente
-              al cliente y podría afectar a los proyectos asociados.
+              {t('common.deleteDescription')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.noCancel')}</AlertDialogCancel>
             <AlertDialogAction
               className="bg-red-600 hover:bg-red-700"
               onClick={() => {
@@ -184,7 +193,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
                 setDeleteId(null)
               }}
             >
-              Eliminar
+              {t('common.yesDelete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

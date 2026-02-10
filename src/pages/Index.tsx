@@ -8,8 +8,10 @@ import { TimeEntry } from '@/lib/types'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { List, Calendar as CalendarIcon } from 'lucide-react'
 import useTimeStore from '@/stores/useTimeStore'
+import { useTranslation } from 'react-i18next'
 
 const Index = () => {
+  const { t } = useTranslation()
   const { viewDate, setViewDate } = useTimeStore()
   const [editingEntry, setEditingEntry] = useState<TimeEntry | null>(null)
 
@@ -32,12 +34,9 @@ const Index = () => {
     <div className="container max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in pb-20">
       <div className="flex flex-col gap-2">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900">
-          Bienvenido de nuevo
+          {t('common.welcome')}
         </h2>
-        <p className="text-muted-foreground">
-          Registra tus actividades diarias y mantén un control preciso de tu
-          tiempo.
-        </p>
+        <p className="text-muted-foreground">{t('common.welcomeSubtitle')}</p>
       </div>
 
       <div className="space-y-6">
@@ -53,11 +52,11 @@ const Index = () => {
           <TabsList className="grid w-full max-w-[400px] grid-cols-2 mb-6">
             <TabsTrigger value="list" className="flex items-center gap-2">
               <List className="h-4 w-4" />
-              Vista Detallada
+              {t('timeEntry.detailedView')}
             </TabsTrigger>
             <TabsTrigger value="calendar" className="flex items-center gap-2">
               <CalendarIcon className="h-4 w-4" />
-              Vista Calendario
+              {t('timeEntry.calendarView')}
             </TabsTrigger>
           </TabsList>
 

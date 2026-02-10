@@ -13,8 +13,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Loader2, Plus, Building2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function ClientManagement() {
+  const { t } = useTranslation()
   const { toast } = useToast()
   const [clients, setClients] = useState<Client[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -97,17 +99,15 @@ export default function ClientManagement() {
         <div className="flex flex-col gap-2">
           <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
             <Building2 className="h-8 w-8 text-indigo-600" />
-            Gestión de Clientes
+            {t('clients.title')}
           </h2>
-          <p className="text-muted-foreground">
-            Administra el catálogo de clientes de la organización.
-          </p>
+          <p className="text-muted-foreground">{t('clients.subtitle')}</p>
         </div>
         <Button
           onClick={handleCreate}
           className="bg-indigo-600 hover:bg-indigo-700"
         >
-          <Plus className="mr-2 h-4 w-4" /> Nuevo Cliente
+          <Plus className="mr-2 h-4 w-4" /> {t('clients.newClient')}
         </Button>
       </div>
 
@@ -127,7 +127,7 @@ export default function ClientManagement() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {editingClient ? 'Editar Cliente' : 'Nuevo Cliente'}
+              {editingClient ? t('clients.editClient') : t('clients.newClient')}
             </DialogTitle>
             <DialogDescription>
               {editingClient

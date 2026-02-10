@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Search } from 'lucide-react'
 import { Label } from '@/components/ui/label'
+import { useTranslation } from 'react-i18next'
 
 interface ProjectAssignmentModalProps {
   isOpen: boolean
@@ -32,6 +33,7 @@ export function ProjectAssignmentModal({
   onSave,
   isSaving,
 }: ProjectAssignmentModalProps) {
+  const { t } = useTranslation()
   const [selectedIds, setSelectedIds] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
 
@@ -66,9 +68,9 @@ export function ProjectAssignmentModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Asignar Consultores</DialogTitle>
+          <DialogTitle>{t('projects.assignTeam')}</DialogTitle>
           <DialogDescription>
-            Selecciona los consultores que trabajarán en el proyecto{' '}
+            Selecciona los consultores que trabajarán en o projeto{' '}
             <span className="font-semibold text-foreground">
               {project?.nombre}
             </span>
@@ -80,7 +82,7 @@ export function ProjectAssignmentModal({
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Buscar consultor..."
+              placeholder={t('common.search')}
               className="pl-9"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
@@ -124,8 +126,7 @@ export function ProjectAssignmentModal({
           </div>
           <div className="flex justify-between items-center text-sm text-muted-foreground px-1">
             <span>
-              {selectedIds.length} consultor{selectedIds.length !== 1 && 'es'}{' '}
-              seleccionado{selectedIds.length !== 1 && 's'}
+              {selectedIds.length} selecionado{selectedIds.length !== 1 && 's'}
             </span>
             <Button
               variant="link"
@@ -140,10 +141,10 @@ export function ProjectAssignmentModal({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose} disabled={isSaving}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSave} disabled={isSaving}>
-            {isSaving ? 'Guardando...' : 'Guardar Cambios'}
+            {isSaving ? t('common.loading') : t('common.save')}
           </Button>
         </DialogFooter>
       </DialogContent>

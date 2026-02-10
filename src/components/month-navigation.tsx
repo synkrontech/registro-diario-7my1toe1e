@@ -5,7 +5,8 @@ import {
   Calendar as CalendarIcon,
 } from 'lucide-react'
 import { format, addMonths, subMonths } from 'date-fns'
-import { es } from 'date-fns/locale'
+import { useTranslation } from 'react-i18next'
+import { useDateLocale } from '@/components/LanguageSelector'
 
 interface MonthNavigationProps {
   currentDate: Date
@@ -16,6 +17,9 @@ export function MonthNavigation({
   currentDate,
   onDateChange,
 }: MonthNavigationProps) {
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
+
   const handlePrevious = () => onDateChange(subMonths(currentDate, 1))
   const handleNext = () => onDateChange(addMonths(currentDate, 1))
 
@@ -27,10 +31,10 @@ export function MonthNavigation({
         </div>
         <div className="flex flex-col">
           <span className="text-sm text-muted-foreground">
-            Periodo seleccionado
+            {t('common.month')}
           </span>
           <h2 className="text-xl font-bold capitalize text-slate-900 leading-none">
-            {format(currentDate, 'MMMM yyyy', { locale: es })}
+            {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
           </h2>
         </div>
       </div>
@@ -41,19 +45,17 @@ export function MonthNavigation({
           size="sm"
           onClick={handlePrevious}
           className="h-9 px-3"
-          aria-label="Mes anterior"
         >
           <ChevronLeft className="mr-1 h-4 w-4" />
-          Anterior
+          {t('common.previous')}
         </Button>
         <Button
           variant="outline"
           size="sm"
           onClick={handleNext}
           className="h-9 px-3"
-          aria-label="Mes siguiente"
         >
-          Siguiente
+          {t('common.next')}
           <ChevronRight className="ml-1 h-4 w-4" />
         </Button>
       </div>

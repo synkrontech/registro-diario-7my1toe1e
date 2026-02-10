@@ -119,6 +119,9 @@ importers:
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.3)
+      i18next:
+        specifier: 25.8.4
+        version: 25.8.4(typescript@5.9.3)
       input-otp:
         specifier: ^1.4.2
         version: 1.4.2(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -131,6 +134,9 @@ importers:
       react:
         specifier: ^19.2.3
         version: 19.2.3
+      react-datepicker:
+        specifier: 9.1.0
+        version: 9.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       react-day-picker:
         specifier: ^9.13.0
         version: 9.13.0(react@19.2.3)
@@ -140,6 +146,9 @@ importers:
       react-hook-form:
         specifier: ^7.71.1
         version: 7.71.1(react@19.2.3)
+      react-i18next:
+        specifier: 16.5.4
+        version: 16.5.4(i18next@25.8.4(typescript@5.9.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3)
       react-resizable-panels:
         specifier: ^3.0.6
         version: 3.0.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
@@ -366,14 +375,32 @@ packages:
   '@floating-ui/core@1.7.3':
     resolution: {integrity: sha512-sGnvb5dmrJaKEZ+LDIpguvdX3bDlEllmv4/ClQ9awcmCZrlx5jQyyMWFM5kBI+EyNOCDDiKk8il0zeuX3Zlg/w==}
 
+  '@floating-ui/core@1.7.4':
+    resolution: {integrity: sha512-C3HlIdsBxszvm5McXlB8PeOEWfBhcGBTZGkGlWc2U0KFY5IwG5OQEuQ8rq52DZmcHDlPLd+YFBK+cZcytwIFWg==}
+
   '@floating-ui/dom@1.7.4':
     resolution: {integrity: sha512-OOchDgh4F2CchOX94cRVqhvy7b3AFb+/rQXyswmzmGakRfkMgoWVjfnLWkRirfLEfuD4ysVW16eXzwt3jHIzKA==}
+
+  '@floating-ui/dom@1.7.5':
+    resolution: {integrity: sha512-N0bD2kIPInNHUHehXhMke1rBGs1dwqvC9O9KYMyyjK7iXt7GAhnro7UlcuYcGdS/yYOlq0MAVgrow8IbWJwyqg==}
 
   '@floating-ui/react-dom@2.1.6':
     resolution: {integrity: sha512-4JX6rEatQEvlmgU80wZyq9RT96HZJa88q8hp0pBd+LrczeDI4o6uA2M+uvxngVHo4Ihr8uibXxH6+70zhAFrVw==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
+
+  '@floating-ui/react-dom@2.1.7':
+    resolution: {integrity: sha512-0tLRojf/1Go2JgEVm+3Frg9A3IW8bJgKgdO0BN5RkF//ufuz2joZM63Npau2ff3J6lUVYgDSNzNkR+aH3IVfjg==}
+    peerDependencies:
+      react: '>=16.8.0'
+      react-dom: '>=16.8.0'
+
+  '@floating-ui/react@0.27.17':
+    resolution: {integrity: sha512-LGVZKHwmWGg6MRHjLLgsfyaX2y2aCNgnD1zT/E6B+/h+vxg+nIJUqHPAlTzsHDyqdgEpJ1Np5kxWuFEErXzoGg==}
+    peerDependencies:
+      react: '>=17.0.0'
+      react-dom: '>=17.0.0'
 
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
@@ -1775,6 +1802,17 @@ packages:
   hermes-parser@0.25.1:
     resolution: {integrity: sha512-6pEjquH3rqaI6cYAXYPcz9MS4rY6R4ngRgrgfDshRptUZIc3lw0MCIJIGDj9++mfySOuPTHB4nrSW99BCvOPIA==}
 
+  html-parse-stringify@3.0.1:
+    resolution: {integrity: sha512-KknJ50kTInJ7qIScF3jeaFRpMpE8/lfiTdzf/twXyPBLAGrLRTmkz3AdTnKeh40X8k9L2fdYwEp/42WGXIRGcg==}
+
+  i18next@25.8.4:
+    resolution: {integrity: sha512-a9A0MnUjKvzjEN/26ZY1okpra9kA8MEwzYEz1BNm+IyxUKPRH6ihf0p7vj8YvULwZHKHl3zkJ6KOt4hewxBecQ==}
+    peerDependencies:
+      typescript: ^5
+    peerDependenciesMeta:
+      typescript:
+        optional: true
+
   iceberg-js@0.8.1:
     resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
     engines: {node: '>=20.0.0'}
@@ -2140,6 +2178,16 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  react-datepicker@9.1.0:
+    resolution: {integrity: sha512-lOp+m5bc+ttgtB5MHEjwiVu4nlp4CvJLS/PG1OiOe5pmg9kV73pEqO8H0Geqvg2E8gjqTaL9eRhSe+ZpeKP3nA==}
+    peerDependencies:
+      date-fns-tz: ^3.0.0
+      react: ^16.9.0 || ^17 || ^18 || ^19 || ^19.0.0-rc
+      react-dom: ^16.9.0 || ^17 || ^18 || ^19 || ^19.0.0-rc
+    peerDependenciesMeta:
+      date-fns-tz:
+        optional: true
+
   react-day-picker@9.13.0:
     resolution: {integrity: sha512-euzj5Hlq+lOHqI53NiuNhCP8HWgsPf/bBAVijR50hNaY1XwjKjShAnIe8jm8RD2W9IJUvihDIZ+KrmqfFzNhFQ==}
     engines: {node: '>=18'}
@@ -2156,6 +2204,22 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       react: ^16.8.0 || ^17 || ^18 || ^19
+
+  react-i18next@16.5.4:
+    resolution: {integrity: sha512-6yj+dcfMncEC21QPhOTsW8mOSO+pzFmT6uvU7XXdvM/Cp38zJkmTeMeKmTrmCMD5ToT79FmiE/mRWiYWcJYW4g==}
+    peerDependencies:
+      i18next: '>= 25.6.2'
+      react: '>= 16.8.0'
+      react-dom: '*'
+      react-native: '*'
+      typescript: ^5
+    peerDependenciesMeta:
+      react-dom:
+        optional: true
+      react-native:
+        optional: true
+      typescript:
+        optional: true
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -2364,6 +2428,9 @@ packages:
     resolution: {integrity: sha512-ot0WnXS9fgdkgIcePe6RHNk1WA8+muPa6cSjeR3V8K27q9BB1rTE3R1p7Hv0z1ZyAc8s6Vvv8DIyWf681MAt0w==}
     engines: {node: '>= 0.4'}
 
+  tabbable@6.4.0:
+    resolution: {integrity: sha512-05PUHKSNE8ou2dwIxTngl4EzcnsCDZGJ/iCLtDflR/SHB/ny14rXc+qU5P4mG9JkusiV7EivzY9Mhm55AzAvCg==}
+
   tailwind-merge@2.6.0:
     resolution: {integrity: sha512-P+Vu1qXfzediirmHOC3xKGAYeZtPcV9g76X+xg2FD4tYgR71ewMA35Y3sCz3zhiN/dwefRpJX0yBcgwi1fXNQA==}
 
@@ -2471,6 +2538,10 @@ packages:
 
   victory-vendor@36.9.2:
     resolution: {integrity: sha512-PnpQQMuxlwYdocC8fIJqVXvkeViHYzotI+NJrCuav0ZYFoq912ZHBk3mCeuj+5/VpodOjPe1z0Fk2ihgzlXqjQ==}
+
+  void-elements@3.1.0:
+    resolution: {integrity: sha512-Dhxzh5HZuiHQhbvTW9AMetFfBHDMYpo23Uo9btPXgdYP+3T5S+p+jgNy7spra+veYhBP2dCSgxR/i2Y02h5/6w==}
+    engines: {node: '>=0.10.0'}
 
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
@@ -2700,9 +2771,18 @@ snapshots:
     dependencies:
       '@floating-ui/utils': 0.2.10
 
+  '@floating-ui/core@1.7.4':
+    dependencies:
+      '@floating-ui/utils': 0.2.10
+
   '@floating-ui/dom@1.7.4':
     dependencies:
       '@floating-ui/core': 1.7.3
+      '@floating-ui/utils': 0.2.10
+
+  '@floating-ui/dom@1.7.5':
+    dependencies:
+      '@floating-ui/core': 1.7.4
       '@floating-ui/utils': 0.2.10
 
   '@floating-ui/react-dom@2.1.6(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
@@ -2710,6 +2790,20 @@ snapshots:
       '@floating-ui/dom': 1.7.4
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
+
+  '@floating-ui/react-dom@2.1.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@floating-ui/dom': 1.7.5
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
+  '@floating-ui/react@0.27.17(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+    dependencies:
+      '@floating-ui/react-dom': 2.1.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      '@floating-ui/utils': 0.2.10
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+      tabbable: 6.4.0
 
   '@floating-ui/utils@0.2.10': {}
 
@@ -4139,6 +4233,16 @@ snapshots:
     dependencies:
       hermes-estree: 0.25.1
 
+  html-parse-stringify@3.0.1:
+    dependencies:
+      void-elements: 3.1.0
+
+  i18next@25.8.4(typescript@5.9.3):
+    dependencies:
+      '@babel/runtime': 7.28.6
+    optionalDependencies:
+      typescript: 5.9.3
+
   iceberg-js@0.8.1: {}
 
   ignore@5.3.2: {}
@@ -4422,6 +4526,14 @@ snapshots:
 
   queue-microtask@1.2.3: {}
 
+  react-datepicker@9.1.0(react-dom@19.2.3(react@19.2.3))(react@19.2.3):
+    dependencies:
+      '@floating-ui/react': 0.27.17(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+      clsx: 2.1.1
+      date-fns: 4.1.0
+      react: 19.2.3
+      react-dom: 19.2.3(react@19.2.3)
+
   react-day-picker@9.13.0(react@19.2.3):
     dependencies:
       '@date-fns/tz': 1.4.1
@@ -4437,6 +4549,17 @@ snapshots:
   react-hook-form@7.71.1(react@19.2.3):
     dependencies:
       react: 19.2.3
+
+  react-i18next@16.5.4(i18next@25.8.4(typescript@5.9.3))(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(typescript@5.9.3):
+    dependencies:
+      '@babel/runtime': 7.28.6
+      html-parse-stringify: 3.0.1
+      i18next: 25.8.4(typescript@5.9.3)
+      react: 19.2.3
+      use-sync-external-store: 1.6.0(react@19.2.3)
+    optionalDependencies:
+      react-dom: 19.2.3(react@19.2.3)
+      typescript: 5.9.3
 
   react-is@16.13.1: {}
 
@@ -4621,6 +4744,8 @@ snapshots:
 
   supports-preserve-symlinks-flag@1.0.0: {}
 
+  tabbable@6.4.0: {}
+
   tailwind-merge@2.6.0: {}
 
   tailwindcss-animate@1.0.7(tailwindcss@3.4.19(yaml@2.8.1)):
@@ -4757,6 +4882,8 @@ snapshots:
       d3-shape: 3.2.0
       d3-time: 3.1.0
       d3-timer: 3.0.1
+
+  void-elements@3.1.0: {}
 
   which@2.0.2:
     dependencies:

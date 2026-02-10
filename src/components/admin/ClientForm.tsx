@@ -1,6 +1,6 @@
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { clientSchema, ClientFormValues, Client } from '@/lib/types'
+import { createClientSchema, ClientFormValues, Client } from '@/lib/types'
 import {
   Form,
   FormControl,
@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const COUNTRIES = [
   'Argentina',
@@ -60,6 +61,9 @@ export function ClientForm({
   onCancel,
   isSubmitting,
 }: ClientFormProps) {
+  const { t } = useTranslation()
+  const clientSchema = createClientSchema(t)
+
   const form = useForm<ClientFormValues>({
     resolver: zodResolver(clientSchema),
     defaultValues: {
@@ -111,7 +115,7 @@ export function ClientForm({
             name="codigo"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Código</FormLabel>
+                <FormLabel>{t('clients.code')}</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej. ACM-001" {...field} />
                 </FormControl>
@@ -125,7 +129,7 @@ export function ClientForm({
             name="pais"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>País</FormLabel>
+                <FormLabel>{t('clients.country')}</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
@@ -156,7 +160,9 @@ export function ClientForm({
           render={({ field }) => (
             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
               <div className="space-y-0.5">
-                <FormLabel className="text-base">Estado Activo</FormLabel>
+                <FormLabel className="text-base">
+                  {t('common.status')} {t('common.active')}
+                </FormLabel>
                 <FormDescription>
                   Los clientes inactivos no aparecerán en nuevas selecciones.
                 </FormDescription>
@@ -173,14 +179,14 @@ export function ClientForm({
 
         <div className="flex justify-end gap-2 pt-2">
           <Button type="button" variant="outline" onClick={onCancel}>
-            Cancelar
+            {t('common.cancel')}
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting
-              ? 'Guardando...'
+              ? t('common.loading')
               : initialData
-                ? 'Actualizar'
-                : 'Crear Cliente'}
+                ? t('common.save')
+                : t('clients.newClient')}
           </Button>
         </div>
       </form>

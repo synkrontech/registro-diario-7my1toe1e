@@ -1,3 +1,4 @@
+import '@/lib/i18n'
 import {
   BrowserRouter,
   Routes,
@@ -18,6 +19,7 @@ import EmailSettingsPage from './pages/admin/EmailSettingsPage'
 import ClientManagement from './pages/admin/ClientManagement'
 import SystemManagement from './pages/admin/SystemManagement'
 import ProjectManagement from './pages/admin/ProjectManagement'
+import Settings from './pages/Settings'
 import Layout from './components/Layout'
 import { TimeStoreProvider } from '@/stores/useTimeStore'
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
@@ -112,6 +114,7 @@ const App = () => (
               }
             >
               <Route path="/" element={<Index />} />
+              <Route path="/settings" element={<Settings />} />
 
               {/* Admin Routes */}
               <Route

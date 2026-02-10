@@ -10,7 +10,6 @@ import {
   format,
   getWeek,
 } from 'date-fns'
-import { es } from 'date-fns/locale'
 import { Download } from 'lucide-react'
 
 import { cn } from '@/lib/utils'
@@ -20,12 +19,16 @@ import { Button } from '@/components/ui/button'
 import useTimeStore from '@/stores/useTimeStore'
 import { DayDetailsSheet } from '@/components/day-details-sheet'
 import { downloadMonthlyCsv } from '@/lib/csv-export'
+import { useTranslation } from 'react-i18next'
+import { useDateLocale } from '@/components/LanguageSelector'
 
 interface CalendarViewProps {
   currentDate: Date
 }
 
 export function CalendarView({ currentDate }: CalendarViewProps) {
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
   const { getEntriesByDate, getEntriesByMonth } = useTimeStore()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
@@ -64,8 +67,19 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
   const totalMonthlyHours = (totalMonthlyMinutes / 60).toFixed(1)
 
   const handleExport = () => {
-    downloadMonthlyCsv(monthlyEntries, currentDate)
+    downloadMonthlyCsv(monthlyEntries, currentDate, dateLocale)
   }
+
+  const daysOfWeek = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom', 'Total']
+  // A helper to map short days based on locale could be added if needed, but for now hardcoded strings might be better replaced by date-fns formatting if we want true internationalization of day headers.
+  // Using date-fns to generate day headers:
+  const dayHeaders = Array.from({ length: 7 }).map((_, i) => {
+    // Create a date for each day of the week starting from Monday
+    // We can use the start date of the view which is always a Monday
+    const d = new Date(startDate)
+    d.setDate(d.getDate() + i)
+    return format(d, 'EEE', { locale: dateLocale })
+  })
 
   return (
     <>
@@ -73,18 +87,19 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
         <div className="flex flex-col md:flex-row items-center justify-between bg-white p-4 rounded-lg border shadow-sm gap-4">
           <div className="flex flex-col items-center md:items-start w-full md:w-auto">
             <span className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">
-              Total Mensual
+              {t('timeEntry.totalAccumulated')}
             </span>
             <div className="text-3xl font-bold text-indigo-600">
               {totalMonthlyHours}{' '}
-              <span className="text-lg text-slate-500 font-normal">horas</span>
+              <span className="text-lg text-slate-500 font-normal">h</span>
             </div>
           </div>
 
           <div className="flex flex-col-reverse md:flex-row items-center gap-4 w-full md:w-auto">
             <div className="hidden sm:block text-center md:text-right">
               <span className="text-xs text-muted-foreground">
-                Registros en {format(currentDate, 'MMMM', { locale: es })}
+                {t('common.month')}:{' '}
+                {format(currentDate, 'MMMM', { locale: dateLocale })}
               </span>
               <p className="font-medium text-slate-900">
                 {monthlyEntries.length} actividades
@@ -97,7 +112,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
               disabled={monthlyEntries.length === 0}
             >
               <Download className="mr-2 h-4 w-4" />
-              Exportar CSV
+              {t('common.exportCsv')}
             </Button>
           </div>
         </div>
@@ -105,7 +120,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
         <Card className="border-none shadow-md overflow-hidden bg-white">
           <CardHeader className="pb-2 border-b">
             <CardTitle className="text-lg font-semibold text-slate-800">
-              Calendario de Actividades
+              {t('timeEntry.calendarView')}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -114,32 +129,22 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
               <div className="min-w-[800px]">
                 {/* Header Row */}
                 <div className="grid grid-cols-8 border-b bg-slate-50/80">
-                  {[
-                    'Lun',
-                    'Mar',
-                    'Mié',
-                    'Jue',
-                    'Vie',
-                    'Sáb',
-                    'Dom',
-                    'Total Semanal',
-                  ].map((day, i) => (
+                  {dayHeaders.map((day) => (
                     <div
                       key={day}
-                      className={cn(
-                        'py-3 px-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-500',
-                        i === 7 && 'bg-slate-100 text-indigo-600 border-l',
-                      )}
+                      className="py-3 px-2 text-center text-xs font-semibold uppercase tracking-wider text-slate-500"
                     >
                       {day}
                     </div>
                   ))}
+                  <div className="py-3 px-2 text-center text-xs font-semibold uppercase tracking-wider text-indigo-600 bg-slate-100 border-l">
+                    Total
+                  </div>
                 </div>
 
                 {/* Weeks */}
                 <div className="divide-y">
                   {weeks.map((week, weekIndex) => {
-                    // Calculate weekly total
                     const weekMinutes = week.reduce((acc, day) => {
                       const dayEntries = getEntriesByDate(day)
                       return (
@@ -216,7 +221,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
                                 ))}
                                 {dayEntries.length > 3 && (
                                   <div className="text-[10px] text-center text-muted-foreground font-medium">
-                                    +{dayEntries.length - 3} más
+                                    +{dayEntries.length - 3}
                                   </div>
                                 )}
                               </div>
@@ -227,7 +232,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
                         {/* Weekly Total Column */}
                         <div className="bg-slate-50/50 flex flex-col items-center justify-center border-l p-2">
                           <span className="text-xs text-slate-500 font-medium uppercase mb-1">
-                            Semana {getWeek(week[0])}
+                            Sem {getWeek(week[0])}
                           </span>
                           <Badge className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm py-1 px-3">
                             {weekHours}h

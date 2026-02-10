@@ -25,8 +25,10 @@ import { UserProfile, Role, Permission, AuditLog } from '@/lib/types'
 import { useAuth } from '@/components/AuthProvider'
 import { useToast } from '@/hooks/use-toast'
 import { Loader2 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 
 export default function UserManagement() {
+  const { t } = useTranslation()
   const { user } = useAuth()
   const { toast } = useToast()
 
@@ -98,7 +100,6 @@ export default function UserManagement() {
         toast({ title: 'Usuario actualizado exitosamente' })
       } else {
         // Create User
-        // Need to pass the role name to the edge function
         const selectedRole = roles.find((r) => r.id === data.role_id)
         await adminService.createUser({
           ...data,
@@ -120,7 +121,6 @@ export default function UserManagement() {
     }
   }
 
-  // Roles & Permissions Handlers (existing)
   const handleSaveRole = async (
     roleId: string | null,
     name: string,
@@ -142,7 +142,6 @@ export default function UserManagement() {
         await adminService.createRole(user.id, name, description, permissionIds)
         toast({ title: 'Rol creado' })
       }
-      // Refresh Data
       const [newRoles, newLogs] = await Promise.all([
         adminService.getRoles(),
         adminService.getAuditLogs(),
@@ -163,11 +162,9 @@ export default function UserManagement() {
       <div className="flex flex-col gap-2">
         <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
           <Shield className="h-8 w-8 text-indigo-600" />
-          Administración
+          {t('users.title')}
         </h2>
-        <p className="text-muted-foreground">
-          Gestión centralizada de usuarios, roles y seguridad del sistema.
-        </p>
+        <p className="text-muted-foreground">{t('users.subtitle')}</p>
       </div>
 
       {isLoading ? (
@@ -178,13 +175,13 @@ export default function UserManagement() {
         <Tabs defaultValue="users" className="space-y-6">
           <TabsList className="bg-slate-100 p-1">
             <TabsTrigger value="users" className="flex items-center gap-2">
-              <Users className="h-4 w-4" /> Usuarios
+              <Users className="h-4 w-4" /> {t('sidebar.users')}
             </TabsTrigger>
             <TabsTrigger value="roles" className="flex items-center gap-2">
-              <Lock className="h-4 w-4" /> Roles y Permisos
+              <Lock className="h-4 w-4" /> {t('users.rolesPermissions')}
             </TabsTrigger>
             <TabsTrigger value="audit" className="flex items-center gap-2">
-              <Activity className="h-4 w-4" /> Auditoría
+              <Activity className="h-4 w-4" /> {t('users.audit')}
             </TabsTrigger>
           </TabsList>
 
@@ -192,16 +189,14 @@ export default function UserManagement() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
                 <div>
-                  <CardTitle>Usuarios Registrados</CardTitle>
-                  <CardDescription>
-                    Administra el acceso y roles de los usuarios.
-                  </CardDescription>
+                  <CardTitle>{t('sidebar.users')}</CardTitle>
+                  <CardDescription>{t('users.subtitle')}</CardDescription>
                 </div>
                 <Button
                   onClick={handleCreate}
                   className="bg-indigo-600 hover:bg-indigo-700"
                 >
-                  <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
+                  <Plus className="mr-2 h-4 w-4" /> {t('users.newUser')}
                 </Button>
               </CardHeader>
               <CardContent>
@@ -248,7 +243,7 @@ export default function UserManagement() {
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
-              {editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}
+              {editingUser ? t('users.editUser') : t('users.newUser')}
             </DialogTitle>
             <DialogDescription>
               {editingUser

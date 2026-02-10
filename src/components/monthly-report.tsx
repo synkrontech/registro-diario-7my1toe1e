@@ -1,13 +1,16 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { format } from 'date-fns'
-import { es } from 'date-fns/locale'
 import useTimeStore from '@/stores/useTimeStore'
 import { BarChart, Clock, CalendarDays, Download } from 'lucide-react'
 import { downloadMonthlyCsv } from '@/lib/csv-export'
+import { useTranslation } from 'react-i18next'
+import { useDateLocale } from '@/components/LanguageSelector'
 
 export function MonthlyReport({ date }: { date: Date }) {
-  const { getEntriesByMonth, projects } = useTimeStore()
+  const { t } = useTranslation()
+  const dateLocale = useDateLocale()
+  const { getEntriesByMonth } = useTimeStore()
   const entries = getEntriesByMonth(date)
 
   const totalMinutes = entries.reduce(
@@ -17,9 +20,6 @@ export function MonthlyReport({ date }: { date: Date }) {
   const totalHours = Math.floor(totalMinutes / 60)
   const remainingMinutes = totalMinutes % 60
 
-  // Calculate stats based on project names in entries (to handle historical projects)
-  // or use the projects list if we want to show 0 for active projects.
-  // Here we group by project_name found in entries.
   const uniqueProjectNames = Array.from(
     new Set(entries.map((e) => e.project_name)),
   )
@@ -38,7 +38,7 @@ export function MonthlyReport({ date }: { date: Date }) {
     .sort((a, b) => b.minutes - a.minutes)
 
   const handleExport = () => {
-    downloadMonthlyCsv(entries, date)
+    downloadMonthlyCsv(entries, date, dateLocale)
   }
 
   return (
@@ -48,7 +48,7 @@ export function MonthlyReport({ date }: { date: Date }) {
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
               <BarChart className="h-5 w-5 text-indigo-500" />
-              Resumen Mensual
+              {t('timeEntry.monthlyReport')}
             </CardTitle>
             <Button
               variant="outline"
@@ -56,15 +56,15 @@ export function MonthlyReport({ date }: { date: Date }) {
               className="h-8 bg-white hover:bg-slate-50 text-slate-600 border-slate-200"
               onClick={handleExport}
               disabled={entries.length === 0}
-              title="Exportar registros del mes a CSV"
+              title={t('common.exportCsv')}
             >
               <Download className="mr-2 h-3.5 w-3.5" />
-              Exportar CSV
+              CSV
             </Button>
           </div>
           <p className="text-sm text-muted-foreground capitalize flex items-center gap-1">
             <CalendarDays className="h-3 w-3" />
-            {format(date, 'MMMM yyyy', { locale: es })}
+            {format(date, 'MMMM yyyy', { locale: dateLocale })}
           </p>
         </div>
       </CardHeader>
@@ -73,7 +73,7 @@ export function MonthlyReport({ date }: { date: Date }) {
           <div className="bg-indigo-600 rounded-xl p-6 text-center text-white shadow-lg shadow-indigo-200 transform transition-all hover:scale-[1.02]">
             <Clock className="h-8 w-8 mx-auto mb-2 text-indigo-200" />
             <span className="text-xs font-medium text-indigo-100 uppercase tracking-widest opacity-80">
-              Total Acumulado
+              {t('timeEntry.totalAccumulated')}
             </span>
             <div className="text-4xl font-bold mt-1 tracking-tight">
               {totalHours}h{' '}
@@ -85,12 +85,12 @@ export function MonthlyReport({ date }: { date: Date }) {
 
           <div className="space-y-4">
             <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b pb-2">
-              Desglose por Proyecto
+              {t('timeEntry.projectBreakdown')}
             </h4>
             {projectStats.length === 0 ? (
               <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-200">
                 <p className="text-sm text-muted-foreground italic">
-                  No hay registros para este mes.
+                  {t('timeEntry.noEntries')}
                 </p>
               </div>
             ) : (
