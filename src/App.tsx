@@ -117,9 +117,9 @@ const App = () => (
               <Route
                 path="/admin/users"
                 element={
-                  <AdminRoute>
+                  <RoleRoute allowedRoles={['admin', 'director']}>
                     <UserManagement />
-                  </AdminRoute>
+                  </RoleRoute>
                 }
               />
               <Route

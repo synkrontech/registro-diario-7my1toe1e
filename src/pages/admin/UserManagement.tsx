@@ -7,10 +7,19 @@ import {
   CardTitle,
   CardDescription,
 } from '@/components/ui/card'
-import { Shield, Users, Activity, Lock } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Button } from '@/components/ui/button'
+import { Shield, Users, Activity, Lock, Plus } from 'lucide-react'
 import { UserTable } from '@/components/admin/UserTable'
 import { RoleManager } from '@/components/admin/RoleManager'
 import { AuditLogViewer } from '@/components/admin/AuditLogViewer'
+import { UserForm } from '@/components/admin/UserForm'
 import { adminService } from '@/services/adminService'
 import { UserProfile, Role, Permission, AuditLog } from '@/lib/types'
 import { useAuth } from '@/components/AuthProvider'
@@ -26,6 +35,11 @@ export default function UserManagement() {
   const [roles, setRoles] = useState<Role[]>([])
   const [permissions, setPermissions] = useState<Permission[]>([])
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
+
+  // Modal State
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [editingUser, setEditingUser] = useState<UserProfile | null>(null)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const loadData = async () => {
     setIsLoading(true)
@@ -57,72 +71,56 @@ export default function UserManagement() {
     loadData()
   }, [])
 
-  const handleStatusChange = async (userId: string, newStatus: boolean) => {
-    if (!user) return
-
-    // Optimistic Update
-    setUsers((prev) =>
-      prev.map((u) => (u.id === userId ? { ...u, activo: newStatus } : u)),
-    )
-
-    try {
-      await adminService.updateUserStatus(user.id, userId, newStatus)
-      toast({
-        title: 'Estado actualizado',
-        description: 'El cambio ha sido notificado al usuario.',
-      })
-      // Refresh audit logs
-      const logs = await adminService.getAuditLogs()
-      setAuditLogs(logs)
-    } catch (error) {
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, activo: !newStatus } : u)),
-      )
-      toast({
-        title: 'Error',
-        description: 'No se pudo actualizar el estado',
-        variant: 'destructive',
-      })
-    }
+  const handleCreate = () => {
+    setEditingUser(null)
+    setIsModalOpen(true)
   }
 
-  const handleRoleChange = async (userId: string, roleId: string) => {
+  const handleEdit = (user: UserProfile) => {
+    setEditingUser(user)
+    setIsModalOpen(true)
+  }
+
+  const handleUserSubmit = async (data: any) => {
     if (!user) return
-
-    const roleName = roles.find((r) => r.id === roleId)?.name || 'unknown'
-    const oldRole = users.find((u) => u.id === userId)?.role_id
-
-    // Optimistic
-    setUsers((prev) =>
-      prev.map((u) =>
-        u.id === userId ? { ...u, role_id: roleId, role: roleName } : u,
-      ),
-    )
-
+    setIsSubmitting(true)
     try {
-      await adminService.updateUserRole(user.id, userId, roleId, roleName)
-      toast({ title: 'Rol actualizado' })
-      const logs = await adminService.getAuditLogs()
-      setAuditLogs(logs)
-    } catch (error) {
-      // Revert
-      if (oldRole) {
-        const oldRoleName =
-          roles.find((r) => r.id === oldRole)?.name || 'unknown'
-        setUsers((prev) =>
-          prev.map((u) =>
-            u.id === userId ? { ...u, role_id: oldRole, role: oldRoleName } : u,
-          ),
-        )
+      if (editingUser) {
+        // Update User
+        const selectedRole = roles.find((r) => r.id === data.role_id)
+        await adminService.updateUser(user.id, editingUser.id, {
+          nombre: data.nombre,
+          apellido: data.apellido,
+          role_id: data.role_id,
+          role_name: selectedRole?.name || 'unknown',
+          activo: data.activo,
+        })
+        toast({ title: 'Usuario actualizado exitosamente' })
+      } else {
+        // Create User
+        // Need to pass the role name to the edge function
+        const selectedRole = roles.find((r) => r.id === data.role_id)
+        await adminService.createUser({
+          ...data,
+          role: selectedRole?.name || 'consultor',
+        })
+        toast({ title: 'Usuario creado exitosamente' })
       }
+      setIsModalOpen(false)
+      loadData()
+    } catch (error: any) {
+      console.error(error)
       toast({
         title: 'Error',
-        description: 'No se pudo cambiar el rol',
+        description: error.message || 'Ocurrió un error al guardar',
         variant: 'destructive',
       })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
+  // Roles & Permissions Handlers (existing)
   const handleSaveRole = async (
     roleId: string | null,
     name: string,
@@ -192,19 +190,22 @@ export default function UserManagement() {
 
           <TabsContent value="users" className="animate-fade-in">
             <Card>
-              <CardHeader>
-                <CardTitle>Usuarios Registrados</CardTitle>
-                <CardDescription>
-                  Administra el acceso y roles de los usuarios.
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <div>
+                  <CardTitle>Usuarios Registrados</CardTitle>
+                  <CardDescription>
+                    Administra el acceso y roles de los usuarios.
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={handleCreate}
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  <Plus className="mr-2 h-4 w-4" /> Nuevo Usuario
+                </Button>
               </CardHeader>
               <CardContent>
-                <UserTable
-                  users={users}
-                  roles={roles}
-                  onStatusChange={handleStatusChange}
-                  onRoleChange={handleRoleChange}
-                />
+                <UserTable users={users} roles={roles} onEdit={handleEdit} />
               </CardContent>
             </Card>
           </TabsContent>
@@ -242,6 +243,28 @@ export default function UserManagement() {
           </TabsContent>
         </Tabs>
       )}
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}
+            </DialogTitle>
+            <DialogDescription>
+              {editingUser
+                ? 'Modifica los datos del usuario existente.'
+                : 'Ingresa los datos para registrar un nuevo usuario.'}
+            </DialogDescription>
+          </DialogHeader>
+          <UserForm
+            initialData={editingUser}
+            roles={roles}
+            onSubmit={handleUserSubmit}
+            onCancel={() => setIsModalOpen(false)}
+            isSubmitting={isSubmitting}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

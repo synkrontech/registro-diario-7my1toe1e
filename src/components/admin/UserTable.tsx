@@ -14,30 +14,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Switch } from '@/components/ui/switch'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { UserProfile, Role } from '@/lib/types'
-import { Search, ArrowUpDown } from 'lucide-react'
+import { Search, ArrowUpDown, Pencil } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 interface UserTableProps {
   users: UserProfile[]
   roles: Role[]
-  onStatusChange: (userId: string, status: boolean) => Promise<void>
-  onRoleChange: (userId: string, roleId: string) => Promise<void>
+  onEdit: (user: UserProfile) => void
 }
 
 type SortField = 'created_at' | 'nombre'
 
-export function UserTable({
-  users,
-  roles,
-  onStatusChange,
-  onRoleChange,
-}: UserTableProps) {
+export function UserTable({ users, roles, onEdit }: UserTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('all')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -56,10 +49,9 @@ export function UserTable({
   const filteredUsers = users
     .filter((user) => {
       const search = searchTerm.toLowerCase()
+      const fullName = `${user.nombre} ${user.apellido}`.toLowerCase()
       const matchesSearch =
-        user.nombre.toLowerCase().includes(search) ||
-        user.apellido.toLowerCase().includes(search) ||
-        user.email.toLowerCase().includes(search)
+        fullName.includes(search) || user.email.toLowerCase().includes(search)
 
       const matchesRole = roleFilter === 'all' || user.role_id === roleFilter
 
@@ -137,21 +129,13 @@ export function UserTable({
                   className="p-0 hover:bg-transparent font-bold"
                   onClick={() => handleSort('nombre')}
                 >
-                  Usuario <ArrowUpDown className="ml-2 h-4 w-4" />
+                  Nombre Completo <ArrowUpDown className="ml-2 h-4 w-4" />
                 </Button>
               </TableHead>
               <TableHead className="hidden md:table-cell">Email</TableHead>
               <TableHead>Rol</TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  className="p-0 hover:bg-transparent font-bold"
-                  onClick={() => handleSort('created_at')}
-                >
-                  Registro <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
               <TableHead>Estado</TableHead>
+              <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -193,45 +177,31 @@ export function UserTable({
                     {user.email}
                   </TableCell>
                   <TableCell>
-                    <Select
-                      defaultValue={user.role_id}
-                      onValueChange={(val) => onRoleChange(user.id, val)}
-                    >
-                      <SelectTrigger className="w-[130px] h-8">
-                        <SelectValue placeholder={user.role} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {roles.map((r) => (
-                          <SelectItem key={r.id} value={r.id}>
-                            {r.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {user.created_at
-                      ? new Date(user.created_at).toLocaleDateString()
-                      : '-'}
+                    <Badge variant="outline" className="capitalize">
+                      {user.role}
+                    </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={user.activo}
-                        onCheckedChange={(checked) =>
-                          onStatusChange(user.id, checked)
-                        }
-                      />
-                      <Badge
-                        variant={user.activo ? 'default' : 'destructive'}
-                        className={cn(
-                          'w-16 justify-center',
-                          user.activo ? 'bg-emerald-600' : '',
-                        )}
-                      >
-                        {user.activo ? 'Activo' : 'Inactivo'}
-                      </Badge>
-                    </div>
+                    <Badge
+                      variant={user.activo ? 'default' : 'destructive'}
+                      className={cn(
+                        'w-20 justify-center',
+                        user.activo ? 'bg-emerald-600' : '',
+                      )}
+                    >
+                      {user.activo ? 'Activo' : 'Inactivo'}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onEdit(user)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Pencil className="h-4 w-4" />
+                      <span className="sr-only">Editar</span>
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))

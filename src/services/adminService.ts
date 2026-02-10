@@ -35,6 +35,56 @@ export const adminService = {
     })) as UserProfile[]
   },
 
+  async createUser(data: {
+    email: string
+    password: string
+    nombre: string
+    apellido: string
+    role: string
+    activo: boolean
+  }) {
+    // Call Edge Function to create user securely
+    const { data: result, error } = await supabase.functions.invoke(
+      'create-user',
+      {
+        body: data,
+      },
+    )
+
+    if (error) throw error
+    if (result && result.error) throw new Error(result.error)
+
+    return result
+  },
+
+  async updateUser(
+    adminId: string,
+    userId: string,
+    data: {
+      nombre: string
+      apellido: string
+      role_id: string
+      role_name: string
+      activo: boolean
+    },
+  ) {
+    const { error } = await supabase
+      .from('users')
+      .update({
+        nombre: data.nombre,
+        apellido: data.apellido,
+        role_id: data.role_id,
+        activo: data.activo,
+      })
+      .eq('id', userId)
+
+    if (error) throw error
+
+    await this.logAction(adminId, 'UPDATE_USER', userId, {
+      updated_fields: data,
+    })
+  },
+
   async updateUserStatus(adminId: string, userId: string, newStatus: boolean) {
     const { error } = await supabase
       .from('users')
