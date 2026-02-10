@@ -2,13 +2,11 @@ import { supabase } from '@/lib/supabase/client'
 import {
   startOfMonth,
   endOfMonth,
-  subMonths,
   format,
-  startOfWeek,
-  endOfWeek,
   eachDayOfInterval,
+  isSameDay,
 } from 'date-fns'
-import { TimeEntry, ExecutiveReportItem } from '@/lib/types'
+import { TimeEntry } from '@/lib/types'
 
 export const dashboardService = {
   // Consultant Metrics
@@ -48,55 +46,47 @@ export const dashboardService = {
     const pendingMinutes = timeEntries
       .filter((e) => e.status === 'pendiente')
       .reduce((acc, curr) => acc + curr.durationMinutes, 0)
-    const approvalRate =
-      totalMinutes > 0 ? (approvedMinutes / totalMinutes) * 100 : 0
+    const rejectedMinutes = timeEntries
+      .filter((e) => e.status === 'rechazado')
+      .reduce((acc, curr) => acc + curr.durationMinutes, 0)
 
-    // Evolution Chart Data (Group by Day)
+    // Daily Trend (Line Chart)
     const days = eachDayOfInterval({ start, end })
-    const evolutionData = days.map((day) => {
-      const dayStr = format(day, 'yyyy-MM-dd')
-      const dayEntries = timeEntries.filter(
-        (e) => format(e.date, 'yyyy-MM-dd') === dayStr,
-      )
+    const dailyTrend = days.map((day) => {
+      const dayEntries = timeEntries.filter((e) => isSameDay(e.date, day))
       return {
-        date: format(day, 'dd/MM'),
-        pending: dayEntries
-          .filter((e) => e.status === 'pendiente')
-          .reduce((acc, curr) => acc + curr.durationMinutes / 60, 0),
-        approved: dayEntries
-          .filter((e) => e.status === 'aprobado')
-          .reduce((acc, curr) => acc + curr.durationMinutes / 60, 0),
-        rejected: dayEntries
-          .filter((e) => e.status === 'rechazado')
-          .reduce((acc, curr) => acc + curr.durationMinutes / 60, 0),
+        date: format(day, 'dd'),
+        fullDate: format(day, 'yyyy-MM-dd'),
+        hours:
+          dayEntries.reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60,
       }
     })
 
-    // Project Distribution
-    const projectDist = timeEntries.reduce(
-      (acc, curr) => {
-        const projName = curr.project_name || 'Unknown'
-        if (!acc[projName]) acc[projName] = 0
-        acc[projName] += curr.durationMinutes / 60
-        return acc
-      },
-      {} as Record<string, number>,
-    )
+    // Last 5 Records (Fetch separately to get truly last 5 regardless of month view, or just slice current?)
+    // User story implies "Last 5 records" generally. Let's fetch the absolute last 5.
+    const { data: lastEntriesData, error: lastError } = await supabase
+      .from('time_entries')
+      .select('*, projects(nombre)')
+      .eq('user_id', userId)
+      .order('fecha', { ascending: false })
+      .limit(5)
 
-    const projectData = Object.entries(projectDist)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
+    if (lastError) throw lastError
+    const lastEntries = lastEntriesData.map((e: any) => ({
+      ...e,
+      project_name: e.projects?.nombre,
+      date: new Date(e.fecha),
+    }))
 
     return {
       kpis: {
         registeredHours: totalMinutes / 60,
         approvedHours: approvedMinutes / 60,
         pendingHours: pendingMinutes / 60,
-        approvalRate,
+        rejectedHours: rejectedMinutes / 60,
       },
-      evolutionData,
-      projectData,
-      lastEntries: timeEntries.slice(0, 10),
+      dailyTrend,
+      lastEntries,
     }
   },
 
@@ -114,17 +104,30 @@ export const dashboardService = {
     if (projError) throw projError
     const projectIds = projects.map((p) => p.id)
 
+    if (projectIds.length === 0) {
+      return {
+        kpis: {
+          assignedProjects: 0,
+          pendingApprovals: 0,
+          monthlyHours: 0,
+          totalConsultants: 0,
+        },
+        topConsultants: [],
+        projectDistribution: [],
+      }
+    }
+
     // 2. Get all entries for managed projects in range
     const { data: entries, error: entriesError } = await supabase
       .from('time_entries')
-      .select('*, users(nombre, apellido), projects(nombre)')
+      .select('*, users(id, nombre, apellido), projects(id, nombre)')
       .in('project_id', projectIds)
       .gte('fecha', formattedStart)
       .lte('fecha', formattedEnd)
 
     if (entriesError) throw entriesError
 
-    // 3. Get pending entries for badge (total, not just range)
+    // 3. Get pending count (Total pending for these projects, not just in range, usually)
     const { count: pendingCount, error: pendingError } = await supabase
       .from('time_entries')
       .select('id', { count: 'exact', head: true })
@@ -135,80 +138,44 @@ export const dashboardService = {
 
     // KPIs
     const totalHours =
-      entries
-        .filter((e) => e.status === 'aprobado')
-        .reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60
-    const rejectedEntries = entries.filter(
-      (e) => e.status === 'rechazado',
-    ).length
-    const totalEntries = entries.length
-    const rejectionRate =
-      totalEntries > 0 ? (rejectedEntries / totalEntries) * 100 : 0
+      entries.reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60
+    const uniqueConsultants = new Set(entries.map((e) => e.user_id)).size
 
-    // Weekly Trend (Last 4 weeks relative to end date or range)
-    // We group by week of the entries
-    const weeklyData: any[] = []
-    // Simple aggregation by week
-    const entriesByWeek = entries.reduce(
+    // Top 5 Consultants
+    const consultantStats = entries.reduce(
       (acc, curr) => {
-        const week = format(startOfWeek(new Date(curr.fecha)), 'dd/MM')
-        if (!acc[week]) acc[week] = { registered: 0, approved: 0 }
-        acc[week].registered += curr.durationMinutes / 60
-        if (curr.status === 'aprobado')
-          acc[week].approved += curr.durationMinutes / 60
+        const uid = curr.user_id
+        if (!acc[uid]) {
+          acc[uid] = {
+            id: uid,
+            name: `${curr.users?.nombre} ${curr.users?.apellido}`,
+            hours: 0,
+            projects: new Set<string>(),
+          }
+        }
+        acc[uid].hours += curr.durationMinutes / 60
+        acc[uid].projects.add(curr.projects?.nombre || 'Unknown')
         return acc
       },
-      {} as Record<string, { registered: number; approved: number }>,
+      {} as Record<string, any>,
     )
 
-    Object.keys(entriesByWeek).forEach((key) => {
-      weeklyData.push({ name: key, ...entriesByWeek[key] })
-    })
-    weeklyData.sort((a, b) => a.name.localeCompare(b.name)) // Rough sort
-
-    // Top Consultants
-    const consultantHours = entries.reduce(
-      (acc, curr) => {
-        const name = `${curr.users?.nombre} ${curr.users?.apellido}`
-        if (!acc[name]) acc[name] = 0
-        acc[name] += curr.durationMinutes / 60
-        return acc
-      },
-      {} as Record<string, number>,
-    )
-
-    const topConsultants = Object.entries(consultantHours)
-      .map(([name, hours]) => ({ name, hours }))
-      .sort((a, b) => b.hours - a.hours)
+    const topConsultants = Object.values(consultantStats)
+      .sort((a: any, b: any) => b.hours - a.hours)
       .slice(0, 5)
-
-    // Pending Approvals Table Data (Grouped by Project)
-    // Fetch pending entries detail (could optimize to fetch all relevant status above)
-    const { data: pendingEntriesDetail, error: pDetailError } = await supabase
-      .from('time_entries')
-      .select('*, users(nombre, apellido), projects(nombre)')
-      .in('project_id', projectIds)
-      .eq('status', 'pendiente')
-      .order('fecha', { ascending: true })
-
-    if (pDetailError) throw pDetailError
-
-    // Group
-    const pendingByProject = pendingEntriesDetail.reduce(
-      (acc, curr) => {
-        const pName = curr.projects?.nombre || 'Unknown'
-        if (!acc[pName]) acc[pName] = []
-        acc[pName].push({
-          id: curr.id,
-          consultant: `${curr.users?.nombre} ${curr.users?.apellido}`,
-          date: curr.fecha,
-          hours: curr.durationMinutes / 60,
-          description: curr.description,
-        })
-        return acc
-      },
-      {} as Record<string, any[]>,
-    )
+      .map((c: any) => ({
+        ...c,
+        projects: Array.from(c.projects),
+        // Calculate percentage relative to the top performer for progress bar
+        percentage:
+          Object.values(consultantStats).length > 0
+            ? (c.hours /
+                Math.max(
+                  ...Object.values(consultantStats).map((x: any) => x.hours),
+                )) *
+              100
+            : 0,
+      }))
 
     // Project Distribution (Hours)
     const projDist = entries.reduce(
@@ -221,259 +188,151 @@ export const dashboardService = {
       {} as Record<string, number>,
     )
 
-    const projectDistribution = Object.entries(projDist).map(
-      ([name, value]) => ({ name, value }),
-    )
+    const projectDistribution = Object.entries(projDist)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
 
     return {
       kpis: {
         assignedProjects: projects.length,
         pendingApprovals: pendingCount || 0,
         monthlyHours: totalHours,
-        rejectionRate,
+        totalConsultants: uniqueConsultants,
       },
-      charts: {
-        weeklyTrend: weeklyData,
-        topConsultants,
-        projectDistribution,
-      },
-      pendingTable: pendingByProject,
+      topConsultants,
+      projectDistribution,
     }
   },
 
   // Director Metrics
-  async getDirectorMetrics(filters: {
-    clientIds: string[]
-    systemIds: string[]
-    workFront: string | null
-    from: Date
-    to: Date
-  }) {
-    const formattedStart = format(filters.from, 'yyyy-MM-dd')
-    const formattedEnd = format(filters.to, 'yyyy-MM-dd')
+  async getDirectorMetrics(from: Date, to: Date) {
+    const formattedStart = format(from, 'yyyy-MM-dd')
+    const formattedEnd = format(to, 'yyyy-MM-dd')
 
-    // Base query for approved entries (Director cares about approved/billable mostly, but let's see)
-    // Acceptance criteria says: "Director... must have access to all data... Charts... strictly filter for status = 'aprobado'"
-
-    let query = supabase
+    // Fetch all entries for the period
+    const { data: entries, error } = await supabase
       .from('time_entries')
       .select(
         `
-            durationMinutes, 
-            status, 
-            fecha,
-            user_id,
-            projects!inner (
-                id, nombre, work_front, status,
-                clients!inner(id, nombre),
-                systems(id, nombre),
-                users(nombre, apellido)
-            )
-        `,
+        durationMinutes, 
+        status, 
+        user_id,
+        projects (
+            id, nombre, work_front, status,
+            clients ( nombre ),
+            systems ( nombre ),
+            users ( nombre, apellido )
+        )
+      `,
       )
       .gte('fecha', formattedStart)
       .lte('fecha', formattedEnd)
 
-    if (filters.clientIds.length > 0) {
-      query = query.in('projects.clients.id', filters.clientIds)
-    }
-    if (filters.systemIds.length > 0) {
-      // Since systems is left join in structure usually, but here !inner on projects ensures relation?
-      // Actually systems is optional on project.
-      // We need to filter manually if not !inner. Let's assume standard filtering
-      // Supabase postgrest doesn't support complex deep filtering on left joins easily without !inner.
-      // Let's filter in memory if needed or use !inner if we strictly want projects with systems.
-      // Assuming user wants to filter by system if provided.
-      // We will do it in JS for flexibility if dataset is manageable, or stricter query.
-    }
-    if (filters.workFront) {
-      query = query.eq('projects.work_front', filters.workFront)
-    }
-
-    const { data: rawData, error } = await query
     if (error) throw error
 
-    // JS Filtering for System (optional relation)
-    let data = rawData
-    if (filters.systemIds.length > 0) {
-      data = data.filter(
-        (d: any) =>
-          d.projects.systems &&
-          filters.systemIds.includes(d.projects.systems.id),
-      )
-    }
-
-    // Previous Month Comparison for KPI
-    const prevStart = subMonths(filters.from, 1)
-    const prevEnd = subMonths(filters.to, 1)
-
-    // We fetch simplified previous data for KPI
-    // We approximate or do another query. Let's do another query.
-    const { data: prevData, error: prevError } = await supabase
-      .from('time_entries')
-      .select('durationMinutes')
-      .eq('status', 'aprobado')
-      .gte('fecha', format(prevStart, 'yyyy-MM-dd'))
-      .lte('fecha', format(prevEnd, 'yyyy-MM-dd'))
-
-    if (prevError) throw prevError
-    const prevTotalHours =
-      prevData.reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60
-
-    // Aggregations
-    const approvedEntries = data.filter((e: any) => e.status === 'aprobado')
-    const totalApprovedMinutes = approvedEntries.reduce(
-      (acc: any, curr: any) => acc + curr.durationMinutes,
-      0,
-    )
-    const totalApprovedHours = totalApprovedMinutes / 60
-
-    // Active Projects (count unique project IDs in the filtered data or generally active?)
-    // "Active Projects count" usually implies currently active projects in DB, filtered by criteria.
-    // Let's count unique projects in the time entries + fetch active projects matching criteria separately?
-    // User story says "Active Projects count". Usually means Status='Activo'.
-    // Let's fetch active projects count matching filters.
-
-    let projQuery = supabase
+    // Fetch active projects count (Global)
+    const { count: activeProjectsCount } = await supabase
       .from('projects')
-      .select('id, client_id, system_id, work_front', {
-        count: 'exact',
-        head: true,
-      })
+      .select('id', { count: 'exact', head: true })
       .eq('status', 'activo')
-    if (filters.clientIds.length > 0)
-      projQuery = projQuery.in('client_id', filters.clientIds)
-    if (filters.workFront)
-      projQuery = projQuery.eq('work_front', filters.workFront)
-    // System filtering on projects requires join, difficult with head:true.
-    // We'll stick to simple count from entries or just generic active count.
-    // Let's use unique projects from data as "Projects with activity" or just query standard count without deep system filter for speed.
-    const uniqueActiveProjectsInData = new Set(
-      data.map((d: any) => d.projects.id),
-    ).size
-
-    // Active Consultants
-    const uniqueConsultants = new Set(data.map((d: any) => d.user_id)).size
 
     // KPIs
-    const totalHoursDiff =
-      prevTotalHours > 0
-        ? ((totalApprovedHours - prevTotalHours) / prevTotalHours) * 100
-        : 0
-
-    // Utilization Gauge
-    // Capacity = 160h * active consultants
-    const capacity = uniqueConsultants * 160
-    const utilization = capacity > 0 ? (totalApprovedHours / capacity) * 100 : 0
-
-    // Approval Ratio
-    const allMinutes = data.reduce(
-      (acc: any, curr: any) => acc + curr.durationMinutes,
+    const totalMinutes = entries.reduce(
+      (acc, curr) => acc + curr.durationMinutes,
       0,
     )
-    const approvalRatio =
-      allMinutes > 0 ? (totalApprovedMinutes / allMinutes) * 100 : 0
+    const approvedMinutes = entries
+      .filter((e) => e.status === 'aprobado')
+      .reduce((acc, curr) => acc + curr.durationMinutes, 0, 0)
 
-    // Avg Hours per Consultant
-    const avgHours =
-      uniqueConsultants > 0 ? totalApprovedHours / uniqueConsultants : 0
+    // Active consultants in this period (who logged time)
+    const activeConsultants = new Set(entries.map((e) => e.user_id)).size
 
-    // Charts
+    const approvalRate =
+      totalMinutes > 0 ? (approvedMinutes / totalMinutes) * 100 : 0
 
-    // Work Front
-    const wfMap = approvedEntries.reduce(
-      (acc: any, curr: any) => {
-        const wf = curr.projects.work_front || 'Otro'
-        if (!acc[wf]) acc[wf] = 0
-        acc[wf] += curr.durationMinutes / 60
+    const totalHours = totalMinutes / 60
+
+    // Distributions (Based on Approved Hours as per requirements)
+    const approvedEntries = entries.filter((e) => e.status === 'aprobado')
+
+    // By Client
+    const clientDist = approvedEntries.reduce(
+      (acc, curr: any) => {
+        const name = curr.projects?.clients?.nombre || 'Unknown'
+        if (!acc[name]) acc[name] = 0
+        acc[name] += curr.durationMinutes / 60
         return acc
       },
       {} as Record<string, number>,
     )
-    const workFrontData = Object.entries(wfMap).map(([name, value]) => ({
-      name,
-      value,
-    }))
 
-    // Client Dist
-    const clMap = approvedEntries.reduce(
-      (acc: any, curr: any) => {
-        const cl = curr.projects.clients?.nombre || 'Unknown'
-        if (!acc[cl]) acc[cl] = 0
-        acc[cl] += curr.durationMinutes / 60
+    // By System
+    const systemDist = approvedEntries.reduce(
+      (acc, curr: any) => {
+        const name = curr.projects?.systems?.nombre || 'N/A'
+        if (!acc[name]) acc[name] = 0
+        acc[name] += curr.durationMinutes / 60
         return acc
       },
       {} as Record<string, number>,
     )
-    const clientData = Object.entries(clMap).map(([name, value]) => ({
-      name,
-      value,
-    }))
 
-    // Timeline (Weekly)
-    const weeklyMap = data.reduce((acc: any, curr: any) => {
-      const week = format(startOfWeek(new Date(curr.fecha)), 'dd/MM')
-      if (!acc[week]) acc[week] = { name: week, registered: 0, approved: 0 }
-      acc[week].registered += curr.durationMinutes / 60
-      if (curr.status === 'aprobado')
-        acc[week].approved += curr.durationMinutes / 60
-      return acc
-    }, {})
-    const timelineData = Object.values(weeklyMap).sort((a: any, b: any) =>
-      a.name.localeCompare(b.name),
+    // By Work Front
+    const wfDist = approvedEntries.reduce(
+      (acc, curr: any) => {
+        const name = curr.projects?.work_front || 'Otro'
+        if (!acc[name]) acc[name] = 0
+        acc[name] += curr.durationMinutes / 60
+        return acc
+      },
+      {} as Record<string, number>,
     )
 
-    // Consolidated Table
-    // Group by Client -> Project
-    const consolidated: any[] = []
-    // Group approved entries by project first
-    const projectMap = approvedEntries.reduce((acc: any, curr: any) => {
-      const pid = curr.projects.id
-      if (!acc[pid]) {
-        acc[pid] = {
-          id: pid,
-          project: curr.projects.nombre,
-          client: curr.projects.clients?.nombre || 'Unknown',
-          manager:
-            `${curr.projects.users?.nombre || ''} ${curr.projects.users?.apellido || ''}`.trim() ||
-            '-',
-          status: curr.projects.status,
-          hours: 0,
-          consultants: new Set(),
+    // Top 10 Projects (By Total Hours - Requirements say "Most Hours", usually implies total activity, but could be approved. Let's use Total Logged for "Most Hours")
+    const projectStats = entries.reduce(
+      (acc, curr: any) => {
+        const pid = curr.projects?.id
+        if (!pid) return acc
+        if (!acc[pid]) {
+          acc[pid] = {
+            project: curr.projects?.nombre,
+            client: curr.projects?.clients?.nombre || '-',
+            manager: curr.projects?.users
+              ? `${curr.projects.users.nombre} ${curr.projects.users.apellido}`
+              : '-',
+            hours: 0,
+          }
         }
-      }
-      acc[pid].hours += curr.durationMinutes / 60
-      acc[pid].consultants.add(curr.user_id)
-      return acc
-    }, {})
+        acc[pid].hours += curr.durationMinutes / 60
+        return acc
+      },
+      {} as Record<string, any>,
+    )
 
-    Object.values(projectMap).forEach((p: any) => {
-      consolidated.push({
-        project: p.project,
-        client: p.client,
-        manager: p.manager,
-        status: p.status,
-        totalHours: p.hours,
-        totalConsultants: p.consultants.size,
-      })
-    })
+    const topProjects = Object.values(projectStats)
+      .sort((a: any, b: any) => b.hours - a.hours)
+      .slice(0, 10)
 
     return {
       kpis: {
-        totalHours: totalApprovedHours,
-        totalHoursDiff,
-        activeProjects: uniqueActiveProjectsInData,
-        activeConsultants: uniqueConsultants,
-        globalUtilization: utilization,
-        approvalRatio,
-        avgHoursConsultant: avgHours,
+        totalMonthlyHours: totalHours,
+        totalActiveProjects: activeProjectsCount || 0,
+        totalActiveConsultants: activeConsultants,
+        approvalRate,
       },
       charts: {
-        workFrontData,
-        clientData,
-        timelineData,
+        byClient: Object.entries(clientDist)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value),
+        bySystem: Object.entries(systemDist)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value),
+        byWorkFront: Object.entries(wfDist)
+          .map(([name, value]) => ({ name, value }))
+          .sort((a, b) => b.value - a.value),
       },
-      consolidatedTable: consolidated,
+      topProjects,
     }
   },
 }
