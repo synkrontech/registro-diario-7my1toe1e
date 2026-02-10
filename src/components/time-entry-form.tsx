@@ -2,7 +2,7 @@ import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { CalendarIcon, Plus, Save, X } from 'lucide-react'
-import { format } from 'date-fns'
+import { format, isSameMonth } from 'date-fns'
 import { es } from 'date-fns/locale'
 
 import { cn } from '@/lib/utils'
@@ -41,12 +41,14 @@ import useTimeStore from '@/stores/useTimeStore'
 import { useToast } from '@/hooks/use-toast'
 
 interface TimeEntryFormProps {
+  currentDate: Date
   onDateChange: (date: Date) => void
   entryToEdit?: TimeEntry | null
   onCancelEdit: () => void
 }
 
 export function TimeEntryForm({
+  currentDate,
   onDateChange,
   entryToEdit,
   onCancelEdit,
@@ -57,13 +59,26 @@ export function TimeEntryForm({
   const form = useForm<TimeEntryFormValues>({
     resolver: zodResolver(timeEntrySchema),
     defaultValues: {
-      date: new Date(),
+      date: currentDate,
       startTime: '',
       endTime: '',
       description: '',
       project: '',
     },
   })
+
+  // Update form date when currentDate changes (month navigation) and we are NOT editing
+  useEffect(() => {
+    if (!entryToEdit) {
+      // If the current form date is in a different month than the new currentDate
+      // update it to the new currentDate (which is usually 1st of month or today)
+      // to keep the form in sync with the view context.
+      const currentFormDate = form.getValues('date')
+      if (!isSameMonth(currentFormDate, currentDate)) {
+        form.setValue('date', currentDate)
+      }
+    }
+  }, [currentDate, entryToEdit, form])
 
   // Populate form when editing
   useEffect(() => {
@@ -79,6 +94,9 @@ export function TimeEntryForm({
   }, [entryToEdit, form])
 
   // Sync selected date with parent safely
+  // We only want to notify parent if the USER changes the date in the form
+  // But strictly speaking, the parent passes currentDate down.
+  // If the user picks a date in the form, we might want to update the parent's view to that month.
   const watchedDate = form.watch('date')
   useEffect(() => {
     if (watchedDate) {
@@ -100,14 +118,15 @@ export function TimeEntryForm({
         addEntry(data)
         toast({
           title: 'Registro guardado',
-          description: 'Tu actividad ha sido registrada.',
+          description: 'Tu actividad ha sido registrada exitosamente.',
           className: 'bg-emerald-50 border-emerald-200 text-emerald-800',
         })
       }
 
+      // Reset form but keep the current date context
       form.reset({
-        date: data.date,
-        project: data.project,
+        date: data.date, // Keep the same date for next entry
+        project: data.project, // Keep project for convenience
         startTime: '',
         endTime: '',
         description: '',
@@ -125,7 +144,7 @@ export function TimeEntryForm({
   function handleCancel() {
     onCancelEdit()
     form.reset({
-      date: new Date(),
+      date: currentDate,
       startTime: '',
       endTime: '',
       description: '',
@@ -134,25 +153,32 @@ export function TimeEntryForm({
   }
 
   return (
-    <Card className="border-none shadow-md">
-      <CardHeader>
+    <Card className="border-none shadow-md overflow-hidden">
+      <CardHeader
+        className={cn('border-b', entryToEdit ? 'bg-blue-50/50' : 'bg-white')}
+      >
         <CardTitle className="text-xl font-semibold text-slate-800 flex justify-between items-center">
-          <span>
-            {entryToEdit ? 'Editar Actividad' : 'Registro de Actividad'}
-          </span>
+          <div className="flex items-center gap-2">
+            {entryToEdit ? (
+              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+            ) : (
+              <div className="h-2 w-2 rounded-full bg-indigo-500" />
+            )}
+            <span>{entryToEdit ? 'Modificar Registro' : 'Nuevo Registro'}</span>
+          </div>
           {entryToEdit && (
             <Button
               variant="ghost"
               size="sm"
               onClick={handleCancel}
-              className="text-slate-500"
+              className="text-slate-500 hover:text-slate-700 hover:bg-slate-100"
             >
-              <X className="mr-1 h-4 w-4" /> Cancelar
+              <X className="mr-1 h-4 w-4" /> Cancelar Edición
             </Button>
           )}
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="pt-6">
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -173,7 +199,7 @@ export function TimeEntryForm({
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'P', { locale: es })
+                              format(field.value, 'PPP', { locale: es })
                             ) : (
                               <span>Selecciona una fecha</span>
                             )}
@@ -263,11 +289,11 @@ export function TimeEntryForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Actividades</FormLabel>
+                  <FormLabel>Descripción de Actividades</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Escribe aquí lo que hiciste..."
-                      className="resize-none"
+                      placeholder="Detalla las tareas realizadas..."
+                      className="resize-none min-h-[100px]"
                       {...field}
                     />
                   </FormControl>
@@ -279,18 +305,19 @@ export function TimeEntryForm({
             <Button
               type="submit"
               className={cn(
-                'w-full md:w-auto transition-colors duration-150',
+                'w-full md:w-auto transition-all duration-200',
                 entryToEdit
-                  ? 'bg-blue-600 hover:bg-blue-700'
-                  : 'bg-indigo-600 hover:bg-indigo-700',
+                  ? 'bg-blue-600 hover:bg-blue-700 shadow-blue-200'
+                  : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200',
               )}
+              size="lg"
             >
               {entryToEdit ? (
                 <Save className="mr-2 h-4 w-4" />
               ) : (
                 <Plus className="mr-2 h-4 w-4" />
               )}
-              {entryToEdit ? 'Actualizar Registro' : 'Guardar Registro'}
+              {entryToEdit ? 'Guardar Cambios' : 'Registrar Actividad'}
             </Button>
           </form>
         </Form>

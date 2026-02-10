@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import useTimeStore from '@/stores/useTimeStore'
-import { BarChart, Clock } from 'lucide-react'
+import { BarChart, Clock, CalendarDays } from 'lucide-react'
 import { PROJECTS } from '@/lib/types'
 
 export function MonthlyReport({ date }: { date: Date }) {
@@ -30,60 +30,63 @@ export function MonthlyReport({ date }: { date: Date }) {
     .sort((a, b) => b.minutes - a.minutes)
 
   return (
-    <Card className="border-none shadow-md bg-white">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-semibold text-slate-800 flex items-center gap-2">
+    <Card className="border-none shadow-md bg-white overflow-hidden">
+      <CardHeader className="pb-4 bg-slate-50 border-b border-slate-100">
+        <div className="flex flex-col gap-1">
+          <CardTitle className="text-lg font-semibold text-slate-800 flex items-center gap-2">
             <BarChart className="h-5 w-5 text-indigo-500" />
-            Reporte Mensual
+            Resumen Mensual
           </CardTitle>
-          <span className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full capitalize">
+          <p className="text-sm text-muted-foreground capitalize flex items-center gap-1">
+            <CalendarDays className="h-3 w-3" />
             {format(date, 'MMMM yyyy', { locale: es })}
-          </span>
+          </p>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-indigo-50 rounded-lg p-6 flex flex-col items-center justify-center text-center">
-            <Clock className="h-8 w-8 text-indigo-600 mb-2" />
-            <span className="text-sm text-indigo-600 font-medium">
-              Total Horas
+      <CardContent className="pt-6">
+        <div className="flex flex-col gap-6">
+          <div className="bg-indigo-600 rounded-xl p-6 text-center text-white shadow-lg shadow-indigo-200 transform transition-all hover:scale-[1.02]">
+            <Clock className="h-8 w-8 mx-auto mb-2 text-indigo-200" />
+            <span className="text-xs font-medium text-indigo-100 uppercase tracking-widest opacity-80">
+              Total Acumulado
             </span>
-            <span className="text-3xl font-bold text-indigo-900">
-              {totalHours}h {remainingMinutes}m
-            </span>
+            <div className="text-4xl font-bold mt-1 tracking-tight">
+              {totalHours}h{' '}
+              <span className="text-2xl font-normal text-indigo-200">
+                {remainingMinutes}m
+              </span>
+            </div>
           </div>
 
-          <div className="md:col-span-2 space-y-4">
-            <h4 className="text-sm font-medium text-slate-500 uppercase tracking-wider">
+          <div className="space-y-4">
+            <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider border-b pb-2">
               Desglose por Proyecto
             </h4>
             {projectStats.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">
-                No hay registros este mes.
-              </p>
+              <div className="text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+                <p className="text-sm text-muted-foreground italic">
+                  No hay registros para este mes.
+                </p>
+              </div>
             ) : (
               <div className="space-y-3">
                 {projectStats.map((stat) => (
-                  <div
-                    key={stat.name}
-                    className="flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-100"
-                  >
-                    <span className="font-medium text-slate-700">
-                      {stat.name}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-bold text-slate-900">
+                  <div key={stat.name} className="group">
+                    <div className="flex items-center justify-between mb-1">
+                      <span className="text-sm font-medium text-slate-700">
+                        {stat.name}
+                      </span>
+                      <span className="text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded">
                         {stat.hours}h
                       </span>
-                      <div className="w-24 h-2 bg-slate-200 rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-indigo-500 rounded-full"
-                          style={{
-                            width: `${Math.min((stat.minutes / totalMinutes) * 100, 100)}%`,
-                          }}
-                        />
-                      </div>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-indigo-500 rounded-full transition-all duration-500 ease-out group-hover:bg-indigo-600"
+                        style={{
+                          width: `${Math.min((stat.minutes / totalMinutes) * 100, 100)}%`,
+                        }}
+                      />
                     </div>
                   </div>
                 ))}

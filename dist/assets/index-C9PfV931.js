@@ -18890,6 +18890,52 @@ var Briefcase = createLucideIcon("briefcase", [["path", {
 	rx: "2",
 	key: "i6l2r4"
 }]]);
+var CalendarDays = createLucideIcon("calendar-days", [
+	["path", {
+		d: "M8 2v4",
+		key: "1cmpym"
+	}],
+	["path", {
+		d: "M16 2v4",
+		key: "4m81vk"
+	}],
+	["rect", {
+		width: "18",
+		height: "18",
+		x: "3",
+		y: "4",
+		rx: "2",
+		key: "1hopcy"
+	}],
+	["path", {
+		d: "M3 10h18",
+		key: "8toen8"
+	}],
+	["path", {
+		d: "M8 14h.01",
+		key: "6423bh"
+	}],
+	["path", {
+		d: "M12 14h.01",
+		key: "1etili"
+	}],
+	["path", {
+		d: "M16 14h.01",
+		key: "1gbofw"
+	}],
+	["path", {
+		d: "M8 18h.01",
+		key: "lrp35t"
+	}],
+	["path", {
+		d: "M12 18h.01",
+		key: "mhygvu"
+	}],
+	["path", {
+		d: "M16 18h.01",
+		key: "kzsmim"
+	}]
+]);
 var Calendar = createLucideIcon("calendar", [
 	["path", {
 		d: "M8 2v4",
@@ -29752,6 +29798,9 @@ function setYear(date$3, year, options$1) {
 	date_.setFullYear(year);
 	return date_;
 }
+function subMonths(date$3, amount, options$1) {
+	return addMonths(date$3, -amount, options$1);
+}
 var formatDistanceLocale = {
 	lessThanXSeconds: {
 		one: "menos de un segundo",
@@ -35640,19 +35689,28 @@ var useTimeStore = () => {
 	return context;
 };
 var useTimeStore_default = useTimeStore;
-function TimeEntryForm({ onDateChange, entryToEdit, onCancelEdit }) {
+function TimeEntryForm({ currentDate, onDateChange, entryToEdit, onCancelEdit }) {
 	const { addEntry, updateEntry } = useTimeStore_default();
 	const { toast: toast$2 } = useToast();
 	const form = useForm({
 		resolver: a(timeEntrySchema),
 		defaultValues: {
-			date: /* @__PURE__ */ new Date(),
+			date: currentDate,
 			startTime: "",
 			endTime: "",
 			description: "",
 			project: ""
 		}
 	});
+	(0, import_react.useEffect)(() => {
+		if (!entryToEdit) {
+			if (!isSameMonth(form.getValues("date"), currentDate)) form.setValue("date", currentDate);
+		}
+	}, [
+		currentDate,
+		entryToEdit,
+		form
+	]);
 	(0, import_react.useEffect)(() => {
 		if (entryToEdit) form.reset({
 			date: entryToEdit.date,
@@ -35680,7 +35738,7 @@ function TimeEntryForm({ onDateChange, entryToEdit, onCancelEdit }) {
 				addEntry(data);
 				toast$2({
 					title: "Registro guardado",
-					description: "Tu actividad ha sido registrada.",
+					description: "Tu actividad ha sido registrada exitosamente.",
 					className: "bg-emerald-50 border-emerald-200 text-emerald-800"
 				});
 			}
@@ -35703,7 +35761,7 @@ function TimeEntryForm({ onDateChange, entryToEdit, onCancelEdit }) {
 	function handleCancel() {
 		onCancelEdit();
 		form.reset({
-			date: /* @__PURE__ */ new Date(),
+			date: currentDate,
 			startTime: "",
 			endTime: "",
 			description: "",
@@ -35711,117 +35769,127 @@ function TimeEntryForm({ onDateChange, entryToEdit, onCancelEdit }) {
 		});
 	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-		className: "border-none shadow-md",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-			className: "text-xl font-semibold text-slate-800 flex justify-between items-center",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: entryToEdit ? "Editar Actividad" : "Registro de Actividad" }), entryToEdit && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-				variant: "ghost",
-				size: "sm",
-				onClick: handleCancel,
-				className: "text-slate-500",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "mr-1 h-4 w-4" }), " Cancelar"]
-			})]
-		}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form, {
-			...form,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
-				onSubmit: form.handleSubmit(onSubmit),
-				className: "space-y-6",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "grid grid-cols-1 md:grid-cols-2 gap-6",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
-							control: form.control,
-							name: "date",
-							render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, {
-								className: "flex flex-col",
-								children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Fecha" }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Popover, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverTrigger, {
-										asChild: true,
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-											variant: "outline",
-											className: cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground"),
-											children: [field.value ? format(field.value, "P", { locale: es }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Selecciona una fecha" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "ml-auto h-4 w-4 opacity-50" })]
-										}) })
-									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverContent, {
-										className: "w-auto p-0",
-										align: "start",
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar$1, {
-											mode: "single",
-											selected: field.value,
-											onSelect: (date$3) => date$3 && field.onChange(date$3),
-											disabled: (date$3) => date$3 > /* @__PURE__ */ new Date() || date$3 < /* @__PURE__ */ new Date("1900-01-01"),
-											initialFocus: true
-										})
-									})] }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
-								]
-							})
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
-							control: form.control,
-							name: "project",
-							render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Proyecto" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
-									onValueChange: field.onChange,
-									defaultValue: field.value,
-									value: field.value,
-									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Selecciona un proyecto..." }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: PROJECTS.map((project) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
-										value: project,
-										children: project
-									}, project)) })]
-								}),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
-							] })
-						})]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "grid grid-cols-1 md:grid-cols-2 gap-6",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
-							control: form.control,
-							name: "startTime",
-							render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Hora Inicio" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									type: "time",
-									...field
-								}) }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
-							] })
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
-							control: form.control,
-							name: "endTime",
-							render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Hora Fin" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-									type: "time",
-									...field
-								}) }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
-							] })
-						})]
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
-						control: form.control,
-						name: "description",
-						render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Actividades" }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Textarea, {
-								placeholder: "Escribe aquí lo que hiciste...",
-								className: "resize-none",
-								...field
-							}) }),
-							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
-						] })
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						type: "submit",
-						className: cn("w-full md:w-auto transition-colors duration-150", entryToEdit ? "bg-blue-600 hover:bg-blue-700" : "bg-indigo-600 hover:bg-indigo-700"),
-						children: [entryToEdit ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Save, { className: "mr-2 h-4 w-4" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "mr-2 h-4 w-4" }), entryToEdit ? "Actualizar Registro" : "Guardar Registro"]
-					})
-				]
+		className: "border-none shadow-md overflow-hidden",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
+			className: cn("border-b", entryToEdit ? "bg-blue-50/50" : "bg-white"),
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+				className: "text-xl font-semibold text-slate-800 flex justify-between items-center",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "flex items-center gap-2",
+					children: [entryToEdit ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "h-2 w-2 rounded-full bg-blue-500 animate-pulse" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "h-2 w-2 rounded-full bg-indigo-500" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: entryToEdit ? "Modificar Registro" : "Nuevo Registro" })]
+				}), entryToEdit && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					variant: "ghost",
+					size: "sm",
+					onClick: handleCancel,
+					className: "text-slate-500 hover:text-slate-700 hover:bg-slate-100",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "mr-1 h-4 w-4" }), " Cancelar Edición"]
+				})]
 			})
-		}) })]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+			className: "pt-6",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form, {
+				...form,
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
+					onSubmit: form.handleSubmit(onSubmit),
+					className: "space-y-6",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "grid grid-cols-1 md:grid-cols-2 gap-6",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "date",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, {
+									className: "flex flex-col",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Fecha" }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Popover, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverTrigger, {
+											asChild: true,
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+												variant: "outline",
+												className: cn("w-full pl-3 text-left font-normal", !field.value && "text-muted-foreground"),
+												children: [field.value ? format(field.value, "PPP", { locale: es }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: "Selecciona una fecha" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "ml-auto h-4 w-4 opacity-50" })]
+											}) })
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PopoverContent, {
+											className: "w-auto p-0",
+											align: "start",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar$1, {
+												mode: "single",
+												selected: field.value,
+												onSelect: (date$3) => date$3 && field.onChange(date$3),
+												disabled: (date$3) => date$3 > /* @__PURE__ */ new Date() || date$3 < /* @__PURE__ */ new Date("1900-01-01"),
+												initialFocus: true
+											})
+										})] }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+									]
+								})
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "project",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Proyecto" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
+										onValueChange: field.onChange,
+										defaultValue: field.value,
+										value: field.value,
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: "Selecciona un proyecto..." }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: PROJECTS.map((project) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+											value: project,
+											children: project
+										}, project)) })]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+								] })
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "grid grid-cols-1 md:grid-cols-2 gap-6",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "startTime",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Hora Inicio" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										type: "time",
+										...field
+									}) }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+								] })
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+								control: form.control,
+								name: "endTime",
+								render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Hora Fin" }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+										type: "time",
+										...field
+									}) }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+								] })
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormField, {
+							control: form.control,
+							name: "description",
+							render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: "Descripción de Actividades" }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Textarea, {
+									placeholder: "Detalla las tareas realizadas...",
+									className: "resize-none min-h-[100px]",
+									...field
+								}) }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
+							] })
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+							type: "submit",
+							className: cn("w-full md:w-auto transition-all duration-200", entryToEdit ? "bg-blue-600 hover:bg-blue-700 shadow-blue-200" : "bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200"),
+							size: "lg",
+							children: [entryToEdit ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Save, { className: "mr-2 h-4 w-4" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "mr-2 h-4 w-4" }), entryToEdit ? "Guardar Cambios" : "Registrar Actividad"]
+						})
+					]
+				})
+			})
+		})]
 	});
 }
 var Table = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
@@ -36214,8 +36282,8 @@ function formatDuration(minutes) {
 	return `${Math.floor(minutes / 60)}h ${(minutes % 60).toString().padStart(2, "0")}m`;
 }
 function TimeEntryTable({ date: date$3, onEdit }) {
-	const { getEntriesByDate } = useTimeStore_default();
-	const entries = getEntriesByDate(date$3);
+	const { getEntriesByMonth } = useTimeStore_default();
+	const entries = getEntriesByMonth(date$3).sort((a$1, b$1) => b$1.date.getTime() - a$1.date.getTime());
 	if (entries.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 		className: "border-none shadow-sm bg-white/50",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
@@ -36227,11 +36295,11 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
 					className: "text-lg font-medium text-slate-900 mb-1",
-					children: "No hay registros para este día"
+					children: "No hay registros para este mes"
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					className: "max-w-xs mx-auto text-sm",
-					children: "Tus registros de tiempo aparecerán aquí una vez que comiences a trabajar."
+					children: "Tus registros de tiempo aparecerán aquí una vez que comiences a trabajar en este periodo."
 				})
 			]
 		})
@@ -36240,9 +36308,24 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 		className: "border-none shadow-md overflow-hidden",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
 			className: "pb-2",
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-				className: "text-lg font-semibold text-slate-800 flex items-center gap-2",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Briefcase, { className: "h-5 w-5 text-indigo-500" }), "Registros del Día"]
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex items-center justify-between",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+					className: "text-lg font-semibold text-slate-800 flex items-center gap-2",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Briefcase, { className: "h-5 w-5 text-indigo-500" }),
+						"Registros de ",
+						format(date$3, "MMMM", { locale: es })
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
+					variant: "outline",
+					className: "text-slate-500 bg-slate-50",
+					children: [
+						entries.length,
+						" ",
+						entries.length === 1 ? "registro" : "registros"
+					]
+				})]
 			})
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 			className: "p-0",
@@ -36254,7 +36337,7 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Fecha" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Proyecto" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Horario" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Total" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Duración" }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 							className: "w-[30%]",
 							children: "Descripción"
@@ -36268,95 +36351,144 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 					className: "hover:bg-slate-50/80 transition-colors duration-150",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "font-medium",
-							children: format(entry.date, "dd/MM/yyyy")
+							className: "font-medium whitespace-nowrap",
+							children: format(entry.date, "dd MMM yyyy", { locale: es })
 						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: entry.project }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [
-							entry.startTime,
-							" - ",
-							entry.endTime
-						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+							variant: "outline",
+							className: "font-normal bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100",
+							children: entry.project
+						}) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, {
+							className: "whitespace-nowrap text-slate-600",
+							children: [
+								entry.startTime,
+								" - ",
+								entry.endTime
+							]
+						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
 							variant: "secondary",
-							className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200",
+							className: "bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100",
 							children: formatDuration(entry.durationMinutes)
 						}) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "block truncate max-w-[200px]",
+							className: "block truncate max-w-[200px] text-slate-600",
+							title: entry.description,
 							children: entry.description
 						}) }),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
 							className: "text-right",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex justify-end gap-2",
+								className: "flex justify-end gap-1",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
 									asChild: true,
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 										variant: "ghost",
 										size: "icon",
-										className: "h-8 w-8 text-slate-500 hover:text-indigo-600",
+										className: "h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50",
+										title: "Ver Detalles",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-4 w-4" })
 									})
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, { children: [
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Detalles del Registro" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, { children: "Información completa de la actividad" })] }),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "space-y-4 py-4",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-											className: "grid grid-cols-2 gap-4",
-											children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-													className: "text-sm font-medium text-slate-500",
-													children: "Fecha"
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-													className: "font-medium",
-													children: format(entry.date, "P", { locale: es })
-												})] }),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-													className: "text-sm font-medium text-slate-500",
-													children: "Proyecto"
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-													className: "font-medium text-indigo-600",
-													children: entry.project
-												})] }),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-													className: "text-sm font-medium text-slate-500",
-													children: "Horario"
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-													className: "font-medium",
-													children: [
-														entry.startTime,
-														" - ",
-														entry.endTime
-													]
-												})] }),
-												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-													className: "text-sm font-medium text-slate-500",
-													children: "Duración"
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-													variant: "secondary",
-													className: "mt-1",
-													children: formatDuration(entry.durationMinutes)
-												})] })
-											]
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-											className: "text-sm font-medium text-slate-500 mb-1",
-											children: "Descripción"
-										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-											className: "bg-slate-50 p-3 rounded-md text-sm text-slate-700 border",
-											children: entry.description
-										})] })]
-									}),
-									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogFooter, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-										onClick: () => onEdit(entry),
-										className: "w-full sm:w-auto",
-										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "mr-2 h-4 w-4" }), " Editar"]
-									}) })
-								] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+									className: "sm:max-w-md",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogTitle, {
+											className: "flex items-center gap-2",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+												className: "p-2 rounded-md bg-indigo-100",
+												children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-5 w-5 text-indigo-600" })
+											}), "Detalles del Registro"]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, { children: "Información completa de la actividad registrada." })] }),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "space-y-6 py-4",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "grid grid-cols-2 gap-6",
+												children: [
+													/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: "space-y-1",
+														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+															className: "text-xs font-semibold text-slate-500 uppercase tracking-wider",
+															children: "Fecha"
+														}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+															className: "font-medium text-slate-900",
+															children: format(entry.date, "PPPP", { locale: es })
+														})]
+													}),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: "space-y-1",
+														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+															className: "text-xs font-semibold text-slate-500 uppercase tracking-wider",
+															children: "Proyecto"
+														}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+															className: "font-medium text-indigo-600",
+															children: entry.project
+														})]
+													}),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: "space-y-1",
+														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+															className: "text-xs font-semibold text-slate-500 uppercase tracking-wider",
+															children: "Horario"
+														}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+															className: "flex items-center gap-2",
+															children: [
+																/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+																	variant: "outline",
+																	children: entry.startTime
+																}),
+																/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+																	className: "text-slate-400",
+																	children: "-"
+																}),
+																/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+																	variant: "outline",
+																	children: entry.endTime
+																})
+															]
+														})]
+													}),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: "space-y-1",
+														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+															className: "text-xs font-semibold text-slate-500 uppercase tracking-wider",
+															children: "Duración Total"
+														}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+															variant: "secondary",
+															className: "bg-emerald-100 text-emerald-800 border-none",
+															children: formatDuration(entry.durationMinutes)
+														})]
+													})
+												]
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "space-y-2",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+													className: "text-xs font-semibold text-slate-500 uppercase tracking-wider",
+													children: "Descripción de Actividad"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+													className: "bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border border-slate-100 leading-relaxed",
+													children: entry.description
+												})]
+											})]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogFooter, {
+											className: "sm:justify-between gap-2",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+												className: "text-xs text-muted-foreground self-center",
+												children: ["ID: ", entry.id.slice(0, 8)]
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+												onClick: () => onEdit(entry),
+												className: "w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "mr-2 h-4 w-4" }), " Editar Registro"]
+											})]
+										})
+									]
+								})] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 									variant: "ghost",
 									size: "icon",
-									className: "h-8 w-8 text-slate-500 hover:text-blue-600",
+									className: "h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50",
 									onClick: () => onEdit(entry),
+									title: "Editar",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "h-4 w-4" })
 								})]
 							})
@@ -36372,12 +36504,15 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 							className: "flex justify-between items-start",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "space-y-1",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full",
-									children: entry.project
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "flex items-center gap-2",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										className: "text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100",
+										children: entry.project
+									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									className: "text-sm font-medium text-slate-500",
-									children: format(entry.date, "dd/MM/yyyy")
+									className: "text-sm font-medium text-slate-900",
+									children: format(entry.date, "EEEE, d MMM", { locale: es })
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 								className: "flex gap-1",
@@ -36386,69 +36521,73 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 									size: "icon",
 									className: "h-8 w-8",
 									onClick: () => onEdit(entry),
-									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "h-3.5 w-3.5" })
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "h-4 w-4 text-slate-500" })
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
 									asChild: true,
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 										variant: "ghost",
 										size: "icon",
 										className: "h-8 w-8",
-										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-3.5 w-3.5" })
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-4 w-4 text-slate-500" })
 									})
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
-									className: "w-[90%] rounded-lg",
+									className: "w-[90%] rounded-xl",
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Detalle de Actividad" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										className: "space-y-4",
+										className: "space-y-4 pt-2",
 										children: [
 											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 												className: "space-y-1",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-													className: "text-xs text-slate-500",
+													className: "text-xs text-slate-500 uppercase",
 													children: "Proyecto"
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-													className: "font-semibold text-indigo-700",
+													className: "font-semibold text-indigo-700 text-lg",
 													children: entry.project
 												})]
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-												className: "flex justify-between",
-												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													className: "space-y-1",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														className: "text-xs text-slate-500",
-														children: "Horario"
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
-														className: "text-sm font-medium",
-														children: [
-															entry.startTime,
-															" - ",
-															entry.endTime
-														]
-													})]
-												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-													className: "space-y-1 text-right",
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-														className: "text-xs text-slate-500",
-														children: "Total"
-													}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-														className: "text-sm font-bold text-emerald-600",
-														children: formatDuration(entry.durationMinutes)
-													})]
-												})]
+												className: "flex justify-between items-center bg-slate-50 p-3 rounded-lg",
+												children: [
+													/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: "space-y-1",
+														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+															className: "text-xs text-slate-500 block",
+															children: "Horario"
+														}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+															className: "text-sm font-medium",
+															children: [
+																entry.startTime,
+																" - ",
+																entry.endTime
+															]
+														})]
+													}),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", { className: "h-8 w-px bg-slate-200" }),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+														className: "space-y-1 text-right",
+														children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+															className: "text-xs text-slate-500 block",
+															children: "Total"
+														}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+															className: "text-sm font-bold text-emerald-600",
+															children: formatDuration(entry.durationMinutes)
+														})]
+													})
+												]
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 												className: "space-y-1",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-													className: "text-xs text-slate-500",
+													className: "text-xs text-slate-500 uppercase",
 													children: "Descripción"
 												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-													className: "text-sm bg-slate-50 p-2 rounded border",
+													className: "text-sm bg-white p-3 rounded-lg border border-slate-100 shadow-sm text-slate-700",
 													children: entry.description
 												})]
 											}),
 											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 												onClick: () => onEdit(entry),
-												className: "w-full",
+												className: "w-full bg-indigo-600",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "mr-2 h-4 w-4" }), " Editar Registro"]
 											})
 										]
@@ -36459,20 +36598,22 @@ function TimeEntryTable({ date: date$3, onEdit }) {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 							className: "flex items-center gap-4 text-sm text-slate-600",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-center gap-1",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-3.5 w-3.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+								className: "flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded text-xs",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-3 w-3 text-slate-400" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
 									entry.startTime,
 									" - ",
 									entry.endTime
 								] })]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-								variant: "secondary",
-								className: "bg-emerald-50 text-emerald-700 border-none",
-								children: formatDuration(entry.durationMinutes)
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded text-xs text-emerald-700",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "font-semibold",
+									children: formatDuration(entry.durationMinutes)
+								})
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "text-sm text-slate-600 bg-slate-50 p-3 rounded-md line-clamp-2",
+							className: "text-sm text-slate-600 line-clamp-2 pl-2 border-l-2 border-slate-200 italic",
 							children: entry.description
 						})
 					]
@@ -36496,71 +36637,120 @@ function MonthlyReport({ date: date$3 }) {
 		};
 	}).filter((stat) => stat.minutes > 0).sort((a$1, b$1) => b$1.minutes - a$1.minutes);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-		className: "border-none shadow-md bg-white",
+		className: "border-none shadow-md bg-white overflow-hidden",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
-			className: "pb-2",
+			className: "pb-4 bg-slate-50 border-b border-slate-100",
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "flex items-center justify-between",
+				className: "flex flex-col gap-1",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-					className: "text-xl font-semibold text-slate-800 flex items-center gap-2",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartNoAxesColumnIncreasing, { className: "h-5 w-5 text-indigo-500" }), "Reporte Mensual"]
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-					className: "text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full capitalize",
-					children: format(date$3, "MMMM yyyy", { locale: es })
+					className: "text-lg font-semibold text-slate-800 flex items-center gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartNoAxesColumnIncreasing, { className: "h-5 w-5 text-indigo-500" }), "Resumen Mensual"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+					className: "text-sm text-muted-foreground capitalize flex items-center gap-1",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CalendarDays, { className: "h-3 w-3" }), format(date$3, "MMMM yyyy", { locale: es })]
 				})]
 			})
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "grid grid-cols-1 md:grid-cols-3 gap-6",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "bg-indigo-50 rounded-lg p-6 flex flex-col items-center justify-center text-center",
-				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-8 w-8 text-indigo-600 mb-2" }),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						className: "text-sm text-indigo-600 font-medium",
-						children: "Total Horas"
-					}),
-					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-						className: "text-3xl font-bold text-indigo-900",
-						children: [
-							totalHours,
-							"h ",
-							remainingMinutes,
-							"m"
-						]
-					})
-				]
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				className: "md:col-span-2 space-y-4",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
-					className: "text-sm font-medium text-slate-500 uppercase tracking-wider",
-					children: "Desglose por Proyecto"
-				}), projectStats.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					className: "text-sm text-muted-foreground italic",
-					children: "No hay registros este mes."
-				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "space-y-3",
-					children: projectStats.map((stat) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						className: "flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-100",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-							className: "font-medium text-slate-700",
-							children: stat.name
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex items-center gap-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
-								className: "text-sm font-bold text-slate-900",
-								children: [stat.hours, "h"]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, {
+			className: "pt-6",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col gap-6",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "bg-indigo-600 rounded-xl p-6 text-center text-white shadow-lg shadow-indigo-200 transform transition-all hover:scale-[1.02]",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-8 w-8 mx-auto mb-2 text-indigo-200" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "text-xs font-medium text-indigo-100 uppercase tracking-widest opacity-80",
+							children: "Total Acumulado"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "text-4xl font-bold mt-1 tracking-tight",
+							children: [
+								totalHours,
+								"h",
+								" ",
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									className: "text-2xl font-normal text-indigo-200",
+									children: [remainingMinutes, "m"]
+								})
+							]
+						})
+					]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "space-y-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+						className: "text-xs font-semibold text-slate-500 uppercase tracking-wider border-b pb-2",
+						children: "Desglose por Proyecto"
+					}), projectStats.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "text-center py-8 bg-slate-50 rounded-lg border border-dashed border-slate-200",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							className: "text-sm text-muted-foreground italic",
+							children: "No hay registros para este mes."
+						})
+					}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						className: "space-y-3",
+						children: projectStats.map((stat) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "group",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-center justify-between mb-1",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-sm font-medium text-slate-700",
+									children: stat.name
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+									className: "text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded",
+									children: [stat.hours, "h"]
+								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-								className: "w-24 h-2 bg-slate-200 rounded-full overflow-hidden",
+								className: "w-full h-2 bg-slate-100 rounded-full overflow-hidden",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-									className: "h-full bg-indigo-500 rounded-full",
+									className: "h-full bg-indigo-500 rounded-full transition-all duration-500 ease-out group-hover:bg-indigo-600",
 									style: { width: `${Math.min(stat.minutes / totalMinutes * 100, 100)}%` }
 								})
 							})]
-						})]
-					}, stat.name))
+						}, stat.name))
+					})]
+				})]
+			})
+		})]
+	});
+}
+function MonthNavigation({ currentDate, onDateChange }) {
+	const handlePrevious = () => onDateChange(subMonths(currentDate, 1));
+	const handleNext = () => onDateChange(addMonths(currentDate, 1));
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "flex flex-col sm:flex-row items-center justify-between bg-white p-4 rounded-lg border shadow-sm gap-4",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "flex items-center gap-4 w-full sm:w-auto",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "bg-indigo-100 p-2 rounded-md shrink-0",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "h-5 w-5 text-indigo-600" })
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex flex-col",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "text-sm text-muted-foreground",
+					children: "Periodo seleccionado"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					className: "text-xl font-bold capitalize text-slate-900 leading-none",
+					children: format(currentDate, "MMMM yyyy", { locale: es })
 				})]
 			})]
-		}) })]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "flex items-center gap-2 w-full sm:w-auto justify-end",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+				variant: "outline",
+				size: "sm",
+				onClick: handlePrevious,
+				className: "h-9 px-3",
+				"aria-label": "Mes anterior",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronLeft, { className: "mr-1 h-4 w-4" }), "Anterior"]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+				variant: "outline",
+				size: "sm",
+				onClick: handleNext,
+				className: "h-9 px-3",
+				"aria-label": "Mes siguiente",
+				children: ["Siguiente", /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChevronRight, { className: "ml-1 h-4 w-4" })]
+			})]
+		})]
 	});
 }
 var Index = () => {
@@ -36576,7 +36766,7 @@ var Index = () => {
 		setEditingEntry(null);
 	};
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "container max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in",
+		className: "container max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in pb-20",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			className: "flex flex-col gap-2",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
@@ -36584,32 +36774,44 @@ var Index = () => {
 				children: "Bienvenido de nuevo"
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 				className: "text-muted-foreground",
-				children: "Registra tus actividades diarias y mantén un control preciso de tu tiempo."
+				children: "Registra tus actividades diarias y mantén un control preciso de tu tiempo por periodos mensuales."
 			})]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "space-y-8",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
-					"aria-label": "Formulario de registro",
-					id: "entry-form",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryForm, {
-						onDateChange: setSelectedDate,
-						entryToEdit: editingEntry,
-						onCancelEdit: handleCancelEdit
-					})
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
-					"aria-label": "Reporte Mensual",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MonthlyReport, { date: selectedDate })
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
-					"aria-label": "Tabla de registros",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryTable, {
-						date: selectedDate,
-						onEdit: handleEdit
-					})
+			className: "space-y-6",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+				"aria-label": "Navegación Mensual",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MonthNavigation, {
+					currentDate: selectedDate,
+					onDateChange: setSelectedDate
 				})
-			]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "grid grid-cols-1 lg:grid-cols-12 gap-8 items-start",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "lg:col-span-8 space-y-8",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+						"aria-label": "Formulario de registro",
+						id: "entry-form",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryForm, {
+							currentDate: selectedDate,
+							onDateChange: setSelectedDate,
+							entryToEdit: editingEntry,
+							onCancelEdit: handleCancelEdit
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+						"aria-label": "Tabla de registros",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryTable, {
+							date: selectedDate,
+							onEdit: handleEdit
+						})
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "lg:col-span-4 space-y-8 sticky top-24",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+						"aria-label": "Reporte Mensual",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MonthlyReport, { date: selectedDate })
+					})
+				})]
+			})]
 		})]
 	});
 };
@@ -37492,4 +37694,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-CNrztcVM.js.map
+//# sourceMappingURL=index-C9PfV931.js.map
