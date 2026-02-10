@@ -106,6 +106,7 @@
     "subtitle": "Análisis detallado de tiempos y productividad.",
     "projectReportTitle": "Reporte por Proyecto",
     "managerReportTitle": "Reporte Gerencial",
+    "executiveReportTitle": "Reporte Ejecutivo",
     "selectUser": "Seleccionar Usuario",
     "selectMonth": "Seleccionar Mes",
     "selectYear": "Seleccionar Año",
@@ -136,7 +137,20 @@
     "pendingApprovals": "Aprobaciones Pendientes",
     "manager": "Gerente",
     "projectWorkload": "Carga de Trabajo por Proyecto",
-    "hoursPerProject": "Horas por Proyecto"
+    "hoursPerProject": "Horas por Proyecto",
+    "executive": {
+      "filterClients": "Clientes",
+      "filterSystems": "Sistemas",
+      "filterWorkFront": "Frente de Trabajo",
+      "selectClients": "Seleccionar Clientes",
+      "selectSystems": "Seleccionar Sistemas",
+      "selectWorkFront": "Seleccionar Frente",
+      "workFrontDistribution": "Distribución por Frente de Trabajo",
+      "clientDistribution": "Distribución por Cliente",
+      "totalHours": "Horas Totales",
+      "grandTotal": "Gran Total",
+      "subtotal": "Subtotal"
+    }
   },
   "users": {
     "title": "Gestión de Usuarios",

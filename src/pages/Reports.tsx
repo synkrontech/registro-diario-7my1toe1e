@@ -3,6 +3,7 @@ import { PieChart as PieChartIcon } from 'lucide-react'
 import { UserReport } from '@/components/UserReport'
 import { ProjectReport } from '@/components/ProjectReport'
 import { ManagerReport } from '@/components/ManagerReport'
+import { ExecutiveReport } from '@/components/ExecutiveReport'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useAuth } from '@/components/AuthProvider'
 
@@ -14,6 +15,16 @@ export default function Reports() {
   const canViewManagerReport = ['admin', 'director', 'gerente'].includes(
     profile?.role || '',
   )
+  const canViewExecutiveReport = ['admin', 'director'].includes(
+    profile?.role || '',
+  )
+
+  const getGridCols = () => {
+    let cols = 2
+    if (canViewManagerReport) cols += 1
+    if (canViewExecutiveReport) cols += 1
+    return cols
+  }
 
   return (
     <div className="container mx-auto p-4 md:p-8 animate-fade-in pb-20 space-y-8">
@@ -28,7 +39,8 @@ export default function Reports() {
 
       <Tabs defaultValue="user-report" className="w-full">
         <TabsList
-          className={`grid w-full max-w-2xl ${canViewManagerReport ? 'grid-cols-3' : 'grid-cols-2'}`}
+          className="grid w-full max-w-4xl"
+          style={{ gridTemplateColumns: `repeat(${getGridCols()}, 1fr)` }}
         >
           <TabsTrigger value="user-report">
             {t('reports.reportFor')} {t('common.user')}
@@ -39,6 +51,11 @@ export default function Reports() {
           {canViewManagerReport && (
             <TabsTrigger value="manager-report">
               {t('reports.managerReportTitle')}
+            </TabsTrigger>
+          )}
+          {canViewExecutiveReport && (
+            <TabsTrigger value="executive-report">
+              {t('reports.executiveReportTitle')}
             </TabsTrigger>
           )}
         </TabsList>
@@ -52,6 +69,11 @@ export default function Reports() {
         {canViewManagerReport && (
           <TabsContent value="manager-report" className="mt-6">
             <ManagerReport />
+          </TabsContent>
+        )}
+        {canViewExecutiveReport && (
+          <TabsContent value="executive-report" className="mt-6">
+            <ExecutiveReport />
           </TabsContent>
         )}
       </Tabs>

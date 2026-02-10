@@ -1,4 +1,9 @@
-import { TimeEntry, Project, ManagerProjectStat } from '@/lib/types'
+import {
+  TimeEntry,
+  Project,
+  ManagerProjectStat,
+  ExecutiveReportItem,
+} from '@/lib/types'
 import { format } from 'date-fns'
 import { Locale } from 'date-fns'
 import i18n from '@/lib/i18n'
@@ -200,6 +205,77 @@ export const downloadManagerReportCsv = (
 
   const allRows = [...metadata, headers, ...rows]
 
+  generateAndDownloadCsv(allRows, filename)
+}
+
+export const downloadExecutiveReportCsv = (
+  items: ExecutiveReportItem[],
+  startDate: Date,
+  endDate: Date,
+  locale: Locale,
+) => {
+  if (!items.length) return
+
+  const t = i18n.t
+  const dateRange = `${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`
+  const filename = `reporte-ejecutivo-${format(new Date(), 'yyyyMMdd')}.csv`
+
+  const metadata = [
+    [`${t('reports.executiveReportTitle')}`],
+    [`${t('reports.period')}: ${dateRange}`],
+    [],
+  ]
+
+  const headers = [
+    t('clients.title'),
+    t('systems.title'),
+    t('projects.project'),
+    t('projects.manager'),
+    t('projects.workFront'),
+    t('reports.hoursWorked'),
+    t('reports.uniqueConsultants'),
+    t('common.status'),
+  ]
+
+  // Sort by Client then System then Project
+  const sortedItems = [...items].sort((a, b) => {
+    if (a.clientName !== b.clientName)
+      return a.clientName.localeCompare(b.clientName)
+    if (a.systemName !== b.systemName)
+      return a.systemName.localeCompare(b.systemName)
+    return a.projectName.localeCompare(b.projectName)
+  })
+
+  const rows = sortedItems.map((item) => {
+    const wf = item.workFront
+      ? t(`enums.workFront.${item.workFront}`)
+      : t('enums.workFront.Otro')
+    return [
+      item.clientName,
+      item.systemName,
+      item.projectName,
+      item.managerName,
+      wf,
+      item.totalHours.toFixed(2).replace('.', ','),
+      item.uniqueConsultants,
+      t(`enums.projectStatus.${item.status}`),
+    ]
+  })
+
+  // Grand Total
+  const totalHours = items.reduce((acc, i) => acc + i.totalHours, 0)
+  const totalRow = [
+    '',
+    '',
+    '',
+    '',
+    t('reports.executive.grandTotal'),
+    totalHours.toFixed(2).replace('.', ','),
+    '',
+    '',
+  ]
+
+  const allRows = [...metadata, headers, ...rows, [], totalRow]
   generateAndDownloadCsv(allRows, filename)
 }
 

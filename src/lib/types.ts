@@ -80,6 +80,20 @@ export interface ManagerProjectStat extends Project {
   consultantCount: number
 }
 
+export interface ExecutiveReportItem {
+  projectId: string
+  projectName: string
+  managerName: string
+  clientId: string
+  clientName: string
+  systemId: string
+  systemName: string
+  workFront: string | null
+  status: ProjectStatus
+  totalHours: number
+  uniqueConsultants: number
+}
+
 export interface ProjectAssignment {
   id: string
   project_id: string

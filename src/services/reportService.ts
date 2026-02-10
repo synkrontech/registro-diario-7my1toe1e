@@ -1,5 +1,10 @@
 import { supabase } from '@/lib/supabase/client'
-import { UserProfile, TimeEntry, ManagerProjectStat } from '@/lib/types'
+import {
+  UserProfile,
+  TimeEntry,
+  ManagerProjectStat,
+  ExecutiveReportItem,
+} from '@/lib/types'
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns'
 
 export const reportService = {
@@ -235,5 +240,83 @@ export const reportService = {
             : 0,
       },
     }
+  },
+
+  async getExecutiveReportData(filters: {
+    clientIds?: string[]
+    systemIds?: string[]
+    workFront?: string | null
+    startDate: Date
+    endDate: Date
+  }) {
+    const { clientIds, systemIds, workFront, startDate, endDate } = filters
+
+    // 1. Fetch Projects with metadata
+    let query = supabase.from('projects').select(
+      `
+      *,
+      clients ( id, nombre ),
+      systems ( id, nombre ),
+      users ( nombre, apellido )
+    `,
+    )
+
+    if (clientIds && clientIds.length > 0) {
+      query = query.in('client_id', clientIds)
+    }
+
+    if (systemIds && systemIds.length > 0) {
+      query = query.in('system_id', systemIds)
+    }
+
+    if (workFront) {
+      query = query.eq('work_front', workFront)
+    }
+
+    const { data: projects, error: projectsError } = await query
+    if (projectsError) throw projectsError
+
+    if (!projects || projects.length === 0) {
+      return [] as ExecutiveReportItem[]
+    }
+
+    // 2. Fetch approved time entries for these projects within date range
+    const projectIds = projects.map((p) => p.id)
+    const { data: entries, error: entriesError } = await supabase
+      .from('time_entries')
+      .select('project_id, durationminutes, user_id')
+      .in('project_id', projectIds)
+      .eq('status', 'aprobado')
+      .gte('fecha', format(startDate, 'yyyy-MM-dd'))
+      .lte('fecha', format(endDate, 'yyyy-MM-dd'))
+
+    if (entriesError) throw entriesError
+
+    // 3. Aggregate data per project
+    const reportData: ExecutiveReportItem[] = projects.map((p: any) => {
+      const projectEntries = entries.filter((e) => e.project_id === p.id)
+      const totalMinutes = projectEntries.reduce(
+        (acc, e) => acc + e.durationminutes,
+        0,
+      )
+      const uniqueConsultants = new Set(projectEntries.map((e) => e.user_id))
+        .size
+
+      return {
+        projectId: p.id,
+        projectName: p.nombre,
+        managerName: p.users ? `${p.users.nombre} ${p.users.apellido}` : '-',
+        clientId: p.clients?.id || 'unknown',
+        clientName: p.clients?.nombre || 'Desconocido',
+        systemId: p.systems?.id || 'unknown',
+        systemName: p.systems?.nombre || '-',
+        workFront: p.work_front || 'Otro',
+        status: p.status,
+        totalHours: totalMinutes / 60,
+        uniqueConsultants,
+      }
+    })
+
+    return reportData
   },
 }

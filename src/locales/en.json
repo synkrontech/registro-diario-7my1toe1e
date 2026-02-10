@@ -106,6 +106,7 @@
     "subtitle": "Detailed analysis of time and productivity.",
     "projectReportTitle": "Project Report",
     "managerReportTitle": "Manager Report",
+    "executiveReportTitle": "Executive Report",
     "selectUser": "Select User",
     "selectMonth": "Select Month",
     "selectYear": "Select Year",
@@ -136,7 +137,20 @@
     "pendingApprovals": "Pending Approvals",
     "manager": "Manager",
     "projectWorkload": "Project Workload",
-    "hoursPerProject": "Hours per Project"
+    "hoursPerProject": "Hours per Project",
+    "executive": {
+      "filterClients": "Clients",
+      "filterSystems": "Systems",
+      "filterWorkFront": "Work Front",
+      "selectClients": "Select Clients",
+      "selectSystems": "Select Systems",
+      "selectWorkFront": "Select Work Front",
+      "workFrontDistribution": "Work Front Distribution",
+      "clientDistribution": "Client Distribution",
+      "totalHours": "Total Hours",
+      "grandTotal": "Grand Total",
+      "subtotal": "Subtotal"
+    }
   },
   "users": {
     "title": "User Management",
