@@ -23,6 +23,7 @@
     "logout": "Sair",
     "myAccount": "Minha Conta",
     "settings": "Configurações",
+    "profile": "Perfil",
     "exportCsv": "Exportar CSV",
     "error": "Erro",
     "success": "Sucesso",
@@ -65,6 +66,7 @@
     "dashboard": "Dashboard",
     "reports": "Relatórios",
     "settings": "Configurações",
+    "profile": "Meu Perfil",
     "users": "Usuários",
     "clients": "Clientes",
     "projects": "Projetos",
@@ -285,6 +287,16 @@
     "language": "Idioma",
     "selectLanguage": "Selecione seu idioma preferido",
     "languageUpdated": "Idioma atualizado com sucesso"
+  },
+  "profile": {
+    "title": "Meu Perfil",
+    "subtitle": "Gerencie suas informações pessoais e preferências.",
+    "personalInfo": "Informações Pessoais",
+    "preferences": "Preferências",
+    "savePreferences": "Salvar Preferências",
+    "language": "Idioma",
+    "timezone": "Fuso Horário",
+    "selectTimezone": "Selecione seu fuso horário"
   },
   "enums": {
     "roles": {

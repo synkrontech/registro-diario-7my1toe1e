@@ -23,6 +23,7 @@
     "logout": "Cerrar Sesión",
     "myAccount": "Mi Cuenta",
     "settings": "Configuración",
+    "profile": "Perfil",
     "exportCsv": "Exportar CSV",
     "error": "Error",
     "success": "Éxito",
@@ -65,6 +66,7 @@
     "dashboard": "Dashboard",
     "reports": "Reportes",
     "settings": "Configuración",
+    "profile": "Mi Perfil",
     "users": "Usuarios",
     "clients": "Clientes",
     "projects": "Proyectos",
@@ -285,6 +287,16 @@
     "language": "Idioma",
     "selectLanguage": "Selecciona tu idioma preferido",
     "languageUpdated": "Idioma actualizado correctamente"
+  },
+  "profile": {
+    "title": "Mi Perfil",
+    "subtitle": "Gestiona tu información personal y preferencias.",
+    "personalInfo": "Información Personal",
+    "preferences": "Preferencias",
+    "savePreferences": "Guardar Preferencias",
+    "language": "Idioma",
+    "timezone": "Zona Horaria",
+    "selectTimezone": "Selecciona tu zona horaria"
   },
   "enums": {
     "roles": {

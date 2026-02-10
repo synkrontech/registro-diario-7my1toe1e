@@ -22,6 +22,7 @@ import SystemManagement from './pages/admin/SystemManagement'
 import ProjectManagement from './pages/admin/ProjectManagement'
 import ApprovalPanel from './pages/admin/ApprovalPanel'
 import Settings from './pages/Settings'
+import Profile from './pages/Profile'
 import Reports from './pages/Reports'
 import Layout from './components/Layout'
 import { TimeStoreProvider } from '@/stores/useTimeStore'
@@ -120,6 +121,7 @@ const App = () => (
               <Route path="/timesheet" element={<TimeSheet />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/profile" element={<Profile />} />
 
               {/* Admin Routes */}
               <Route

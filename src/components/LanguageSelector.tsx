@@ -10,11 +10,12 @@ import { useEffect, useState } from 'react'
 import { Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { es, ptBR, enUS } from 'date-fns/locale'
-import { registerLocale, setDefaultLocale } from 'react-datepicker'
+import { useAuth } from '@/components/AuthProvider'
+import { userService } from '@/services/userService'
 
 // Define supported languages
-const languages = [
-  { code: 'es', name: 'Español', flag: '🇲🇽', locale: es },
+export const languages = [
+  { code: 'es', name: 'Español', flag: '🇪🇸', locale: es },
   { code: 'pt', name: 'Português', flag: '🇧🇷', locale: ptBR },
   { code: 'en', name: 'English', flag: '🇺🇸', locale: enUS },
 ]
@@ -25,6 +26,7 @@ export function LanguageSelector({
   variant?: 'default' | 'minimal'
 }) {
   const { i18n } = useTranslation()
+  const { user } = useAuth()
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -34,9 +36,17 @@ export function LanguageSelector({
   const currentLang =
     languages.find((l) => l.code === i18n.language) || languages[0]
 
-  const changeLanguage = (code: string) => {
+  const changeLanguage = async (code: string) => {
     i18n.changeLanguage(code)
     localStorage.setItem('language', code)
+
+    if (user) {
+      try {
+        await userService.updateUserPreferences(user.id, { idioma: code })
+      } catch (error) {
+        console.error('Failed to update language preference', error)
+      }
+    }
   }
 
   if (!mounted) return null

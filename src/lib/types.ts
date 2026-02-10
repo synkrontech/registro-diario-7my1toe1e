@@ -30,6 +30,15 @@ export interface UserProfile extends User {
   permissions: UserPermission[]
 }
 
+export interface UserPreferences {
+  id: string
+  user_id: string
+  idioma: 'es' | 'pt' | 'en'
+  timezone: string
+  created_at: string
+  updated_at: string
+}
+
 export interface Client {
   id: string
   nombre: string

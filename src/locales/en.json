@@ -23,6 +23,7 @@
     "logout": "Logout",
     "myAccount": "My Account",
     "settings": "Settings",
+    "profile": "Profile",
     "exportCsv": "Export CSV",
     "error": "Error",
     "success": "Success",
@@ -65,6 +66,7 @@
     "dashboard": "Dashboard",
     "reports": "Reports",
     "settings": "Settings",
+    "profile": "My Profile",
     "users": "Users",
     "clients": "Clients",
     "projects": "Projects",
@@ -285,6 +287,16 @@
     "language": "Language",
     "selectLanguage": "Select your preferred language",
     "languageUpdated": "Language updated successfully"
+  },
+  "profile": {
+    "title": "My Profile",
+    "subtitle": "Manage your personal information and preferences.",
+    "personalInfo": "Personal Information",
+    "preferences": "Preferences",
+    "savePreferences": "Save Preferences",
+    "language": "Language",
+    "timezone": "Timezone",
+    "selectTimezone": "Select your timezone"
   },
   "enums": {
     "roles": {

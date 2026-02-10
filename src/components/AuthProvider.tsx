@@ -7,12 +7,15 @@ import {
 } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
-import { UserProfile, UserPermission } from '@/lib/types'
+import { UserProfile, UserPermission, UserPreferences } from '@/lib/types'
+import { userService } from '@/services/userService'
 import { useToast } from '@/hooks/use-toast'
+import i18n from '@/lib/i18n'
 
 interface AuthContextType {
   user: User | null
   profile: UserProfile | null
+  preferences: UserPreferences | null
   loading: boolean
   signOut: () => Promise<void>
 }
@@ -22,6 +25,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [profile, setProfile] = useState<UserProfile | null>(null)
+  const [preferences, setPreferences] = useState<UserPreferences | null>(null)
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
@@ -44,6 +48,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(session.user.id)
       } else {
         setProfile(null)
+        setPreferences(null)
         setLoading(false)
       }
     })
@@ -100,6 +105,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         setProfile(userProfile)
+
+        // Fetch User Preferences
+        const userPrefs = await userService.getUserPreferences(userId)
+        setPreferences(userPrefs)
+        if (userPrefs?.idioma) {
+          i18n.changeLanguage(userPrefs.idioma)
+        }
       }
     } catch (err) {
       console.error('Error in profile fetch:', err)
@@ -120,7 +132,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, profile, loading, signOut }}>
+    <AuthContext.Provider
+      value={{ user, profile, preferences, loading, signOut }}
+    >
       {children}
     </AuthContext.Provider>
   )

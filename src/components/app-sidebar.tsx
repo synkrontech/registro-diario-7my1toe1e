@@ -10,6 +10,7 @@ import {
   Briefcase,
   FileCheck,
   CalendarDays,
+  UserCircle,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -69,6 +70,12 @@ export function AppSidebar() {
       title: t('sidebar.reports'),
       url: '/reports',
       icon: PieChart,
+      visible: true,
+    },
+    {
+      title: t('sidebar.profile'),
+      url: '/profile',
+      icon: UserCircle,
       visible: true,
     },
     {
