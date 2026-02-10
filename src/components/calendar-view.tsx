@@ -209,6 +209,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
                                   <div
                                     key={entry.id}
                                     className="text-[10px] truncate px-1.5 py-0.5 rounded bg-white border border-slate-100 text-slate-600 shadow-sm"
+                                    title={`${entry.project_name} - ${entry.client_name}`}
                                   >
                                     {entry.project_name}
                                   </div>

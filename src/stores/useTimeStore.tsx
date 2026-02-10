@@ -38,21 +38,56 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const fetchProjects = useCallback(async () => {
-    if (!user) return
+    if (!user || !profile) return
 
     try {
-      // RLS policies now handle visibility
-      const { data, error } = await supabase
-        .from('projects')
-        .select('*')
-        .eq('status', 'activo')
+      let data: Project[] = []
 
-      if (error) throw error
-      setProjects(data as Project[])
+      // Role-based project selection
+      if (profile.role === 'consultor') {
+        // Consultors only see projects they are assigned to
+        const { data: res, error } = await supabase
+          .from('projects')
+          .select('*, project_assignments!inner(user_id)')
+          .eq('status', 'activo')
+          .eq('project_assignments.user_id', user.id)
+          .order('nombre')
+
+        if (error) throw error
+        data = res as unknown as Project[]
+      } else if (profile.role === 'gerente') {
+        // Managers see projects they manage
+        const { data: res, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('status', 'activo')
+          .eq('gerente_id', user.id)
+          .order('nombre')
+
+        if (error) throw error
+        data = res as Project[]
+      } else {
+        // Admin/Director see all active projects
+        const { data: res, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('status', 'activo')
+          .order('nombre')
+
+        if (error) throw error
+        data = res as Project[]
+      }
+
+      setProjects(data)
     } catch (error) {
       console.error('Error fetching projects:', error)
+      toast({
+        title: 'Error al cargar proyectos',
+        description: 'No se pudieron cargar los proyectos asignados.',
+        variant: 'destructive',
+      })
     }
-  }, [user])
+  }, [user, profile, toast])
 
   const fetchEntries = useCallback(async () => {
     if (!user) return
@@ -68,20 +103,23 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
     )
 
     try {
-      // We join with projects to get the name
-      // Note: Supabase JS types might need explicit casting if not fully auto-generated
+      // Fetch entries with related Project, Client, and System data
       const { data, error } = await supabase
         .from('time_entries')
         .select(
           `
           *,
           projects (
-            nombre
+            nombre,
+            clients ( nombre ),
+            systems ( nombre )
           )
         `,
         )
+        .eq('user_id', user.id)
         .gte('fecha', startStr)
         .lte('fecha', endStr)
+        .order('fecha', { ascending: false })
 
       if (error) throw error
 
@@ -96,6 +134,8 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         durationMinutes: item.durationMinutes,
         status: item.status,
         project_name: item.projects?.nombre || 'Desconocido',
+        client_name: item.projects?.clients?.nombre || '-',
+        system_name: item.projects?.systems?.nombre || '-',
       }))
 
       setEntries(formattedEntries)
@@ -111,12 +151,16 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
   }, [user, viewDate, toast])
 
   useEffect(() => {
-    fetchProjects()
-  }, [fetchProjects])
+    if (user && profile) {
+      fetchProjects()
+    }
+  }, [fetchProjects, user, profile])
 
   useEffect(() => {
-    fetchEntries()
-  }, [fetchEntries])
+    if (user) {
+      fetchEntries()
+    }
+  }, [fetchEntries, user])
 
   const calculateDuration = (startTime: string, endTime: string) => {
     const [startH, startM] = startTime.split(':').map(Number)

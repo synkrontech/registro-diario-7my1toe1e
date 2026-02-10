@@ -91,6 +91,8 @@ export interface TimeEntry {
   status: TimeEntryStatus
   // For UI display
   project_name: string
+  client_name?: string
+  system_name?: string
 }
 
 export interface AuditLog {

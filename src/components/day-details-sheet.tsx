@@ -11,7 +11,7 @@ import { Separator } from '@/components/ui/separator'
 import { TimeEntry } from '@/lib/types'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, Calendar, Briefcase } from 'lucide-react'
+import { Clock, Calendar, Briefcase, Building2, Monitor } from 'lucide-react'
 
 interface DayDetailsSheetProps {
   isOpen: boolean
@@ -84,6 +84,18 @@ export function DayDetailsSheet({
                         <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded">
                           {entry.startTime} - {entry.endTime}
                         </span>
+                      </div>
+
+                      <div className="flex gap-2 text-xs text-slate-500">
+                        <div className="flex items-center gap-1">
+                          <Building2 className="h-3 w-3" />
+                          <span>{entry.client_name || '-'}</span>
+                        </div>
+                        <span className="text-slate-300">•</span>
+                        <div className="flex items-center gap-1">
+                          <Monitor className="h-3 w-3" />
+                          <span>{entry.system_name || '-'}</span>
+                        </div>
                       </div>
 
                       <p className="text-sm text-slate-700 leading-relaxed">

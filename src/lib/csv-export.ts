@@ -11,6 +11,8 @@ export const downloadMonthlyCsv = (entries: TimeEntry[], date: Date) => {
   const headers = [
     'Fecha',
     'Proyecto',
+    'Cliente',
+    'Sistema',
     'Hora Inicio',
     'Hora Fin',
     'Duración',
@@ -26,6 +28,8 @@ export const downloadMonthlyCsv = (entries: TimeEntry[], date: Date) => {
     return [
       format(entry.date, 'yyyy-MM-dd'),
       entry.project_name,
+      entry.client_name || '-',
+      entry.system_name || '-',
       entry.startTime,
       entry.endTime,
       durationStr,

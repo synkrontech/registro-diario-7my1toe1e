@@ -6,7 +6,8 @@ import {
   Briefcase,
   Eye,
   Pencil,
-  Trash2,
+  Building2,
+  MonitorSmartphone,
 } from 'lucide-react'
 
 import {
@@ -98,9 +99,11 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
               <TableRow>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Proyecto</TableHead>
+                <TableHead>Cliente</TableHead>
+                <TableHead>Sistema</TableHead>
                 <TableHead>Horario</TableHead>
                 <TableHead>Duración</TableHead>
-                <TableHead className="w-[30%]">Descripción</TableHead>
+                <TableHead className="w-[20%]">Descripción</TableHead>
                 <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
@@ -122,7 +125,13 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                       {entry.project_name}
                     </Badge>
                   </TableCell>
-                  <TableCell className="whitespace-nowrap text-slate-600">
+                  <TableCell className="text-sm text-slate-600">
+                    {entry.client_name || '-'}
+                  </TableCell>
+                  <TableCell className="text-sm text-slate-600">
+                    {entry.system_name || '-'}
+                  </TableCell>
+                  <TableCell className="whitespace-nowrap text-slate-600 text-xs">
                     {entry.startTime} - {entry.endTime}
                   </TableCell>
                   <TableCell>
@@ -135,7 +144,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                   </TableCell>
                   <TableCell>
                     <span
-                      className="block truncate max-w-[200px] text-slate-600"
+                      className="block truncate max-w-[200px] text-slate-600 text-sm"
                       title={entry.description}
                     >
                       {entry.description}
@@ -196,6 +205,22 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                                 </h4>
                                 <p className="font-medium text-indigo-600">
                                   {entry.project_name}
+                                </p>
+                              </div>
+                              <div className="space-y-1">
+                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                  Cliente
+                                </h4>
+                                <p className="font-medium text-slate-900">
+                                  {entry.client_name || '-'}
+                                </p>
+                              </div>
+                              <div className="space-y-1">
+                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                  Sistema
+                                </h4>
+                                <p className="font-medium text-slate-900">
+                                  {entry.system_name || '-'}
                                 </p>
                               </div>
                               <div className="space-y-1">
@@ -274,7 +299,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
             >
               <div className="flex justify-between items-start">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
                       {entry.project_name}
                     </span>
@@ -314,6 +339,24 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                           <p className="font-semibold text-indigo-700 text-lg">
                             {entry.project_name}
                           </p>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="space-y-1">
+                            <span className="text-xs text-slate-500 uppercase">
+                              Cliente
+                            </span>
+                            <p className="text-sm text-slate-700">
+                              {entry.client_name || '-'}
+                            </p>
+                          </div>
+                          <div className="space-y-1">
+                            <span className="text-xs text-slate-500 uppercase">
+                              Sistema
+                            </span>
+                            <p className="text-sm text-slate-700">
+                              {entry.system_name || '-'}
+                            </p>
+                          </div>
                         </div>
                         <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">
                           <div className="space-y-1">
