@@ -6,6 +6,7 @@ import {
   Bell,
   Mail,
   Building2,
+  MonitorSmartphone,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -27,7 +28,7 @@ export function AppSidebar() {
   const { profile } = useAuth()
   const isAdmin = profile?.role === 'admin'
   const isDirector = profile?.role === 'director'
-  const hasClientAccess = isAdmin || isDirector
+  const hasManagementAccess = isAdmin || isDirector
 
   const items = [
     {
@@ -61,7 +62,13 @@ export function AppSidebar() {
       title: 'Clientes',
       url: '/admin/clients',
       icon: Building2,
-      visible: hasClientAccess,
+      visible: hasManagementAccess,
+    },
+    {
+      title: 'Sistemas',
+      url: '/admin/systems',
+      icon: MonitorSmartphone,
+      visible: hasManagementAccess,
     },
     {
       title: 'Notificaciones',
@@ -121,7 +128,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {hasClientAccess && (
+        {hasManagementAccess && (
           <SidebarGroup>
             <SidebarGroupLabel>Administración</SidebarGroupLabel>
             <SidebarGroupContent>

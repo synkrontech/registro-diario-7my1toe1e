@@ -51,7 +51,7 @@ export interface System {
   id: string
   nombre: string
   codigo: string
-  descripcion: string
+  descripcion?: string | null
   activo: boolean
 }
 
@@ -161,3 +161,12 @@ export const clientSchema = z.object({
 })
 
 export type ClientFormValues = z.infer<typeof clientSchema>
+
+export const systemSchema = z.object({
+  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  codigo: z.string().min(2, 'El código debe tener al menos 2 caracteres'),
+  descripcion: z.string().optional(),
+  activo: z.boolean().default(true),
+})
+
+export type SystemFormValues = z.infer<typeof systemSchema>

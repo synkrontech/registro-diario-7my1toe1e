@@ -16,6 +16,7 @@ import UserManagement from './pages/admin/UserManagement'
 import NotificationsPage from './pages/admin/NotificationsPage'
 import EmailSettingsPage from './pages/admin/EmailSettingsPage'
 import ClientManagement from './pages/admin/ClientManagement'
+import SystemManagement from './pages/admin/SystemManagement'
 import Layout from './components/Layout'
 import { TimeStoreProvider } from '@/stores/useTimeStore'
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
@@ -141,6 +142,14 @@ const App = () => (
                 element={
                   <RoleRoute allowedRoles={['admin', 'director']}>
                     <ClientManagement />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/admin/systems"
+                element={
+                  <RoleRoute allowedRoles={['admin', 'director']}>
+                    <SystemManagement />
                   </RoleRoute>
                 }
               />
