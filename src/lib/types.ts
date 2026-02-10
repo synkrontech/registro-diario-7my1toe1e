@@ -18,11 +18,24 @@ export interface User {
   created_at: string
 }
 
+export interface UserPermission {
+  code: string
+  resourceId?: string | null
+  resourceType?: string | null
+}
+
+export interface UserProfile extends User {
+  activo: boolean
+  role_id: string
+  permissions: UserPermission[]
+}
+
 export interface Client {
   id: string
   nombre: string
   codigo: string
   pais: string
+  activo: boolean
   created_at: string
 }
 
@@ -30,13 +43,14 @@ export interface System {
   id: string
   nombre: string
   descripcion?: string | null
+  activo: boolean
   created_at: string
 }
 
 export interface Project {
   id: string
   nombre: string
-  code?: string
+  codigo?: string
   client_id: string
   system_id?: string | null
   gerente_id?: string | null
@@ -55,8 +69,8 @@ export interface TimeEntry {
   user_id: string
   project_id: string
   fecha: string // YYYY-MM-DD
-  start_time: string // HH:mm:ss
-  end_time: string // HH:mm:ss
+  startTime: string // HH:mm
+  endTime: string // HH:mm
   durationMinutes: number
   description?: string
   status: TimeEntryStatus
@@ -66,9 +80,43 @@ export interface TimeEntry {
   // Virtual / Relations (for UI/Dashboard)
   project_name?: string
   client_name?: string
-  date?: Date // Helper date object
+  system_name?: string
+  date: Date // Helper date object
   projects?: Project
   users?: User
+}
+
+export interface ApprovalTimeEntry extends TimeEntry {
+  user_name: string
+  user_avatar?: string
+  user_email: string
+  projectName: string
+  clientName: string
+  systemName: string
+}
+
+export interface ApprovalFiltersState {
+  dateRange: { from: Date; to: Date } | undefined
+  clientId: string | null
+  consultantId: string | null
+  status: string
+}
+
+export interface AuditLog {
+  id: string
+  action_type: string
+  admin_id?: string | null
+  target_user_id?: string | null
+  details: any
+  created_at: string
+  admin_email?: string
+  target_email?: string
+}
+
+export interface Permission {
+  id: string
+  code: string
+  description?: string
 }
 
 // -- Zod Schemas --
@@ -77,11 +125,13 @@ export const createClientSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   codigo: z.string().min(2, 'El código debe tener al menos 2 caracteres'),
   pais: z.string().min(2, 'El país es requerido'),
+  activo: z.boolean().default(true),
 })
 
 export const createSystemSchema = z.object({
   nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
   descripcion: z.string().optional(),
+  activo: z.boolean().default(true),
 })
 
 export const createProjectSchema = z.object({
@@ -93,37 +143,63 @@ export const createProjectSchema = z.object({
   work_front: z.string().optional(),
 })
 
-export const createTimeEntrySchema = z
-  .object({
-    project_id: z.string().min(1, 'Seleccione un proyecto'),
-    date: z.date({
-      required_error: 'La fecha es requerida',
-    }),
-    start_time: z
-      .string()
-      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)'),
-    end_time: z
-      .string()
-      .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido (HH:MM)'),
-    description: z.string().min(1, 'La descripción es requerida'),
-  })
-  .refine(
-    (data) => {
-      if (!data.start_time || !data.end_time) return true
-      const [startH, startM] = data.start_time.split(':').map(Number)
-      const [endH, endM] = data.end_time.split(':').map(Number)
-      const start = startH * 60 + startM
-      const end = endH * 60 + endM
-      return end > start
-    },
-    {
-      message: 'La hora de fin debe ser posterior a la de inicio',
-      path: ['end_time'],
-    },
-  )
+// Corrected to be a function that accepts 't' for translations
+export const createTimeEntrySchema = (
+  t: (key: string, options?: any) => string,
+) =>
+  z
+    .object({
+      projectId: z
+        .string()
+        .min(1, t('validation.selectProject') || 'Seleccione un proyecto'),
+      date: z.date({
+        required_error: t('validation.dateRequired') || 'La fecha es requerida',
+      }),
+      startTime: z
+        .string()
+        .regex(
+          /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+          t('validation.invalidFormat') || 'Formato inválido (HH:MM)',
+        ),
+      endTime: z
+        .string()
+        .regex(
+          /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/,
+          t('validation.invalidFormat') || 'Formato inválido (HH:MM)',
+        ),
+      description: z
+        .string()
+        .min(
+          1,
+          t('validation.descriptionRequired') || 'La descripción es requerida',
+        ),
+    })
+    .refine(
+      (data) => {
+        if (!data.startTime || !data.endTime) return true
+        const [startH, startM] = data.startTime.split(':').map(Number)
+        const [endH, endM] = data.endTime.split(':').map(Number)
+        const start = startH * 60 + startM
+        const end = endH * 60 + endM
+        return end > start
+      },
+      {
+        message:
+          t('validation.endTimeAfterStart') ||
+          'La hora de fin debe ser posterior a la de inicio',
+        path: ['endTime'],
+      },
+    )
 
 // -- Form Types --
 export type CreateClientForm = z.infer<typeof createClientSchema>
+export type ClientFormValues = CreateClientForm
 export type CreateSystemForm = z.infer<typeof createSystemSchema>
+export type SystemFormValues = CreateSystemForm
 export type CreateProjectForm = z.infer<typeof createProjectSchema>
-export type CreateTimeEntryForm = z.infer<typeof createTimeEntrySchema>
+export type ProjectFormValues = CreateProjectForm
+
+// Helper for type inference since createTimeEntrySchema is now a function
+const timeEntrySchemaForType = createTimeEntrySchema((k) => k)
+export type CreateTimeEntryForm = z.infer<typeof timeEntrySchemaForType>
+export type TimeEntryFormValues = CreateTimeEntryForm
