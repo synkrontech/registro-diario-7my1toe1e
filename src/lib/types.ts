@@ -1,17 +1,33 @@
 import { z } from 'zod'
 
-export type UserRole = 'admin' | 'director' | 'gerente' | 'consultor'
+// Simplified UserRole for backward compatibility in code, but now essentially string
+export type UserRole = string
 export type ProjectStatus = 'activo' | 'pausado' | 'finalizado'
 export type TimeEntryStatus = 'pendiente' | 'aprobado' | 'rechazado'
+
+export interface Permission {
+  id: string
+  code: string
+  description: string
+}
+
+export interface Role {
+  id: string
+  name: string
+  description: string
+  permissions?: Permission[]
+}
 
 export interface UserProfile {
   id: string
   email: string
   nombre: string
   apellido: string
-  role: UserRole
+  role: string // Role Name
+  role_id: string
   activo: boolean
   created_at?: string
+  permissions?: string[] // List of permission codes
 }
 
 export interface Client {
@@ -61,6 +77,17 @@ export interface TimeEntry {
   status: TimeEntryStatus
   // For UI display
   project_name: string
+}
+
+export interface AuditLog {
+  id: string
+  admin_id: string
+  action_type: string
+  target_user_id: string | null
+  details: any
+  created_at: string
+  admin_email?: string
+  target_email?: string
 }
 
 export const timeEntrySchema = z
