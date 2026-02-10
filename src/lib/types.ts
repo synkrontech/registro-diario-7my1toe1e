@@ -95,6 +95,12 @@ export interface TimeEntry {
   system_name?: string
 }
 
+export interface ApprovalTimeEntry extends TimeEntry {
+  user_name: string
+  user_email: string
+  user_avatar_seed?: string
+}
+
 export interface AuditLog {
   id: string
   admin_id: string

@@ -8,6 +8,7 @@ import {
   Building2,
   MonitorSmartphone,
   Briefcase,
+  FileCheck,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -20,18 +21,31 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarRail,
+  SidebarMenuBadge,
 } from '@/components/ui/sidebar'
 import { Link, useLocation } from 'react-router-dom'
 import { useAuth } from '@/components/AuthProvider'
 import { useTranslation } from 'react-i18next'
+import { useApprovalStore } from '@/stores/useApprovalStore'
+import { useEffect } from 'react'
 
 export function AppSidebar() {
   const { t } = useTranslation()
   const location = useLocation()
-  const { profile } = useAuth()
+  const { user, profile } = useAuth()
+  const { pendingCount, fetchPendingCount } = useApprovalStore()
+
   const isAdmin = profile?.role === 'admin'
   const isDirector = profile?.role === 'director'
+  const isManager = profile?.role === 'gerente'
   const hasManagementAccess = isAdmin || isDirector
+  const hasApprovalAccess = isAdmin || isDirector || isManager
+
+  useEffect(() => {
+    if (hasApprovalAccess && user && profile) {
+      fetchPendingCount(user.id, profile.role)
+    }
+  }, [user, profile, hasApprovalAccess, fetchPendingCount])
 
   const items = [
     {
@@ -55,6 +69,13 @@ export function AppSidebar() {
   ]
 
   const adminItems = [
+    {
+      title: t('sidebar.approvals'),
+      url: '/admin/approvals',
+      icon: FileCheck,
+      visible: hasApprovalAccess,
+      badge: pendingCount > 0 ? pendingCount : undefined,
+    },
     {
       title: t('sidebar.users'),
       url: '/admin/users',
@@ -137,7 +158,7 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {hasManagementAccess && (
+        {(hasManagementAccess || hasApprovalAccess) && (
           <SidebarGroup>
             <SidebarGroupLabel>{t('sidebar.admin')}</SidebarGroupLabel>
             <SidebarGroupContent>
@@ -156,6 +177,11 @@ export function AppSidebar() {
                           <span>{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
+                      {item.badge && (
+                        <SidebarMenuBadge className="bg-red-500 text-white hover:bg-red-600 hover:text-white">
+                          {item.badge}
+                        </SidebarMenuBadge>
+                      )}
                     </SidebarMenuItem>
                   ))}
               </SidebarMenu>

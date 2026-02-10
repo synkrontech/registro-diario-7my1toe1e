@@ -46,13 +46,13 @@
     "selectRole": "Selecione uma função",
     "initialProject": "Projeto Inicial",
     "createAccount": "Criar Conta",
-    "pendingApproval": "Conta Pendente de Aprovação",
+    "pendingApproval": "Conta Pendiente de Aprovação",
     "pendingMessage": "Sua conta foi criada com sucesso, mas requer aprovação.",
     "backToLogin": "Voltar para o login",
     "errorAuth": "Erro de autenticação",
     "errorRegister": "Erro de registro",
     "successRegister": "Registro bem-sucedido",
-    "verifyEmail": "Verificação Pendente",
+    "verifyEmail": "Verificação Pendiente",
     "resendEmail": "Reenviar E-mail"
   },
   "sidebar": {
@@ -66,7 +66,8 @@
     "notifications": "Notificações",
     "emailTemplates": "Modelos de E-mail",
     "admin": "Administração",
-    "mainMenu": "Menu Principal"
+    "mainMenu": "Menu Principal",
+    "approvals": "Aprovações"
   },
   "timeEntry": {
     "newEntry": "Novo Registro",
@@ -121,6 +122,21 @@
     "team": "Equipe",
     "assignTeam": "Atribuir Equipe",
     "workFront": "Frente de Trabalho"
+  },
+  "approvals": {
+    "title": "Painel de Aprovação",
+    "subtitle": "Gerencie registros de tempo pendentes de aprovação.",
+    "approve": "Aprovar",
+    "reject": "Rejeitar",
+    "approveSelected": "Aprovar Selecionados",
+    "rejectSelected": "Rejeitar Selecionados",
+    "noPending": "Nenhuma aprovação pendente encontrada.",
+    "project": "Projeto",
+    "consultant": "Consultor",
+    "hours": "Horas",
+    "activities": "Atividades",
+    "selectAllProject": "Selecionar todos para {{project}}",
+    "selectAllConsultant": "Selecionar todos para {{name}}"
   },
   "validation": {
     "required": "Obrigatório",

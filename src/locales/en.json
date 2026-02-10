@@ -66,7 +66,8 @@
     "notifications": "Notifications",
     "emailTemplates": "Email Templates",
     "admin": "Administration",
-    "mainMenu": "Main Menu"
+    "mainMenu": "Main Menu",
+    "approvals": "Approvals"
   },
   "timeEntry": {
     "newEntry": "New Entry",
@@ -121,6 +122,21 @@
     "team": "Team",
     "assignTeam": "Assign Team",
     "workFront": "Work Front"
+  },
+  "approvals": {
+    "title": "Approval Panel",
+    "subtitle": "Manage pending time entries for approval.",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approveSelected": "Approve Selected",
+    "rejectSelected": "Reject Selected",
+    "noPending": "No pending approvals found.",
+    "project": "Project",
+    "consultant": "Consultant",
+    "hours": "Hours",
+    "activities": "Activities",
+    "selectAllProject": "Select all for {{project}}",
+    "selectAllConsultant": "Select all for {{name}}"
   },
   "validation": {
     "required": "Required",

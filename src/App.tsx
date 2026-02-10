@@ -19,6 +19,7 @@ import EmailSettingsPage from './pages/admin/EmailSettingsPage'
 import ClientManagement from './pages/admin/ClientManagement'
 import SystemManagement from './pages/admin/SystemManagement'
 import ProjectManagement from './pages/admin/ProjectManagement'
+import ApprovalPanel from './pages/admin/ApprovalPanel'
 import Settings from './pages/Settings'
 import Layout from './components/Layout'
 import { TimeStoreProvider } from '@/stores/useTimeStore'
@@ -122,6 +123,14 @@ const App = () => (
                 element={
                   <RoleRoute allowedRoles={['admin', 'director']}>
                     <UserManagement />
+                  </RoleRoute>
+                }
+              />
+              <Route
+                path="/admin/approvals"
+                element={
+                  <RoleRoute allowedRoles={['admin', 'director', 'gerente']}>
+                    <ApprovalPanel />
                   </RoleRoute>
                 }
               />
