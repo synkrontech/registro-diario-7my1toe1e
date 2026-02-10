@@ -11,6 +11,8 @@ import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
 import Login from './pages/Login'
 import NotFound from './pages/NotFound'
+import PendingApproval from './pages/PendingApproval'
+import UserManagement from './pages/admin/UserManagement'
 import Layout from './components/Layout'
 import { TimeStoreProvider } from '@/stores/useTimeStore'
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
@@ -34,6 +36,30 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>
 }
 
+const ActiveUserRoute = ({ children }: { children: React.ReactNode }) => {
+  const { profile, loading } = useAuth()
+
+  if (loading) return null
+
+  if (profile && !profile.activo) {
+    return <Navigate to="/pending-approval" replace />
+  }
+
+  return <>{children}</>
+}
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { profile, loading } = useAuth()
+
+  if (loading) return null
+
+  if (profile?.role !== 'admin') {
+    return <Navigate to="/" replace />
+  }
+
+  return <>{children}</>
+}
+
 const App = () => (
   <BrowserRouter
     future={{ v7_startTransition: false, v7_relativeSplatPath: false }}
@@ -46,13 +72,31 @@ const App = () => (
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route
+              path="/pending-approval"
               element={
                 <ProtectedRoute>
-                  <Layout />
+                  <PendingApproval />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              element={
+                <ProtectedRoute>
+                  <ActiveUserRoute>
+                    <Layout />
+                  </ActiveUserRoute>
                 </ProtectedRoute>
               }
             >
               <Route path="/" element={<Index />} />
+              <Route
+                path="/admin/users"
+                element={
+                  <AdminRoute>
+                    <UserManagement />
+                  </AdminRoute>
+                }
+              />
             </Route>
             <Route path="*" element={<NotFound />} />
           </Routes>

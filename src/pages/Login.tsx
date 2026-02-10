@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Loader2, LogIn, UserPlus } from 'lucide-react'
+import { Loader2, LogIn, UserPlus, MailWarning, Send } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Project } from '@/lib/types'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 
 const loginSchema = z.object({
   email: z.string().email('Email inválido'),
@@ -54,6 +55,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>
 export default function Login() {
   const [isLoading, setIsLoading] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
+  const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
   const { toast } = useToast()
@@ -67,19 +69,13 @@ export default function Login() {
 
       if (error) {
         console.error('Error fetching projects:', error)
-        toast({
-          title: 'Error de conexión',
-          description:
-            'No se pudieron cargar los proyectos. Intente recargar la página.',
-          variant: 'destructive',
-        })
         return
       }
 
       if (data) setProjects(data as Project[])
     }
     fetchProjects()
-  }, [toast])
+  }, [])
 
   const loginForm = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -103,6 +99,7 @@ export default function Login() {
 
   async function onLogin(data: LoginFormValues) {
     setIsLoading(true)
+    setUnverifiedEmail(null)
     try {
       const { error } = await supabase.auth.signInWithPassword({
         email: data.email,
@@ -110,16 +107,15 @@ export default function Login() {
       })
 
       if (error) {
-        // Handle specific error for unconfirmed email
-        // Supabase often returns "Email not confirmed" in the message or "email_not_confirmed" code
         if (
           error.message.includes('Email not confirmed') ||
           (error as any).code === 'email_not_confirmed'
         ) {
+          setUnverifiedEmail(data.email)
           toast({
             title: 'Email no verificado',
             description:
-              'Email not confirmed. Please check your inbox to verify your account or contact an administrator.',
+              'Por favor verifica tu correo electrónico para continuar.',
             variant: 'destructive',
           })
           return
@@ -143,12 +139,10 @@ export default function Login() {
   async function onRegister(data: RegisterFormValues) {
     setIsLoading(true)
     try {
-      // Clean up metadata to avoid sending undefined values or invalid data to the trigger
       const metadata = {
         nombre: data.nombre,
         apellido: data.apellido,
         role: data.role,
-        // Only send projectId if role is consultor and a project is selected
         projectId:
           data.role === 'consultor' && data.projectId ? data.projectId : null,
       }
@@ -158,6 +152,7 @@ export default function Login() {
         password: data.password,
         options: {
           data: metadata,
+          emailRedirectTo: `${window.location.origin}/`,
         },
       })
 
@@ -165,23 +160,56 @@ export default function Login() {
 
       toast({
         title: 'Registro exitoso',
-        description: 'Tu cuenta ha sido creada. Por favor inicia sesión.',
+        description:
+          'Tu cuenta ha sido creada. Hemos enviado un correo de verificación.',
         className: 'bg-green-50 text-green-800 border-green-200',
       })
 
-      // Auto login check
+      // Check if session exists (auto-login)
       const { data: sessionData } = await supabase.auth.getSession()
       if (sessionData.session) {
         navigate(from, { replace: true })
       } else {
-        // If not auto-logged in (e.g. email confirmation required), switch to login tab
-        // Or just let the user initiate login manually as per UI feedback
+        // If no session, they need to verify email.
+        // Switch to login tab and pre-fill email
+        loginForm.setValue('email', data.email)
+        // Optionally trigger the "unverified" UI state to let them know
+        setUnverifiedEmail(data.email)
       }
     } catch (error: any) {
       console.error('Registration Error:', error)
       toast({
         title: 'Error de registro',
         description: error.message || 'Ocurrió un error al crear la cuenta',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleResendVerification = async () => {
+    if (!unverifiedEmail) return
+    setIsLoading(true)
+    try {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email: unverifiedEmail,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+        },
+      })
+
+      if (error) throw error
+
+      toast({
+        title: 'Correo enviado',
+        description: `Se ha enviado un nuevo enlace de verificación a ${unverifiedEmail}`,
+      })
+    } catch (error: any) {
+      toast({
+        title: 'Error al reenviar',
+        description: error.message,
         variant: 'destructive',
       })
     } finally {
@@ -201,208 +229,244 @@ export default function Login() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-4">
-              <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
-              <TabsTrigger value="register">Registrarse</TabsTrigger>
-            </TabsList>
+          {unverifiedEmail ? (
+            <div className="space-y-4 animate-fade-in">
+              <Alert variant="destructive">
+                <MailWarning className="h-4 w-4" />
+                <AlertTitle>Verificación Pendiente</AlertTitle>
+                <AlertDescription>
+                  El correo {unverifiedEmail} no ha sido verificado aún.
+                </AlertDescription>
+              </Alert>
+              <Button
+                onClick={handleResendVerification}
+                className="w-full"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Send className="mr-2 h-4 w-4" />
+                )}
+                Reenviar Correo de Verificación
+              </Button>
+              <Button
+                variant="ghost"
+                className="w-full"
+                onClick={() => setUnverifiedEmail(null)}
+              >
+                Volver al inicio de sesión
+              </Button>
+            </div>
+          ) : (
+            <Tabs defaultValue="login" className="w-full">
+              <TabsList className="grid w-full grid-cols-2 mb-4">
+                <TabsTrigger value="login">Iniciar Sesión</TabsTrigger>
+                <TabsTrigger value="register">Registrarse</TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="login">
-              <Form {...loginForm}>
-                <form
-                  onSubmit={loginForm.handleSubmit(onLogin)}
-                  className="space-y-4"
-                >
-                  <FormField
-                    control={loginForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Correo Electrónico</FormLabel>
-                        <FormControl>
-                          <Input placeholder="usuario@empresa.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={loginForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contraseña</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="******"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button
-                    type="submit"
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
-                    disabled={isLoading}
+              <TabsContent value="login">
+                <Form {...loginForm}>
+                  <form
+                    onSubmit={loginForm.handleSubmit(onLogin)}
+                    className="space-y-4"
                   >
-                    {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <LogIn className="mr-2 h-4 w-4" />
-                    )}
-                    Ingresar
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-
-            <TabsContent value="register">
-              <Form {...registerForm}>
-                <form
-                  onSubmit={registerForm.handleSubmit(onRegister)}
-                  className="space-y-3"
-                >
-                  <div className="grid grid-cols-2 gap-3">
                     <FormField
-                      control={registerForm.control}
-                      name="nombre"
+                      control={loginForm.control}
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Nombre</FormLabel>
+                          <FormLabel>Correo Electrónico</FormLabel>
                           <FormControl>
-                            <Input placeholder="Juan" {...field} />
+                            <Input
+                              placeholder="usuario@empresa.com"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                     <FormField
-                      control={registerForm.control}
-                      name="apellido"
+                      control={loginForm.control}
+                      name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Apellido</FormLabel>
+                          <FormLabel>Contraseña</FormLabel>
                           <FormControl>
-                            <Input placeholder="Pérez" {...field} />
+                            <Input
+                              type="password"
+                              placeholder="******"
+                              {...field}
+                            />
                           </FormControl>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  </div>
+                    <Button
+                      type="submit"
+                      className="w-full bg-indigo-600 hover:bg-indigo-700"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <LogIn className="mr-2 h-4 w-4" />
+                      )}
+                      Ingresar
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
 
-                  <FormField
-                    control={registerForm.control}
-                    name="email"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Correo</FormLabel>
-                        <FormControl>
-                          <Input placeholder="juan@ejemplo.com" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+              <TabsContent value="register">
+                <Form {...registerForm}>
+                  <form
+                    onSubmit={registerForm.handleSubmit(onRegister)}
+                    className="space-y-3"
+                  >
+                    <div className="grid grid-cols-2 gap-3">
+                      <FormField
+                        control={registerForm.control}
+                        name="nombre"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Nombre</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Juan" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={registerForm.control}
+                        name="apellido"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Apellido</FormLabel>
+                            <FormControl>
+                              <Input placeholder="Pérez" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
 
-                  <FormField
-                    control={registerForm.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Contraseña</FormLabel>
-                        <FormControl>
-                          <Input
-                            type="password"
-                            placeholder="Min. 6 caracteres"
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={registerForm.control}
-                    name="role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Rol (Demo)</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Selecciona un rol" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            <SelectItem value="consultor">Consultor</SelectItem>
-                            <SelectItem value="gerente">Gerente</SelectItem>
-                            <SelectItem value="director">Director</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  {registerForm.watch('role') === 'consultor' && (
                     <FormField
                       control={registerForm.control}
-                      name="projectId"
+                      name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>Proyecto Inicial</FormLabel>
+                          <FormLabel>Correo</FormLabel>
+                          <FormControl>
+                            <Input placeholder="juan@ejemplo.com" {...field} />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="password"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Contraseña</FormLabel>
+                          <FormControl>
+                            <Input
+                              type="password"
+                              placeholder="Min. 6 caracteres"
+                              {...field}
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={registerForm.control}
+                      name="role"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Rol (Solicitado)</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
                           >
                             <FormControl>
                               <SelectTrigger>
-                                <SelectValue placeholder="Asignar a proyecto (Opcional)" />
+                                <SelectValue placeholder="Selecciona un rol" />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {projects.map((p) => (
-                                <SelectItem key={p.id} value={p.id}>
-                                  {p.nombre}
-                                </SelectItem>
-                              ))}
+                              <SelectItem value="consultor">
+                                Consultor
+                              </SelectItem>
+                              <SelectItem value="gerente">Gerente</SelectItem>
+                              <SelectItem value="director">Director</SelectItem>
+                              <SelectItem value="admin">Admin</SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-                  )}
 
-                  <Button
-                    type="submit"
-                    className="w-full bg-emerald-600 hover:bg-emerald-700"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <UserPlus className="mr-2 h-4 w-4" />
+                    {registerForm.watch('role') === 'consultor' && (
+                      <FormField
+                        control={registerForm.control}
+                        name="projectId"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Proyecto Inicial</FormLabel>
+                            <Select
+                              onValueChange={field.onChange}
+                              defaultValue={field.value}
+                            >
+                              <FormControl>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Asignar a proyecto (Opcional)" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                {projects.map((p) => (
+                                  <SelectItem key={p.id} value={p.id}>
+                                    {p.nombre}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
                     )}
-                    Crear Cuenta
-                  </Button>
-                </form>
-              </Form>
-            </TabsContent>
-          </Tabs>
+
+                    <Button
+                      type="submit"
+                      className="w-full bg-emerald-600 hover:bg-emerald-700"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      ) : (
+                        <UserPlus className="mr-2 h-4 w-4" />
+                      )}
+                      Crear Cuenta
+                    </Button>
+                  </form>
+                </Form>
+              </TabsContent>
+            </Tabs>
+          )}
         </CardContent>
-        <CardFooter className="flex justify-center">
+        <CardFooter className="flex justify-center flex-col gap-2">
           <p className="text-xs text-muted-foreground text-center">
-            Este es un entorno de demostración.
+            Las nuevas cuentas requieren aprobación de un administrador.
           </p>
         </CardFooter>
       </Card>
