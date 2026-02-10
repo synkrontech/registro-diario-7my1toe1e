@@ -15,11 +15,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from 'recharts'
-import {
-  ChartContainer,
-  ChartTooltipContent,
-  ChartTooltip,
-} from '@/components/ui/chart'
+import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { Link } from 'react-router-dom'
 import { cn } from '@/lib/utils'
 import {
@@ -30,7 +26,6 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
 
 export function ManagerDashboard() {
   const { t } = useTranslation()
@@ -86,25 +81,25 @@ export function ManagerDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title={t('dashboard.manager.assignedProjects')}
-          value={kpis?.assignedProjects}
+          value={kpis?.assignedProjects ?? 0}
           icon={Briefcase}
           color="blue"
         />
         <KpiCard
           title={t('dashboard.manager.pendingApprovals')}
-          value={kpis?.pendingApprovals}
+          value={kpis?.pendingApprovals ?? 0}
           icon={AlertCircle}
           color="yellow"
         />
         <KpiCard
           title={t('dashboard.manager.monthlyHours')}
-          value={`${kpis?.monthlyHours.toFixed(1)} h`}
+          value={`${(kpis?.monthlyHours ?? 0).toFixed(1)} h`}
           icon={Clock}
           color="green"
         />
         <KpiCard
           title={t('dashboard.manager.totalConsultants')}
-          value={kpis?.totalConsultants}
+          value={kpis?.totalConsultants ?? 0}
           icon={Users}
           color="indigo"
         />
@@ -139,14 +134,14 @@ export function ManagerDashboard() {
                       </div>
                     </TableCell>
                     <TableCell className="text-right font-bold">
-                      {c.hours.toFixed(1)}
+                      {(c.hours ?? 0).toFixed(1)}
                     </TableCell>
                     <TableCell>
-                      <Progress value={c.percentage} className="h-2" />
+                      <Progress value={c.percentage || 0} className="h-2" />
                     </TableCell>
                   </TableRow>
                 ))}
-                {topConsultants?.length === 0 && (
+                {(!topConsultants || topConsultants.length === 0) && (
                   <TableRow>
                     <TableCell
                       colSpan={3}

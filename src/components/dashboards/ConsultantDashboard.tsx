@@ -6,14 +6,7 @@ import { Button } from '@/components/ui/button'
 import { useTranslation } from 'react-i18next'
 import { format } from 'date-fns'
 import { useDateLocale } from '@/components/LanguageSelector'
-import {
-  Clock,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
-  Plus,
-  CalendarDays,
-} from 'lucide-react'
+import { Clock, CheckCircle2, XCircle, AlertCircle, Plus } from 'lucide-react'
 import {
   LineChart,
   Line,
@@ -21,7 +14,6 @@ import {
   YAxis,
   CartesianGrid,
   ResponsiveContainer,
-  Tooltip,
 } from 'recharts'
 import {
   ChartContainer,
@@ -110,25 +102,25 @@ export function ConsultantDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title={t('dashboard.consultant.registeredHours')}
-          value={`${kpis?.registeredHours.toFixed(1)} h`}
+          value={`${(kpis?.registeredHours ?? 0).toFixed(1)} h`}
           icon={Clock}
           color="blue"
         />
         <KpiCard
           title={t('dashboard.consultant.pendingHours')}
-          value={`${kpis?.pendingHours.toFixed(1)} h`}
+          value={`${(kpis?.pendingHours ?? 0).toFixed(1)} h`}
           icon={AlertCircle}
           color="yellow"
         />
         <KpiCard
           title={t('dashboard.consultant.approvedHours')}
-          value={`${kpis?.approvedHours.toFixed(1)} h`}
+          value={`${(kpis?.approvedHours ?? 0).toFixed(1)} h`}
           icon={CheckCircle2}
           color="green"
         />
         <KpiCard
           title={t('timeEntry.rejectedHours')}
-          value={`${kpis?.rejectedHours.toFixed(1)} h`}
+          value={`${(kpis?.rejectedHours ?? 0).toFixed(1)} h`}
           icon={XCircle}
           color="red"
         />
@@ -151,7 +143,7 @@ export function ConsultantDashboard() {
               className="h-full w-full"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={dailyTrend}>
+                <LineChart data={dailyTrend || []}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="date" />
                   <YAxis />
@@ -206,6 +198,16 @@ export function ConsultantDashboard() {
                   </TableCell>
                 </TableRow>
               ))}
+              {(!lastEntries || lastEntries.length === 0) && (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center text-muted-foreground py-8"
+                  >
+                    {t('common.noData') || 'No data available'}
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>

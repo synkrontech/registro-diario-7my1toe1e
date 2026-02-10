@@ -134,27 +134,27 @@ export function DirectorDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <KpiCard
           title={t('dashboard.director.totalMonthlyHours')}
-          value={kpis?.totalMonthlyHours.toFixed(1)}
+          value={(kpis?.totalMonthlyHours ?? 0).toFixed(1)}
           icon={Clock}
           color="blue"
         />
         <KpiCard
           title={t('dashboard.director.activeProjects')}
-          value={kpis?.totalActiveProjects}
+          value={kpis?.totalActiveProjects ?? 0}
           icon={Layers}
           color="indigo"
         />
         <KpiCard
           title={t('dashboard.director.activeConsultants')}
-          value={kpis?.totalActiveConsultants}
+          value={kpis?.totalActiveConsultants ?? 0}
           icon={Users}
           color="yellow"
         />
         <KpiCard
           title={t('dashboard.director.approvalRate')}
-          value={`${kpis?.approvalRate.toFixed(1)}%`}
+          value={`${(kpis?.approvalRate ?? 0).toFixed(1)}%`}
           icon={CheckCircle2}
-          color={kpis?.approvalRate >= 80 ? 'green' : 'red'}
+          color={(kpis?.approvalRate ?? 0) >= 80 ? 'green' : 'red'}
         />
       </div>
 
@@ -170,7 +170,7 @@ export function DirectorDashboard() {
               <ResponsiveContainer>
                 <PieChart>
                   <Pie
-                    data={charts?.byClient}
+                    data={charts?.byClient || []}
                     dataKey="value"
                     nameKey="name"
                     cx="50%"
@@ -179,7 +179,7 @@ export function DirectorDashboard() {
                     outerRadius={90}
                     paddingAngle={2}
                   >
-                    {charts?.byClient.map((_: any, index: number) => (
+                    {charts?.byClient?.map((_: any, index: number) => (
                       <Cell
                         key={`cell-${index}`}
                         fill={COLORS[index % COLORS.length]}
@@ -202,7 +202,7 @@ export function DirectorDashboard() {
           <CardContent className="h-[300px]">
             <ChartContainer config={{}} className="h-full w-full">
               <ResponsiveContainer>
-                <BarChart data={charts?.bySystem}>
+                <BarChart data={charts?.bySystem || []}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} />
                   <XAxis dataKey="name" tick={{ fontSize: 12 }} />
                   <YAxis />
@@ -231,7 +231,7 @@ export function DirectorDashboard() {
             <ChartContainer config={{}} className="h-full w-full">
               <ResponsiveContainer>
                 <BarChart
-                  data={charts?.byWorkFront}
+                  data={charts?.byWorkFront || []}
                   layout="vertical"
                   margin={{ left: 10 }}
                 >
@@ -281,11 +281,11 @@ export function DirectorDashboard() {
                     <TableCell>{p.client}</TableCell>
                     <TableCell>{p.manager}</TableCell>
                     <TableCell className="text-right font-bold">
-                      {p.hours.toFixed(1)}
+                      {(p.hours ?? 0).toFixed(1)}
                     </TableCell>
                   </TableRow>
                 ))}
-                {topProjects?.length === 0 && (
+                {(!topProjects || topProjects.length === 0) && (
                   <TableRow>
                     <TableCell
                       colSpan={4}
