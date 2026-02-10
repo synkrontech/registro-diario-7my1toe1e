@@ -97,7 +97,25 @@
     "approvedHours": "Horas Aprovadas",
     "rejectedHours": "Horas Rejeitadas",
     "filterByStatus": "Filtrar por Status",
-    "monthlyStats": "Estatísticas Mensais"
+    "monthlyStats": "Estatísticas Mensais",
+    "hours": "Horas"
+  },
+  "reports": {
+    "title": "Relatório Mensal por Pessoa",
+    "subtitle": "Análise detalhada de tempos e produtividade.",
+    "selectUser": "Selecionar Usuário",
+    "selectMonth": "Selecionar Mês",
+    "selectYear": "Selecionar Ano",
+    "generate": "Gerar Relatório",
+    "week": "Semana",
+    "weeklySubtotal": "Subtotal Semanal",
+    "monthlyTotal": "Total Mensal",
+    "hoursWorked": "Horas Trabalhadas",
+    "dayOfMonth": "Dia do Mês",
+    "exportExcel": "Exportar para Excel",
+    "reportFor": "Relatório de",
+    "period": "Período",
+    "dailyDistribution": "Distribuição Diária de Horas"
   },
   "users": {
     "title": "Gestão de Usuários",
@@ -135,9 +153,9 @@
   "approvals": {
     "title": "Painel de Aprovação",
     "subtitle": "Gerencie registros de tempo pendentes de aprovação.",
-    "approve": "Aprovar",
+    "approve": "Aprobar",
     "reject": "Rejeitar",
-    "approveSelected": "Aprovar Selecionados",
+    "approveSelected": "Aprobar Selecionados",
     "rejectSelected": "Rejeitar Selecionados",
     "noPending": "Nenhuma aprovação pendente encontrada.",
     "project": "Projeto",

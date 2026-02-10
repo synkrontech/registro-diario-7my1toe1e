@@ -1,37 +1,20 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  format,
-  startOfMonth,
-  endOfMonth,
-  addMonths,
-  subMonths,
-  eachDayOfInterval,
-  isSameDay,
-} from 'date-fns'
-import { es, enUS, ptBR } from 'date-fns/locale'
+import { format, eachDayOfInterval, startOfMonth, endOfMonth } from 'date-fns'
 import {
   Bar,
   BarChart,
   CartesianGrid,
   XAxis,
-  Pie,
-  PieChart,
-  Cell,
-  Label,
   YAxis,
+  ResponsiveContainer,
 } from 'recharts'
 import {
-  Calendar as CalendarIcon,
-  Download,
-  Filter,
   PieChart as PieChartIcon,
-  ChevronLeft,
-  ChevronRight,
   Loader2,
-  TrendingUp,
+  Download,
+  Search,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import {
   Card,
@@ -39,7 +22,6 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  CardFooter,
 } from '@/components/ui/card'
 import {
   Select,
@@ -52,177 +34,137 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from '@/components/ui/chart'
 import { useAuth } from '@/components/AuthProvider'
-import { TimeEntry } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import { UserProfile, TimeEntry } from '@/lib/types'
 import { useDateLocale } from '@/components/LanguageSelector'
+import { reportService } from '@/services/reportService'
+import { ReportTable } from '@/components/ReportTable'
+import { downloadReportCsv } from '@/lib/csv-export'
+import { useToast } from '@/hooks/use-toast'
 
 export default function Reports() {
   const { t } = useTranslation()
-  const { user, profile } = useAuth()
   const dateLocale = useDateLocale()
+  const { user, profile } = useAuth()
+  const { toast } = useToast()
 
-  const [currentDate, setCurrentDate] = useState(new Date())
+  // State
+  const [loadingUsers, setLoadingUsers] = useState(false)
+  const [loadingData, setLoadingData] = useState(false)
+  const [users, setUsers] = useState<UserProfile[]>([])
   const [entries, setEntries] = useState<TimeEntry[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [statusFilter, setStatusFilter] = useState<string>('all')
 
-  const isAdmin =
-    profile?.role === 'admin' ||
-    profile?.role === 'director' ||
-    profile?.role === 'gerente'
+  // Filters
+  const currentYear = new Date().getFullYear()
+  const currentMonth = new Date().getMonth()
+  const [selectedYear, setSelectedYear] = useState<number>(currentYear)
+  const [selectedMonth, setSelectedMonth] = useState<number>(currentMonth)
+  const [selectedUserId, setSelectedUserId] = useState<string>('')
+
+  // Available Years (Current and Previous)
+  const years = [currentYear, currentYear - 1]
+  const months = Array.from({ length: 12 }, (_, i) => i)
 
   useEffect(() => {
-    if (user) {
-      fetchData()
+    if (user && profile) {
+      loadUsers()
     }
-  }, [user, currentDate])
+  }, [user, profile])
 
-  const fetchData = async () => {
-    setIsLoading(true)
-    const start = startOfMonth(currentDate)
-    const end = endOfMonth(currentDate)
+  useEffect(() => {
+    if (selectedUserId) {
+      loadReportData()
+    }
+  }, [selectedUserId, selectedMonth, selectedYear])
 
+  const loadUsers = async () => {
+    if (!user || !profile) return
+    setLoadingUsers(true)
     try {
-      let query = supabase
-        .from('time_entries')
-        .select(
-          `
-          *,
-          projects (
-            nombre,
-            clients ( nombre ),
-            systems ( nombre )
-          )
-        `,
-        )
-        .gte('fecha', format(start, 'yyyy-MM-dd'))
-        .lte('fecha', format(end, 'yyyy-MM-dd'))
-        .order('fecha', { ascending: true })
-
-      // If not admin/manager, only see own entries
-      // Even admins might want to see only their entries by default in this view,
-      // but usually reports are for the user. Let's assume personal reports for now
-      // as the dashboard is personal.
-      // If we wanted global reports, we would have a different switch.
-      // For now, let's keep it personal for everyone as per "Daily Log" concept.
-      query = query.eq('user_id', user!.id)
-
-      const { data, error } = await query
-
-      if (error) throw error
-
-      const formattedEntries: TimeEntry[] = data.map((item: any) => ({
-        id: item.id,
-        user_id: item.user_id,
-        project_id: item.project_id,
-        date: new Date(item.fecha),
-        startTime: item.startTime,
-        endTime: item.endTime,
-        description: item.description,
-        durationMinutes: item.durationMinutes,
-        status: item.status,
-        project_name: item.projects?.nombre || 'Desconocido',
-        client_name: item.projects?.clients?.nombre || '-',
-        system_name: item.projects?.systems?.nombre || '-',
-      }))
-
-      setEntries(formattedEntries)
+      const data = await reportService.getReportUsers(user.id, profile.role)
+      setUsers(data)
+      // Default to current user if available in list, otherwise first one
+      if (data.length > 0) {
+        const myself = data.find((u) => u.id === user.id)
+        setSelectedUserId(myself ? myself.id : data[0].id)
+      }
     } catch (error) {
-      console.error('Error fetching report data:', error)
+      console.error(error)
+      toast({
+        title: t('common.error'),
+        description: t('common.errorLoad'),
+        variant: 'destructive',
+      })
     } finally {
-      setIsLoading(false)
+      setLoadingUsers(false)
     }
   }
 
-  const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1))
-  const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1))
-
-  // --- Aggregation Logic ---
-
-  const filteredEntries = useMemo(() => {
-    return statusFilter === 'all'
-      ? entries
-      : entries.filter((e) => e.status === statusFilter)
-  }, [entries, statusFilter])
-
-  const stats = useMemo(() => {
-    const totalMinutes = filteredEntries.reduce(
-      (acc, curr) => acc + curr.durationMinutes,
-      0,
-    )
-    const totalHours = totalMinutes / 60
-
-    const projectsSet = new Set(filteredEntries.map((e) => e.project_name))
-
-    const byStatus = {
-      approved:
-        filteredEntries
-          .filter((e) => e.status === 'aprobado')
-          .reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60,
-      pending:
-        filteredEntries
-          .filter((e) => e.status === 'pendiente')
-          .reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60,
-      rejected:
-        filteredEntries
-          .filter((e) => e.status === 'rechazado')
-          .reduce((acc, curr) => acc + curr.durationMinutes, 0) / 60,
+  const loadReportData = async () => {
+    if (!selectedUserId) return
+    setLoadingData(true)
+    try {
+      const data = await reportService.getReportData(
+        selectedUserId,
+        selectedMonth,
+        selectedYear,
+      )
+      setEntries(data)
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: t('common.error'),
+        description: t('common.errorLoad'),
+        variant: 'destructive',
+      })
+    } finally {
+      setLoadingData(false)
     }
+  }
 
-    return {
-      totalHours: totalHours.toFixed(1),
-      projectCount: projectsSet.size,
-      byStatus,
-    }
-  }, [filteredEntries])
+  const handleExport = () => {
+    if (entries.length === 0) return
+    const selectedUser = users.find((u) => u.id === selectedUserId)
+    const userName = selectedUser
+      ? `${selectedUser.nombre} ${selectedUser.apellido}`
+      : 'Usuario'
+    const date = new Date(selectedYear, selectedMonth)
+    downloadReportCsv(entries, date, userName, dateLocale)
+  }
 
-  // Chart 1: Daily Hours
-  const dailyData = useMemo(() => {
-    const days = eachDayOfInterval({
-      start: startOfMonth(currentDate),
-      end: endOfMonth(currentDate),
-    })
+  // Chart Data Preparation
+  const chartData = useMemo(() => {
+    if (entries.length === 0) return []
+    const start = startOfMonth(new Date(selectedYear, selectedMonth))
+    const end = endOfMonth(new Date(selectedYear, selectedMonth))
+    const days = eachDayOfInterval({ start, end })
 
     return days.map((day) => {
-      const dayEntries = filteredEntries.filter((e) => isSameDay(e.date, day))
-      const minutes = dayEntries.reduce(
-        (acc, curr) => acc + curr.durationMinutes,
+      const dayStr = format(day, 'yyyy-MM-dd')
+      const dayEntries = entries.filter(
+        (e) => format(e.date, 'yyyy-MM-dd') === dayStr,
+      )
+      const hours = dayEntries.reduce(
+        (acc, curr) => acc + curr.durationMinutes / 60,
         0,
       )
       return {
-        date: format(day, 'd', { locale: dateLocale }),
-        fullDate: format(day, 'PP', { locale: dateLocale }),
-        hours: parseFloat((minutes / 60).toFixed(1)),
+        day: format(day, 'd'),
+        fullDate: format(day, 'P', { locale: dateLocale }),
+        hours: parseFloat(hours.toFixed(2)),
       }
     })
-  }, [filteredEntries, currentDate, dateLocale])
+  }, [entries, selectedMonth, selectedYear, dateLocale])
 
-  // Chart 2: Project Distribution
-  const projectData = useMemo(() => {
-    const map = new Map<string, number>()
-    filteredEntries.forEach((e) => {
-      const current = map.get(e.project_name) || 0
-      map.set(e.project_name, current + e.durationMinutes)
-    })
-
-    const data = Array.from(map.entries())
-      .map(([name, minutes], index) => ({
-        name,
-        hours: parseFloat((minutes / 60).toFixed(1)),
-        fill: `hsl(var(--chart-${(index % 5) + 1}))`,
-      }))
-      .sort((a, b) => b.hours - a.hours)
-
-    return data
-  }, [filteredEntries])
+  const selectedUserName = useMemo(() => {
+    const u = users.find((u) => u.id === selectedUserId)
+    return u ? `${u.nombre} ${u.apellido}` : ''
+  }, [users, selectedUserId])
 
   const chartConfig = {
     hours: {
-      label: t('timeEntry.hours') || 'Horas',
+      label: t('reports.hoursWorked'),
       color: 'hsl(var(--primary))',
     },
   }
@@ -230,221 +172,181 @@ export default function Reports() {
   return (
     <div className="container mx-auto p-4 md:p-8 animate-fade-in pb-20 space-y-8">
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex flex-col gap-2">
-          <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
-            <PieChartIcon className="h-8 w-8 text-indigo-600" />
-            {t('sidebar.reports')}
-          </h2>
-          <p className="text-muted-foreground">{t('common.welcomeSubtitle')}</p>
-        </div>
-
-        <div className="flex items-center gap-2 bg-white p-1 rounded-lg border shadow-sm">
-          <Button variant="ghost" size="icon" onClick={handlePrevMonth}>
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <div className="flex items-center gap-2 px-2 min-w-[140px] justify-center font-medium">
-            <CalendarIcon className="h-4 w-4 text-slate-500" />
-            <span className="capitalize">
-              {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
-            </span>
-          </div>
-          <Button variant="ghost" size="icon" onClick={handleNextMonth}>
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-        </div>
+      <div className="flex flex-col gap-2">
+        <h2 className="text-3xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+          <PieChartIcon className="h-8 w-8 text-indigo-600" />
+          {t('reports.title')}
+        </h2>
+        <p className="text-muted-foreground">{t('reports.subtitle')}</p>
       </div>
 
-      {/* Filters */}
-      <div className="flex justify-end">
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px] bg-white">
-            <Filter className="mr-2 h-4 w-4 text-muted-foreground" />
-            <SelectValue placeholder={t('timeEntry.filterByStatus')} />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">{t('common.all')}</SelectItem>
-            <SelectItem value="pendiente">
-              {t('enums.timeEntryStatus.pendiente')}
-            </SelectItem>
-            <SelectItem value="aprobado">
-              {t('enums.timeEntryStatus.aprobado')}
-            </SelectItem>
-            <SelectItem value="rechazado">
-              {t('enums.timeEntryStatus.rechazado')}
-            </SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Summary Cards */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>
-                {t('timeEntry.totalAccumulated')}
-              </CardDescription>
-              <CardTitle className="text-4xl">{stats.totalHours}h</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                {format(currentDate, 'MMMM yyyy', { locale: dateLocale })}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t('timeEntry.project')}</CardDescription>
-              <CardTitle className="text-4xl">{stats.projectCount}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                {t('common.active')}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t('timeEntry.approvedHours')}</CardDescription>
-              <CardTitle className="text-4xl text-green-600">
-                {stats.byStatus.approved.toFixed(1)}h
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                {(
-                  (stats.byStatus.approved /
-                    (parseFloat(stats.totalHours) || 1)) *
-                  100
-                ).toFixed(0)}
-                % {t('common.of')} Total
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-2">
-              <CardDescription>{t('timeEntry.pendingHours')}</CardDescription>
-              <CardTitle className="text-4xl text-orange-600">
-                {stats.byStatus.pending.toFixed(1)}h
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-xs text-muted-foreground">
-                {t('enums.timeEntryStatus.pendiente')}
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Daily Chart */}
-          <Card className="col-span-1 md:col-span-2 lg:col-span-3">
-            <CardHeader>
-              <CardTitle>{t('timeEntry.monthlyStats')}</CardTitle>
-              <CardDescription>
-                {t('timeEntry.duration')} ({t('common.active')})
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={chartConfig} className="h-[300px] w-full">
-                <BarChart
-                  data={dailyData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                  />
-                  <YAxis
-                    axisLine={false}
-                    tickLine={false}
-                    tickMargin={10}
-                    allowDecimals={false}
-                  />
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
-                  <Bar
-                    dataKey="hours"
-                    fill="hsl(var(--primary))"
-                    radius={[4, 4, 0, 0]}
-                    name={t('timeEntry.duration')}
-                  />
-                </BarChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-
-          {/* Project Distribution Chart */}
-          <Card className="col-span-1 md:col-span-2 lg:col-span-1">
-            <CardHeader>
-              <CardTitle>{t('timeEntry.projectBreakdown')}</CardTitle>
-              <CardDescription>{t('timeEntry.project')}</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-1 pb-0">
-              <ChartContainer
-                config={{
-                  hours: { label: 'Hours', color: 'hsl(var(--chart-1))' },
-                }}
-                className="mx-auto aspect-square max-h-[300px]"
+      {/* Filters Card */}
+      <Card className="bg-slate-50/50">
+        <CardContent className="pt-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                {t('reports.selectUser')}
+              </label>
+              <Select
+                value={selectedUserId}
+                onValueChange={setSelectedUserId}
+                disabled={loadingUsers || users.length <= 1}
               >
-                <PieChart>
-                  <ChartTooltip
-                    cursor={false}
-                    content={<ChartTooltipContent hideLabel />}
-                  />
-                  <Pie
-                    data={projectData}
-                    dataKey="hours"
-                    nameKey="name"
-                    innerRadius={60}
-                    strokeWidth={5}
+                <SelectTrigger className="bg-white">
+                  {loadingUsers ? (
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  ) : (
+                    <Search className="h-4 w-4 text-slate-400 mr-2" />
+                  )}
+                  <SelectValue placeholder={t('reports.selectUser')} />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.nombre} {u.apellido}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                {t('reports.selectMonth')}
+              </label>
+              <Select
+                value={selectedMonth.toString()}
+                onValueChange={(v) => setSelectedMonth(parseInt(v))}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {months.map((m) => (
+                    <SelectItem key={m} value={m.toString()}>
+                      {format(new Date(2000, m), 'MMMM', {
+                        locale: dateLocale,
+                      })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                {t('reports.selectYear')}
+              </label>
+              <Select
+                value={selectedYear.toString()}
+                onValueChange={(v) => setSelectedYear(parseInt(v))}
+              >
+                <SelectTrigger className="bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {years.map((y) => (
+                    <SelectItem key={y} value={y.toString()}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              className="bg-indigo-600 hover:bg-indigo-700"
+              onClick={loadReportData}
+              disabled={loadingData}
+            >
+              {loadingData ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <PieChartIcon className="mr-2 h-4 w-4" />
+              )}
+              {t('reports.generate')}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Report Content */}
+      {selectedUserId && !loadingData && (
+        <div className="space-y-8 animate-fade-in">
+          {/* Report Header Info */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4 border-b pb-4">
+            <div>
+              <h3 className="text-2xl font-bold text-slate-800">
+                {selectedUserName}
+              </h3>
+              <p className="text-indigo-600 font-medium capitalize">
+                {format(new Date(selectedYear, selectedMonth), 'MMMM yyyy', {
+                  locale: dateLocale,
+                })}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              className="border-green-200 text-green-700 hover:bg-green-50 hover:text-green-800"
+              onClick={handleExport}
+              disabled={entries.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              {t('reports.exportExcel')}
+            </Button>
+          </div>
+
+          {/* Chart */}
+          {entries.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('reports.dailyDistribution')}</CardTitle>
+                <CardDescription>
+                  {t('reports.hoursWorked')} ({t('reports.dayOfMonth')})
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[300px] w-full">
+                  <ChartContainer
+                    config={chartConfig}
+                    className="h-full w-full"
                   >
-                    <Label
-                      content={({ viewBox }) => {
-                        if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
-                          return (
-                            <text
-                              x={viewBox.cx}
-                              y={viewBox.cy}
-                              textAnchor="middle"
-                              dominantBaseline="middle"
-                            >
-                              <tspan
-                                x={viewBox.cx}
-                                y={viewBox.cy}
-                                className="fill-foreground text-3xl font-bold"
-                              >
-                                {stats.totalHours}
-                              </tspan>
-                              <tspan
-                                x={viewBox.cx}
-                                y={(viewBox.cy || 0) + 24}
-                                className="fill-muted-foreground text-xs"
-                              >
-                                Hours
-                              </tspan>
-                            </text>
-                          )
-                        }
-                      }}
-                    />
-                  </Pie>
-                  <ChartLegend content={<ChartLegendContent />} />
-                </PieChart>
-              </ChartContainer>
-            </CardContent>
-          </Card>
+                    <BarChart
+                      data={chartData}
+                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                    >
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="day"
+                        tickLine={false}
+                        tickMargin={10}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        axisLine={false}
+                        tickLine={false}
+                        tickMargin={10}
+                      />
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent />}
+                      />
+                      <Bar
+                        dataKey="hours"
+                        fill="hsl(var(--primary))"
+                        radius={[4, 4, 0, 0]}
+                        name={t('reports.hoursWorked')}
+                      />
+                    </BarChart>
+                  </ChartContainer>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Detailed Table */}
+          <ReportTable entries={entries} />
         </div>
       )}
     </div>

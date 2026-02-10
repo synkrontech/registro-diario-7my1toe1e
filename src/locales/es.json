@@ -97,7 +97,25 @@
     "approvedHours": "Horas Aprobadas",
     "rejectedHours": "Horas Rechazadas",
     "filterByStatus": "Filtrar por Estado",
-    "monthlyStats": "Estadísticas Mensuales"
+    "monthlyStats": "Estadísticas Mensuales",
+    "hours": "Horas"
+  },
+  "reports": {
+    "title": "Reporte Mensual por Persona",
+    "subtitle": "Análisis detallado de tiempos y productividad.",
+    "selectUser": "Seleccionar Usuario",
+    "selectMonth": "Seleccionar Mes",
+    "selectYear": "Seleccionar Año",
+    "generate": "Generar Reporte",
+    "week": "Semana",
+    "weeklySubtotal": "Subtotal Semanal",
+    "monthlyTotal": "Total Mensual",
+    "hoursWorked": "Horas Trabajadas",
+    "dayOfMonth": "Día del Mes",
+    "exportExcel": "Exportar a Excel",
+    "reportFor": "Reporte de",
+    "period": "Periodo",
+    "dailyDistribution": "Distribución Diaria de Horas"
   },
   "users": {
     "title": "Gestión de Usuarios",
