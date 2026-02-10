@@ -188,8 +188,6 @@ export const approvalService = {
     if (error) throw error
 
     // 3. Create Audit Logs
-    // Group by user to minimize inserts if needed, but per requirement we want clear logs.
-    // We will insert one log per entry to keep full traceability of each specific record change.
     const auditLogs = entries.map((entry) => ({
       admin_id: adminId,
       action_type: status === 'aprobado' ? 'approval' : 'rejection',
@@ -207,29 +205,35 @@ export const approvalService = {
         .insert(auditLogs)
       if (auditError) {
         console.error('Failed to create audit logs', auditError)
-        // Non-blocking error
       }
     }
   },
 
   async getPendingCount(userId: string, role: string): Promise<number> {
+    // Replaced HEAD request with GET + limit(0) to avoid JSON parsing errors with empty body
+    // on some environments while still fetching the count efficiently.
+
     let query = supabase
       .from('time_entries')
-      .select('id', { count: 'exact', head: true })
+      .select('id', { count: 'exact', head: false })
       .eq('status', 'pendiente')
 
     if (role === 'gerente') {
       const { count, error } = await supabase
         .from('time_entries')
-        .select('*, projects!inner(gerente_id)', { count: 'exact', head: true })
+        .select('id, projects!inner(gerente_id)', {
+          count: 'exact',
+          head: false,
+        })
         .eq('status', 'pendiente')
         .eq('projects.gerente_id', userId)
+        .limit(0)
 
       if (error) throw error
       return count || 0
     }
 
-    const { count, error } = await query
+    const { count, error } = await query.limit(0)
 
     if (error) throw error
     return count || 0
