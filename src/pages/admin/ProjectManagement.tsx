@@ -11,6 +11,7 @@ import { clientService } from '@/services/clientService'
 import { systemService } from '@/services/systemService'
 import { ProjectTable } from '@/components/admin/ProjectTable'
 import { ProjectForm } from '@/components/admin/ProjectForm'
+import { ProjectAssignmentModal } from '@/components/admin/ProjectAssignmentModal'
 import { useToast } from '@/hooks/use-toast'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,6 +29,7 @@ export default function ProjectManagement() {
   const [projects, setProjects] = useState<Project[]>([])
   const [clients, setClients] = useState<Client[]>([])
   const [managers, setManagers] = useState<Partial<UserProfile>[]>([])
+  const [consultants, setConsultants] = useState<Partial<UserProfile>[]>([])
   const [systems, setSystems] = useState<System[]>([])
 
   const [isLoading, setIsLoading] = useState(true)
@@ -35,23 +37,32 @@ export default function ProjectManagement() {
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Assignment Modal State
+  const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false)
+  const [assigningProject, setAssigningProject] = useState<Project | null>(null)
+  const [isSavingAssignment, setIsSavingAssignment] = useState(false)
+
   const loadData = async () => {
     try {
-      const [projectsData, clientsData, managersData, systemsData] =
-        await Promise.all([
-          projectService.getProjects(),
-          clientService.getClients(),
-          projectService.getManagers(),
-          systemService.getSystems(),
-        ])
+      const [
+        projectsData,
+        clientsData,
+        managersData,
+        systemsData,
+        consultantsData,
+      ] = await Promise.all([
+        projectService.getProjects(),
+        clientService.getClients(),
+        projectService.getManagers(),
+        systemService.getSystems(),
+        projectService.getConsultants(),
+      ])
 
       setProjects(projectsData)
-      // Filter only active clients/systems for the form dropdowns if strictness is needed,
-      // but usually we want to see all in table filters.
-      // The form will use filtered lists.
       setClients(clientsData)
       setManagers(managersData)
       setSystems(systemsData)
+      setConsultants(consultantsData)
     } catch (error) {
       console.error(error)
       toast({
@@ -117,6 +128,33 @@ export default function ProjectManagement() {
     }
   }
 
+  const handleAssign = (project: Project) => {
+    setAssigningProject(project)
+    setIsAssignmentModalOpen(true)
+  }
+
+  const handleSaveAssignments = async (
+    projectId: string,
+    userIds: string[],
+  ) => {
+    setIsSavingAssignment(true)
+    try {
+      await projectService.updateProjectAssignments(projectId, userIds)
+      toast({ title: 'Asignaciones actualizadas exitosamente' })
+      setIsAssignmentModalOpen(false)
+      loadData() // Refresh list to update counts
+    } catch (error) {
+      console.error(error)
+      toast({
+        title: 'Error',
+        description: 'No se pudieron guardar las asignaciones',
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSavingAssignment(false)
+    }
+  }
+
   // Filter for active entities for the form
   const activeClients = clients.filter((c) => c.activo)
   const activeSystems = systems.filter((s) => s.activo)
@@ -152,9 +190,11 @@ export default function ProjectManagement() {
           managers={managers}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onAssign={handleAssign}
         />
       )}
 
+      {/* Create/Edit Project Modal */}
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="sm:max-w-[700px]">
           <DialogHeader>
@@ -178,6 +218,16 @@ export default function ProjectManagement() {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Assign Consultants Modal */}
+      <ProjectAssignmentModal
+        isOpen={isAssignmentModalOpen}
+        onClose={() => setIsAssignmentModalOpen(false)}
+        project={assigningProject}
+        consultants={consultants}
+        onSave={handleSaveAssignments}
+        isSaving={isSavingAssignment}
+      />
     </div>
   )
 }

@@ -69,6 +69,8 @@ export interface Project {
   client_name?: string
   system_name?: string
   gerente_name?: string
+  consultant_count?: number
+  assigned_users?: string[]
 }
 
 export interface ProjectAssignment {

@@ -35,8 +35,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { MoreHorizontal, Pencil, Trash2, Search } from 'lucide-react'
+import {
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  Search,
+  Users,
+  UserPlus,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ProjectTableProps {
   projects: Project[]
@@ -44,6 +57,7 @@ interface ProjectTableProps {
   managers: Partial<UserProfile>[]
   onEdit: (project: Project) => void
   onDelete: (id: string) => void
+  onAssign: (project: Project) => void
 }
 
 export function ProjectTable({
@@ -52,6 +66,7 @@ export function ProjectTable({
   managers,
   onEdit,
   onDelete,
+  onAssign,
 }: ProjectTableProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -148,8 +163,7 @@ export function ProjectTable({
               <TableHead>Proyecto</TableHead>
               <TableHead>Cliente</TableHead>
               <TableHead>Gerente</TableHead>
-              <TableHead>Sistema</TableHead>
-              <TableHead>Frente</TableHead>
+              <TableHead>Equipo</TableHead>
               <TableHead>Estado</TableHead>
               <TableHead className="text-right">Acciones</TableHead>
             </TableRow>
@@ -158,7 +172,7 @@ export function ProjectTable({
             {filteredProjects.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={8}
+                  colSpan={7}
                   className="h-24 text-center text-muted-foreground"
                 >
                   No se encontraron proyectos.
@@ -175,8 +189,15 @@ export function ProjectTable({
                   </TableCell>
                   <TableCell>{project.client_name}</TableCell>
                   <TableCell>{project.gerente_name}</TableCell>
-                  <TableCell>{project.system_name}</TableCell>
-                  <TableCell>{project.work_front || '-'}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-slate-50">
+                        <Users className="mr-1 h-3 w-3 text-slate-500" />
+                        {project.consultant_count} Consultor
+                        {project.consultant_count !== 1 ? 'es' : ''}
+                      </Badge>
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge
                       className={cn(
@@ -188,26 +209,52 @@ export function ProjectTable({
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Abrir menú</span>
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Acciones</DropdownMenuLabel>
-                        <DropdownMenuItem onClick={() => onEdit(project)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Editar
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600 focus:text-red-600 focus:bg-red-50"
-                          onClick={() => setDeleteId(project.id)}
-                        >
-                          <Trash2 className="mr-2 h-4 w-4" /> Eliminar
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                    <div className="flex items-center justify-end gap-1">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                              onClick={() => onAssign(project)}
+                            >
+                              <UserPlus className="h-4 w-4" />
+                              <span className="sr-only">
+                                Asignar Consultores
+                              </span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p>Asignar Consultores</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon">
+                            <MoreHorizontal className="h-4 w-4" />
+                            <span className="sr-only">Abrir menú</span>
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuLabel>Acciones</DropdownMenuLabel>
+                          <DropdownMenuItem onClick={() => onAssign(project)}>
+                            <Users className="mr-2 h-4 w-4" /> Asignar Equipo
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => onEdit(project)}>
+                            <Pencil className="mr-2 h-4 w-4" /> Editar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                            onClick={() => setDeleteId(project.id)}
+                          >
+                            <Trash2 className="mr-2 h-4 w-4" /> Eliminar
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
