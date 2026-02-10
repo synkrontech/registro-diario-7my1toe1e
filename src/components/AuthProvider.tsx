@@ -5,7 +5,7 @@ import {
   useState,
   ReactNode,
 } from 'react'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
 import { UserProfile } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'

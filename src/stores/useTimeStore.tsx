@@ -8,7 +8,7 @@ import React, {
 } from 'react'
 import { TimeEntry, TimeEntryFormValues, Project } from '@/lib/types'
 import { isSameDay, isSameMonth, isSameYear, parseISO, format } from 'date-fns'
-import { supabase } from '@/lib/supabase'
+import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/components/AuthProvider'
 import { useToast } from '@/hooks/use-toast'
 
@@ -38,58 +38,26 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false)
 
   const fetchProjects = useCallback(async () => {
-    if (!user || !profile) return
+    if (!user) return
 
     try {
-      let query = supabase.from('projects').select('*')
-
-      // If consultant, only show assigned projects
-      // For this implementation, we will fetch assignments first if user is consultor
-      if (profile.role === 'consultor') {
-        const { data: assignments } = await supabase
-          .from('project_assignments')
-          .select('project_id')
-          .eq('user_id', user.id)
-
-        const projectIds = assignments?.map((a) => a.project_id) || []
-        if (projectIds.length > 0) {
-          query = query.in('id', projectIds)
-        } else {
-          // No projects assigned
-          setProjects([])
-          return
-        }
-      }
-      // Gerente sees their own projects as manager OR assigned projects
-      // For simplicity in this iteration, we assume RLS policies on the 'projects' table
-      // or 'project_assignments' handle visibility, but here we try to be helpful.
-      // If we assume RLS is set up correctly, we can just select * from projects
-      // and let the DB filter. However, standard Supabase 'projects' RLS usually
-      // checks if user is manager OR assigned.
-
-      // We will rely on RLS if possible, but for explicit logic:
-      if (profile.role === 'gerente') {
-        // This logic could be complex to replicate in one simple query without RLS awareness
-        // So we will just fetch all and assume RLS filters or we filter client side if needed
-        // But "Gerente: Must be able to view their own projects" implies logic.
-      }
-
-      const { data, error } = await query.eq('status', 'activo')
+      // RLS policies now handle visibility
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('status', 'activo')
 
       if (error) throw error
       setProjects(data as Project[])
     } catch (error) {
       console.error('Error fetching projects:', error)
     }
-  }, [user, profile])
+  }, [user])
 
   const fetchEntries = useCallback(async () => {
     if (!user) return
     setIsLoading(true)
 
-    // Calculate start and end of the view month to optimize fetching
-    // Actually, getting all entries for the user is fine for small datasets,
-    // but better to filter by month.
     const startStr = format(
       new Date(viewDate.getFullYear(), viewDate.getMonth(), 1),
       'yyyy-MM-dd',
@@ -101,6 +69,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       // We join with projects to get the name
+      // Note: Supabase JS types might need explicit casting if not fully auto-generated
       const { data, error } = await supabase
         .from('time_entries')
         .select(
@@ -120,7 +89,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         id: item.id,
         user_id: item.user_id,
         project_id: item.project_id,
-        date: parseISO(item.fecha), // Parse YYYY-MM-DD to Date
+        date: parseISO(item.fecha),
         startTime: item.startTime,
         endTime: item.endTime,
         description: item.description,
@@ -174,7 +143,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
       })
 
       if (error) throw error
-      fetchEntries() // Refresh list
+      fetchEntries()
     } catch (error: any) {
       console.error(error)
       throw new Error(error.message)
@@ -199,7 +168,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         .eq('id', id)
 
       if (error) throw error
-      fetchEntries() // Refresh list
+      fetchEntries()
     } catch (error: any) {
       console.error(error)
       throw new Error(error.message)

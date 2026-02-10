@@ -35,8 +35,8 @@ export interface Project {
   nombre: string
   codigo: string
   client_id: string
-  gerente_id: string
-  system_id: string
+  gerente_id?: string
+  system_id?: string
   status: ProjectStatus
   // Joined fields for UI convenience
   client_name?: string
