@@ -4,6 +4,7 @@ import { z } from 'zod'
 export type UserRole = string
 export type ProjectStatus = 'activo' | 'pausado' | 'finalizado'
 export type TimeEntryStatus = 'pendiente' | 'aprobado' | 'rechazado'
+export type WorkFront = 'Procesos' | 'SAP IBP' | 'SAP MDG' | 'Otro'
 
 export interface Permission {
   id: string
@@ -63,9 +64,11 @@ export interface Project {
   gerente_id?: string
   system_id?: string
   status: ProjectStatus
+  work_front?: string | null
   // Joined fields for UI convenience
   client_name?: string
   system_name?: string
+  gerente_name?: string
 }
 
 export interface ProjectAssignment {
@@ -170,3 +173,15 @@ export const systemSchema = z.object({
 })
 
 export type SystemFormValues = z.infer<typeof systemSchema>
+
+export const projectSchema = z.object({
+  nombre: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
+  codigo: z.string().min(2, 'El código debe tener al menos 2 caracteres'),
+  client_id: z.string().min(1, 'Selecciona un cliente'),
+  gerente_id: z.string().optional(),
+  system_id: z.string().optional(),
+  work_front: z.enum(['Procesos', 'SAP IBP', 'SAP MDG', 'Otro']).optional(),
+  status: z.enum(['activo', 'pausado', 'finalizado']),
+})
+
+export type ProjectFormValues = z.infer<typeof projectSchema>

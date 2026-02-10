@@ -7,6 +7,7 @@ import {
   Mail,
   Building2,
   MonitorSmartphone,
+  Briefcase,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -62,6 +63,12 @@ export function AppSidebar() {
       title: 'Clientes',
       url: '/admin/clients',
       icon: Building2,
+      visible: hasManagementAccess,
+    },
+    {
+      title: 'Proyectos',
+      url: '/admin/projects',
+      icon: Briefcase,
       visible: hasManagementAccess,
     },
     {
