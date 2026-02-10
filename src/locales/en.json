@@ -61,7 +61,7 @@
     "resendEmail": "Resend Email"
   },
   "sidebar": {
-    "dashboard": "Daily Log",
+    "dashboard": "Dashboard",
     "reports": "Reports",
     "settings": "Settings",
     "users": "Users",
@@ -73,6 +73,47 @@
     "admin": "Administration",
     "mainMenu": "Main Menu",
     "approvals": "Approvals"
+  },
+  "dashboard": {
+    "consultant": {
+      "evolution": "My Monthly Evolution",
+      "lastEntries": "My Last 10 Entries",
+      "projectDist": "Project Distribution",
+      "registeredHours": "Registered Hours",
+      "approvedHours": "Approved Hours",
+      "pendingHours": "Pending Hours",
+      "approvalRate": "Approval Rate",
+      "newEntry": "New Time Entry",
+      "viewCalendar": "View Monthly Calendar",
+      "myReports": "My Reports"
+    },
+    "manager": {
+      "weeklyTrend": "Weekly Hours Trend",
+      "topConsultants": "Top 5 Consultants",
+      "pendingApprovals": "Pending Approvals",
+      "hoursDist": "Hours Distribution by Project",
+      "assignedProjects": "Assigned Projects",
+      "pendingCount": "Pending Approvals",
+      "monthlyHours": "Monthly Hours (Managed)",
+      "rejectionRate": "Rejection Rate",
+      "goToApprovals": "Go to Full Approval Panel",
+      "approve": "Approve",
+      "reject": "Reject"
+    },
+    "director": {
+      "totalHours": "Total Monthly Hours",
+      "activeProjects": "Active Projects",
+      "activeConsultants": "Active Consultants",
+      "globalUtilization": "Global Utilization",
+      "approvalRatio": "Global Approval Ratio",
+      "avgHoursConsultant": "Avg Hours / Consultant",
+      "hoursByWorkFront": "Hours by Work Front",
+      "clientDist": "Client Distribution",
+      "timeline": "Weekly Utilization Timeline",
+      "consolidatedTable": "Consolidated Project Report",
+      "registered": "Registered",
+      "approved": "Approved"
+    }
   },
   "timeEntry": {
     "newEntry": "New Entry",

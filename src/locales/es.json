@@ -61,7 +61,7 @@
     "resendEmail": "Reenviar Correo"
   },
   "sidebar": {
-    "dashboard": "Registro Diario",
+    "dashboard": "Dashboard",
     "reports": "Reportes",
     "settings": "Configuración",
     "users": "Usuarios",
@@ -73,6 +73,47 @@
     "admin": "Administración",
     "mainMenu": "Menú Principal",
     "approvals": "Aprobaciones"
+  },
+  "dashboard": {
+    "consultant": {
+      "evolution": "Mi Evolución Mensual",
+      "lastEntries": "Mis Últimos 10 Registros",
+      "projectDist": "Distribución por Proyecto",
+      "registeredHours": "Horas Registradas",
+      "approvedHours": "Horas Aprobadas",
+      "pendingHours": "Horas Pendientes",
+      "approvalRate": "Tasa de Aprobación",
+      "newEntry": "Nuevo Registro de Tiempo",
+      "viewCalendar": "Ver Calendario Mensual",
+      "myReports": "Mis Reportes"
+    },
+    "manager": {
+      "weeklyTrend": "Tendencia Semanal de Horas",
+      "topConsultants": "Top 5 Consultores",
+      "pendingApprovals": "Aprobaciones Pendientes",
+      "hoursDist": "Distribución de Horas por Proyecto",
+      "assignedProjects": "Proyectos Asignados",
+      "pendingCount": "Aprobaciones Pendientes",
+      "monthlyHours": "Horas Mensuales (Gestionadas)",
+      "rejectionRate": "Tasa de Rechazo",
+      "goToApprovals": "Ir a Panel de Aprobaciones Completo",
+      "approve": "Aprobar",
+      "reject": "Rechazar"
+    },
+    "director": {
+      "totalHours": "Horas Totales Mensuales",
+      "activeProjects": "Proyectos Activos",
+      "activeConsultants": "Consultores Activos",
+      "globalUtilization": "Utilización Global",
+      "approvalRatio": "Ratio de Aprobación Global",
+      "avgHoursConsultant": "Promedio Horas / Consultor",
+      "hoursByWorkFront": "Horas por Frente de Trabajo",
+      "clientDist": "Distribución por Cliente",
+      "timeline": "Timeline de Utilización Semanal",
+      "consolidatedTable": "Reporte Consolidado de Proyectos",
+      "registered": "Registradas",
+      "approved": "Aprobadas"
+    }
   },
   "timeEntry": {
     "newEntry": "Nuevo Registro",
@@ -145,10 +186,10 @@
       "selectClients": "Seleccionar Clientes",
       "selectSystems": "Seleccionar Sistemas",
       "selectWorkFront": "Seleccionar Frente",
-      "workFrontDistribution": "Distribución por Frente de Trabajo",
-      "clientDistribution": "Distribución por Cliente",
-      "totalHours": "Horas Totales",
-      "grandTotal": "Gran Total",
+      "workFrontDistribution": "Distribuição por Frente",
+      "clientDistribution": "Distribuição por Cliente",
+      "totalHours": "Horas Totais",
+      "grandTotal": "Total Geral",
       "subtotal": "Subtotal"
     }
   },

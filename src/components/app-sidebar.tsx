@@ -9,6 +9,7 @@ import {
   MonitorSmartphone,
   Briefcase,
   FileCheck,
+  CalendarDays,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -38,6 +39,8 @@ export function AppSidebar() {
   const isAdmin = profile?.role === 'admin'
   const isDirector = profile?.role === 'director'
   const isManager = profile?.role === 'gerente'
+  const isConsultant = profile?.role === 'consultor'
+
   const hasManagementAccess = isAdmin || isDirector
   const hasApprovalAccess = isAdmin || isDirector || isManager
 
@@ -52,6 +55,14 @@ export function AppSidebar() {
       title: t('sidebar.dashboard'),
       url: '/',
       icon: Clock,
+      visible: true,
+    },
+    // Only consultants (or admins acting as such) need the Timesheet detailed view in sidebar
+    // Though usually helpful for everyone to log their own time
+    {
+      title: t('timeEntry.detailedView'),
+      url: '/timesheet',
+      icon: CalendarDays,
       visible: true,
     },
     {
