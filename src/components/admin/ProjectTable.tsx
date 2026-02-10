@@ -170,6 +170,7 @@ export function ProjectTable({
               <TableHead>{t('clients.code')}</TableHead>
               <TableHead>{t('timeEntry.project')}</TableHead>
               <TableHead>{t('timeEntry.client')}</TableHead>
+              <TableHead>{t('timeEntry.system')}</TableHead>
               <TableHead>{t('projects.manager')}</TableHead>
               <TableHead>{t('projects.team')}</TableHead>
               <TableHead>{t('common.status')}</TableHead>
@@ -182,7 +183,7 @@ export function ProjectTable({
             {filteredProjects.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={7}
+                  colSpan={8}
                   className="h-24 text-center text-muted-foreground"
                 >
                   {t('timeEntry.noEntries')}
@@ -198,6 +199,7 @@ export function ProjectTable({
                     {project.nombre}
                   </TableCell>
                   <TableCell>{project.client_name}</TableCell>
+                  <TableCell>{project.system_name}</TableCell>
                   <TableCell>{project.gerente_name}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
