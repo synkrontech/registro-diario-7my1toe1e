@@ -46,7 +46,9 @@ export default function Login() {
   const location = useLocation()
   const { toast } = useToast()
 
-  const from = location.state?.from?.pathname || '/'
+  // Handle redirect logic, correcting legacy /settings path to /profile
+  const rawFrom = location.state?.from?.pathname || '/'
+  const from = rawFrom === '/settings' ? '/profile' : rawFrom
 
   // Schemas with translation
   const loginSchema = z.object({

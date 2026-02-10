@@ -120,6 +120,11 @@ const App = () => (
               <Route path="/timesheet" element={<TimeSheet />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/profile" element={<Profile />} />
+              {/* Redirect legacy /settings to /profile */}
+              <Route
+                path="/settings"
+                element={<Navigate to="/profile" replace />}
+              />
 
               {/* Admin Routes */}
               <Route
