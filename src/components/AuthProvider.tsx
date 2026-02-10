@@ -7,7 +7,7 @@ import {
 } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { User } from '@supabase/supabase-js'
-import { UserProfile } from '@/lib/types'
+import { UserProfile, UserPermission } from '@/lib/types'
 import { useToast } from '@/hooks/use-toast'
 
 interface AuthContextType {
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchProfile = async (userId: string) => {
     try {
-      // Fetch user with role details
+      // Fetch user with role details and granular permissions
       const { data, error } = await supabase
         .from('users')
         .select(
@@ -64,7 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             name,
             role_permissions (
               permissions (
-                code
+                code,
+                resource_id,
+                resource_type
               )
             )
           )
@@ -78,9 +80,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } else {
         // Transform the data to match UserProfile interface
         const roleData = data.roles as any
-        const permissions =
-          roleData?.role_permissions?.map((rp: any) => rp.permissions?.code) ||
-          []
+        const permissions: UserPermission[] =
+          roleData?.role_permissions?.map((rp: any) => ({
+            code: rp.permissions?.code,
+            resourceId: rp.permissions?.resource_id,
+            resourceType: rp.permissions?.resource_type,
+          })) || []
 
         const userProfile: UserProfile = {
           id: data.id,

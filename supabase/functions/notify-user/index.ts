@@ -1,4 +1,5 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,32 +15,67 @@ Deno.serve(async (req) => {
   try {
     const { to, name, type, data } = await req.json()
 
-    // In a real scenario, integrate with Resend, SendGrid, etc.
-    // For this implementation, we log the email intent.
-    console.log(`[Email Service] Sending email to: ${to}`)
-    console.log(`[Email Service] Type: ${type}`)
-    console.log(`[Email Service] Data:`, data)
+    // Connect to Supabase to fetch templates
+    // Use service role key to access email_templates table (protected)
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+    )
 
     let subject = ''
     let body = ''
+    let templateSlug = ''
 
+    // Determine which template to use based on type
     if (type === 'status_change') {
-      const status = data.status === 'active' ? 'Activada' : 'Desactivada'
-      subject = `Tu cuenta ha sido ${status}`
-      body = `Hola ${name},\n\nTu cuenta en Registro Diario ha sido ${status} por un administrador.\n\n${
-        data.status === 'active'
-          ? 'Ya puedes iniciar sesión en el sistema.'
-          : 'Si crees que esto es un error, contacta a soporte.'
-      }`
+      if (data.status === 'active') {
+        templateSlug = 'user_approval'
+      } else {
+        templateSlug = 'user_rejection'
+      }
     } else if (type === 'welcome_admin') {
-      subject = 'Nuevo usuario registrado'
-      body = `Hola Admin,\n\nEl usuario ${name} (${to}) se ha registrado y requiere aprobación.`
+      templateSlug = 'admin_new_user'
+    } else if (type === 'registration') {
+      templateSlug = 'user_registration'
     }
 
-    console.log(`[Email Service] Content: \nSubject: ${subject}\nBody: ${body}`)
+    if (templateSlug) {
+      const { data: template } = await supabaseAdmin
+        .from('email_templates')
+        .select('*')
+        .eq('slug', templateSlug)
+        .single()
+
+      if (template) {
+        subject = template.subject
+        body = template.body
+      }
+    }
+
+    // Fallback if no template found or manual processing needed
+    if (!subject) {
+      subject = `Notificación: ${type}`
+      body = `Hola ${name},\n\nTienes una nueva notificación de tipo ${type}.`
+    }
+
+    // Replace variables
+    // Variables: {{nombre}}, {{email}}, {{url}}, {{reason}}
+    body = body.replace(/{{nombre}}/g, name)
+    body = body.replace(/{{email}}/g, to)
+    body = body.replace(/{{url}}/g, 'https://synkrontech.goskip.app') // Or env var
+    body = body.replace(/{{reason}}/g, data?.reason || 'Administración')
+
+    console.log(`[Email Service] Sending email to: ${to}`)
+    console.log(`[Email Service] Subject: ${subject}`)
+    console.log(`[Email Service] Body preview: ${body.substring(0, 50)}...`)
+
+    // Integration with actual email provider would go here (Resend, etc.)
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Email queued' }),
+      JSON.stringify({
+        success: true,
+        message: 'Email processed via template',
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },

@@ -1,5 +1,14 @@
 import { supabase } from '@/lib/supabase/client'
-import { UserProfile, Role, Permission, AuditLog } from '@/lib/types'
+import {
+  UserProfile,
+  Role,
+  Permission,
+  AuditLog,
+  Notification,
+  EmailTemplate,
+  Project,
+  Client,
+} from '@/lib/types'
 
 export const adminService = {
   // --- USERS ---
@@ -27,7 +36,6 @@ export const adminService = {
   },
 
   async updateUserStatus(adminId: string, userId: string, newStatus: boolean) {
-    // 1. Update user
     const { error } = await supabase
       .from('users')
       .update({ activo: newStatus })
@@ -35,12 +43,10 @@ export const adminService = {
 
     if (error) throw error
 
-    // 2. Log Audit
     await this.logAction(adminId, 'UPDATE_STATUS', userId, {
       new_status: newStatus,
     })
 
-    // 3. Notify User via Edge Function
     await this.notifyUser(userId, 'status_change', {
       status: newStatus ? 'active' : 'inactive',
     })
@@ -52,7 +58,6 @@ export const adminService = {
     roleId: string,
     roleName: string,
   ) {
-    // 1. Update user
     const { error } = await supabase
       .from('users')
       .update({ role_id: roleId })
@@ -60,7 +65,6 @@ export const adminService = {
 
     if (error) throw error
 
-    // 2. Log Audit
     await this.logAction(adminId, 'UPDATE_ROLE', userId, {
       new_role_id: roleId,
       new_role_name: roleName,
@@ -75,7 +79,13 @@ export const adminService = {
         `
         *,
         role_permissions (
-          permission_id
+          permissions (
+            id,
+            code,
+            description,
+            resource_id,
+            resource_type
+          )
         )
       `,
       )
@@ -83,12 +93,9 @@ export const adminService = {
 
     if (error) throw error
 
-    // Transform to include permission IDs array
     return data.map((role: any) => ({
       ...role,
-      permissions: role.role_permissions.map((rp: any) => ({
-        id: rp.permission_id,
-      })),
+      permissions: role.role_permissions.map((rp: any) => rp.permissions),
     })) as Role[]
   },
 
@@ -108,7 +115,6 @@ export const adminService = {
     description: string,
     permissionIds: string[],
   ) {
-    // 1. Create Role
     const { data: role, error } = await supabase
       .from('roles')
       .insert({ name, description })
@@ -117,7 +123,6 @@ export const adminService = {
 
     if (error) throw error
 
-    // 2. Assign Permissions
     if (permissionIds.length > 0) {
       const { error: permError } = await supabase
         .from('role_permissions')
@@ -130,7 +135,6 @@ export const adminService = {
       if (permError) throw permError
     }
 
-    // 3. Log Audit
     await this.logAction(adminId, 'CREATE_ROLE', null, {
       role_name: name,
       permission_count: permissionIds.length,
@@ -146,7 +150,6 @@ export const adminService = {
     description: string,
     permissionIds: string[],
   ) {
-    // 1. Update Role Details
     const { error } = await supabase
       .from('roles')
       .update({ name, description })
@@ -154,7 +157,6 @@ export const adminService = {
 
     if (error) throw error
 
-    // 2. Update Permissions (Delete all and re-insert)
     await supabase.from('role_permissions').delete().eq('role_id', roleId)
 
     if (permissionIds.length > 0) {
@@ -166,10 +168,127 @@ export const adminService = {
       if (permError) throw permError
     }
 
-    // 3. Log Audit
     await this.logAction(adminId, 'UPDATE_ROLE_DEF', null, {
       role_id: roleId,
       role_name: name,
+    })
+  },
+
+  async createGranularPermission(
+    adminId: string,
+    code: string,
+    description: string,
+    resourceType: string,
+    resourceId: string,
+  ) {
+    // Check if exists
+    const { data: existing } = await supabase
+      .from('permissions')
+      .select('*')
+      .eq('code', code)
+      .eq('resource_id', resourceId)
+      .single()
+
+    if (existing) return existing
+
+    const { data, error } = await supabase
+      .from('permissions')
+      .insert({
+        code,
+        description,
+        resource_type: resourceType,
+        resource_id: resourceId,
+      })
+      .select()
+      .single()
+
+    if (error) throw error
+
+    await this.logAction(adminId, 'CREATE_PERMISSION', null, {
+      code,
+      resourceType,
+      resourceId,
+    })
+
+    return data
+  },
+
+  // --- RESOURCES FOR PERMISSIONS ---
+  async getProjects() {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('id, nombre, status')
+      .order('nombre')
+    if (error) throw error
+    return data as Partial<Project>[]
+  },
+
+  async getClients() {
+    const { data, error } = await supabase
+      .from('clients')
+      .select('id, nombre')
+      .order('nombre')
+    if (error) throw error
+    return data as Partial<Client>[]
+  },
+
+  // --- NOTIFICATIONS ---
+  async getNotifications(userId: string) {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false })
+
+    if (error) throw error
+    return data as Notification[]
+  },
+
+  async markNotificationRead(notificationId: string) {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+
+    if (error) throw error
+  },
+
+  async markAllNotificationsRead(userId: string) {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false)
+
+    if (error) throw error
+  },
+
+  // --- EMAIL TEMPLATES ---
+  async getEmailTemplates() {
+    const { data, error } = await supabase
+      .from('email_templates')
+      .select('*')
+      .order('slug')
+
+    if (error) throw error
+    return data as EmailTemplate[]
+  },
+
+  async updateEmailTemplate(
+    adminId: string,
+    id: string,
+    subject: string,
+    body: string,
+  ) {
+    const { error } = await supabase
+      .from('email_templates')
+      .update({ subject, body, updated_at: new Date().toISOString() })
+      .eq('id', id)
+
+    if (error) throw error
+
+    await this.logAction(adminId, 'UPDATE_EMAIL_TEMPLATE', null, {
+      template_id: id,
     })
   },
 
@@ -210,8 +329,7 @@ export const adminService = {
     })
   },
 
-  // --- NOTIFICATIONS ---
-  async notifyUser(userId: string, type: 'status_change', payload: any) {
+  async notifyUser(userId: string, type: string, payload: any) {
     try {
       const { data: user } = await supabase
         .from('users')

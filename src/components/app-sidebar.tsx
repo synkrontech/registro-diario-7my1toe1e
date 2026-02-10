@@ -1,4 +1,4 @@
-import { Clock, PieChart, Settings, Users } from 'lucide-react'
+import { Clock, PieChart, Settings, Users, Bell, Mail } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
@@ -17,6 +17,7 @@ import { useAuth } from '@/components/AuthProvider'
 export function AppSidebar() {
   const location = useLocation()
   const { profile } = useAuth()
+  const isAdmin = profile?.role === 'admin'
 
   const items = [
     {
@@ -37,11 +38,23 @@ export function AppSidebar() {
       icon: Settings,
       visible: true,
     },
+  ]
+
+  const adminItems = [
     {
-      title: 'Gestión de Usuarios',
+      title: 'Usuarios',
       url: '/admin/users',
       icon: Users,
-      visible: profile?.role === 'admin',
+    },
+    {
+      title: 'Notificaciones',
+      url: '/admin/notifications',
+      icon: Bell,
+    },
+    {
+      title: 'Plantillas de Correo',
+      url: '/admin/settings/emails',
+      icon: Mail,
     },
   ]
 
@@ -57,7 +70,7 @@ export function AppSidebar() {
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
                   <span className="font-semibold">TimeLog</span>
-                  <span className="">v1.0.0</span>
+                  <span className="">v1.1.0</span>
                 </div>
               </Link>
             </SidebarMenuButton>
@@ -66,7 +79,7 @@ export function AppSidebar() {
       </SidebarHeader>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu</SidebarGroupLabel>
+          <SidebarGroupLabel>Menu Principal</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items
@@ -88,6 +101,30 @@ export function AppSidebar() {
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>Administración</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {adminItems.map((item) => (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      asChild
+                      isActive={location.pathname === item.url}
+                      tooltip={item.title}
+                    >
+                      <Link to={item.url}>
+                        <item.icon />
+                        <span>{item.title}</span>
+                      </Link>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
       <SidebarRail />
     </Sidebar>

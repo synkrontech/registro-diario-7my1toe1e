@@ -13,6 +13,8 @@ import Login from './pages/Login'
 import NotFound from './pages/NotFound'
 import PendingApproval from './pages/PendingApproval'
 import UserManagement from './pages/admin/UserManagement'
+import NotificationsPage from './pages/admin/NotificationsPage'
+import EmailSettingsPage from './pages/admin/EmailSettingsPage'
 import Layout from './components/Layout'
 import { TimeStoreProvider } from '@/stores/useTimeStore'
 import { AuthProvider, useAuth } from '@/components/AuthProvider'
@@ -89,11 +91,29 @@ const App = () => (
               }
             >
               <Route path="/" element={<Index />} />
+
+              {/* Admin Routes */}
               <Route
                 path="/admin/users"
                 element={
                   <AdminRoute>
                     <UserManagement />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/notifications"
+                element={
+                  <AdminRoute>
+                    <NotificationsPage />
+                  </AdminRoute>
+                }
+              />
+              <Route
+                path="/admin/settings/emails"
+                element={
+                  <AdminRoute>
+                    <EmailSettingsPage />
                   </AdminRoute>
                 }
               />

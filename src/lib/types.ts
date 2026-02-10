@@ -9,6 +9,8 @@ export interface Permission {
   id: string
   code: string
   description: string
+  resource_id?: string | null
+  resource_type?: 'project' | 'client' | null
 }
 
 export interface Role {
@@ -16,6 +18,12 @@ export interface Role {
   name: string
   description: string
   permissions?: Permission[]
+}
+
+export interface UserPermission {
+  code: string
+  resourceId?: string
+  resourceType?: string
 }
 
 export interface UserProfile {
@@ -27,7 +35,7 @@ export interface UserProfile {
   role_id: string
   activo: boolean
   created_at?: string
-  permissions?: string[] // List of permission codes
+  permissions?: UserPermission[] // Updated to support granular permissions
 }
 
 export interface Client {
@@ -88,6 +96,24 @@ export interface AuditLog {
   created_at: string
   admin_email?: string
   target_email?: string
+}
+
+export interface Notification {
+  id: string
+  user_id: string
+  title: string
+  message: string
+  type: 'audit' | 'registration' | string
+  is_read: boolean
+  created_at: string
+}
+
+export interface EmailTemplate {
+  id: string
+  slug: string
+  subject: string
+  body: string
+  updated_at: string
 }
 
 export const timeEntrySchema = z
