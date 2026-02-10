@@ -56,13 +56,14 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
     try {
       let data: Project[] = []
 
-      // Role-based project selection with robust error handling and split queries
-      // to avoid complex join issues or empty response parsing errors
+      // Role-based project selection with robust error handling.
+      // We explicitly set { head: false } to ensure GET requests are used, preventing
+      // "Unexpected end of JSON input" errors that can occur with implicit HEAD requests.
       if (profile.role === 'consultor') {
         // 1. Get assignments first
         const { data: assignments, error: assignError } = await supabase
           .from('project_assignments')
-          .select('project_id')
+          .select('project_id', { head: false })
           .eq('user_id', user.id)
 
         if (assignError) throw assignError
@@ -73,7 +74,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         if (projectIds.length > 0) {
           const { data: res, error } = await supabase
             .from('projects')
-            .select('*')
+            .select('*', { head: false })
             .in('id', projectIds)
             .eq('status', 'activo')
             .order('nombre')
@@ -85,7 +86,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         // Managers see projects they manage
         const { data: res, error } = await supabase
           .from('projects')
-          .select('*')
+          .select('*', { head: false })
           .eq('status', 'activo')
           .eq('gerente_id', user.id)
           .order('nombre')
@@ -96,7 +97,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         // Admin/Director see all active projects
         const { data: res, error } = await supabase
           .from('projects')
-          .select('*')
+          .select('*', { head: false })
           .eq('status', 'activo')
           .order('nombre')
 
