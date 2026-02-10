@@ -140,12 +140,13 @@ export const reportService = {
     if (projectError) throw projectError
 
     // Fetch Time Entries for the project, approved only
+    // Explicitly use time_entries_user_id_fkey to avoid ambiguity with processed_by
     const { data: entries, error: entriesError } = await supabase
       .from('time_entries')
       .select(
         `
         *,
-        users ( nombre, apellido, email )
+        users!time_entries_user_id_fkey ( nombre, apellido, email )
       `,
       )
       .eq('project_id', projectId)
@@ -185,9 +186,10 @@ export const reportService = {
     }
 
     // 2. Get time entries for these projects in range
+    // Explicitly use time_entries_user_id_fkey to avoid ambiguity
     const { data: entries, error: entriesError } = await supabase
       .from('time_entries')
-      .select('*, users(id)')
+      .select('*, users!time_entries_user_id_fkey(id)')
       .in('project_id', projectIds)
       .gte('fecha', format(startDate, 'yyyy-MM-dd'))
       .lte('fecha', format(endDate, 'yyyy-MM-dd'))
