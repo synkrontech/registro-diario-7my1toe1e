@@ -31,7 +31,11 @@
     "updated": "Actualizado exitosamente",
     "errorLoad": "Error al cargar los datos",
     "errorSave": "Error al guardar los datos",
-    "errorDelete": "Error al eliminar"
+    "errorDelete": "Error al eliminar",
+    "apply": "Aplicar",
+    "clear": "Limpiar",
+    "filter": "Filtrar",
+    "all": "Todos"
   },
   "auth": {
     "loginTitle": "Registro Diario",
@@ -136,7 +140,30 @@
     "hours": "Horas",
     "activities": "Actividades",
     "selectAllProject": "Seleccionar todos para {{project}}",
-    "selectAllConsultant": "Seleccionar todos para {{name}}"
+    "selectAllConsultant": "Seleccionar todos para {{name}}",
+    "pending": "Pendientes",
+    "history": "Historial",
+    "filters": {
+      "title": "Filtros",
+      "dateRange": "Rango de Fechas",
+      "client": "Cliente",
+      "consultant": "Consultor",
+      "status": "Estado",
+      "selectClient": "Seleccionar cliente...",
+      "selectConsultant": "Seleccionar consultor...",
+      "pickDate": "Seleccionar fecha"
+    },
+    "historyTable": {
+      "processedBy": "Procesado por",
+      "actionDate": "Fecha de Acción",
+      "noHistory": "No hay historial disponible con los filtros actuales.",
+      "finalStatus": "Estado Final"
+    },
+    "messages": {
+      "approvedCount": "{{count}} registro(s) aprobado(s)",
+      "rejectedCount": "{{count}} registro(s) rechazado(s)",
+      "updated": "Registros actualizados correctamente"
+    }
   },
   "validation": {
     "required": "Requerido",
@@ -170,7 +197,8 @@
     "timeEntryStatus": {
       "pendiente": "Pendiente",
       "aprobado": "Aprobado",
-      "rechazado": "Rechazado"
+      "rechazado": "Rechazado",
+      "all": "Todos"
     },
     "workFront": {
       "Procesos": "Procesos",

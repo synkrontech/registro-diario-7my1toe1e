@@ -31,7 +31,11 @@
     "updated": "Updated successfully",
     "errorLoad": "Error loading data",
     "errorSave": "Error saving data",
-    "errorDelete": "Error deleting"
+    "errorDelete": "Error deleting",
+    "apply": "Apply",
+    "clear": "Clear",
+    "filter": "Filter",
+    "all": "All"
   },
   "auth": {
     "loginTitle": "Daily Log",
@@ -136,7 +140,30 @@
     "hours": "Hours",
     "activities": "Activities",
     "selectAllProject": "Select all for {{project}}",
-    "selectAllConsultant": "Select all for {{name}}"
+    "selectAllConsultant": "Select all for {{name}}",
+    "pending": "Pending",
+    "history": "History",
+    "filters": {
+      "title": "Filters",
+      "dateRange": "Date Range",
+      "client": "Client",
+      "consultant": "Consultant",
+      "status": "Status",
+      "selectClient": "Select client...",
+      "selectConsultant": "Select consultant...",
+      "pickDate": "Pick a date"
+    },
+    "historyTable": {
+      "processedBy": "Processed By",
+      "actionDate": "Action Date",
+      "noHistory": "No history available with current filters.",
+      "finalStatus": "Final Status"
+    },
+    "messages": {
+      "approvedCount": "{{count}} record(s) approved",
+      "rejectedCount": "{{count}} record(s) rejected",
+      "updated": "Records updated successfully"
+    }
   },
   "validation": {
     "required": "Required",
@@ -170,7 +197,8 @@
     "timeEntryStatus": {
       "pendiente": "Pending",
       "aprobado": "Approved",
-      "rechazado": "Rejected"
+      "rechazado": "Rejected",
+      "all": "All"
     },
     "workFront": {
       "Procesos": "Processes",

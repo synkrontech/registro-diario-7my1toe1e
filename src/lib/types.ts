@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { DateRange } from 'react-day-picker'
 
 // Simplified UserRole for backward compatibility in code, but now essentially string
 export type UserRole = string
@@ -89,6 +90,8 @@ export interface TimeEntry {
   description: string
   durationMinutes: number
   status: TimeEntryStatus
+  processed_by?: string | null
+  processed_at?: string | null
   // For UI display
   project_name: string
   client_name?: string
@@ -99,6 +102,7 @@ export interface ApprovalTimeEntry extends TimeEntry {
   user_name: string
   user_email: string
   user_avatar_seed?: string
+  processed_by_name?: string
 }
 
 export interface AuditLog {
@@ -128,6 +132,13 @@ export interface EmailTemplate {
   subject: string
   body: string
   updated_at: string
+}
+
+export interface ApprovalFiltersState {
+  dateRange: DateRange | undefined
+  clientId: string | null
+  consultantId: string | null
+  status: TimeEntryStatus | 'all'
 }
 
 // Schemas factories for i18n
