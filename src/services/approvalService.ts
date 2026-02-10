@@ -24,7 +24,7 @@ export const approvalService = {
           clients!inner ( id, nombre ),
           systems ( nombre )
         ),
-        users!inner (
+        users:users!time_entries_user_id_fkey!inner (
           id,
           nombre,
           apellido,
@@ -95,13 +95,13 @@ export const approvalService = {
           clients!inner ( id, nombre ),
           systems ( nombre )
         ),
-        users!inner (
+        users:users!time_entries_user_id_fkey!inner (
           id,
           nombre,
           apellido,
           email
         ),
-        processor:processed_by (
+        processor:users!time_entries_processed_by_fkey (
           nombre,
           apellido
         )
