@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { TimeEntry } from '@/lib/types'
 import {
   Table,
@@ -96,7 +97,7 @@ export function ReportTable({ entries }: ReportTableProps) {
               const weekHours = (weekMinutes / 60).toFixed(2)
 
               return (
-                <>
+                <Fragment key={weekStr}>
                   <TableRow
                     key={`week-${weekStr}`}
                     className="bg-slate-50/50 hover:bg-slate-50/50"
@@ -156,7 +157,7 @@ export function ReportTable({ entries }: ReportTableProps) {
                     </TableCell>
                     <TableCell colSpan={2} />
                   </TableRow>
-                </>
+                </Fragment>
               )
             })
           )}
