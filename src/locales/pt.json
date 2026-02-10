@@ -41,7 +41,7 @@
     "hours": "Horas"
   },
   "auth": {
-    "loginTitle": "Registro Diário",
+    "loginTitle": "Synkron Tech Time",
     "loginSubtitle": "Sistema de gestão de tempo",
     "email": "E-mail",
     "password": "Senha",
@@ -85,10 +85,10 @@
       "projectDist": "Distribuição por Projeto",
       "registeredHours": "Horas este mês",
       "approvedHours": "Aprovadas este mês",
-      "pendingHours": "Pendentes de aprovação",
+      "pendingHours": "Pendientes de aprovação",
       "approvalRate": "Taxa de Aprovação",
       "newEntry": "Novo Registro de Tempo",
-      "viewCalendar": "Ver Calendário Mensal",
+      "viewCalendar": "Ver Calendário Mensual",
       "myReports": "Meus Relatórios"
     },
     "manager": {

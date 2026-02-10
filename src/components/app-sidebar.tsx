@@ -11,6 +11,7 @@ import {
   FileCheck,
   CalendarDays,
   UserCircle,
+  Hexagon,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -140,10 +141,10 @@ export function AppSidebar() {
             <SidebarMenuButton size="lg" asChild>
               <Link to="/">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-600 text-sidebar-primary-foreground">
-                  <Clock className="size-4" />
+                  <Hexagon className="size-4" />
                 </div>
                 <div className="flex flex-col gap-0.5 leading-none">
-                  <span className="font-semibold">TimeLog</span>
+                  <span className="font-semibold">Synkron Tech Time</span>
                   <span className="">v1.2.0</span>
                 </div>
               </Link>

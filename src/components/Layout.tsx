@@ -97,7 +97,7 @@ function LayoutContent() {
         </main>
         <footer className="border-t bg-background p-4 text-sm text-muted-foreground shadow-[0_-1px_3px_rgba(0,0,0,0.05)] z-20">
           <div className="container mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-            <span>© 2024 TimeLog Inc. Todos los derechos reservados.</span>
+            <span>© 2026 Synkron Tech. Todos los derechos reservados.</span>
 
             <div className="flex items-center gap-4 bg-slate-50 px-4 py-2 rounded-lg border border-slate-100">
               <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
