@@ -109,7 +109,24 @@ export default function Login() {
         password: data.password,
       })
 
-      if (error) throw error
+      if (error) {
+        // Handle specific error for unconfirmed email
+        // Supabase often returns "Email not confirmed" in the message or "email_not_confirmed" code
+        if (
+          error.message.includes('Email not confirmed') ||
+          (error as any).code === 'email_not_confirmed'
+        ) {
+          toast({
+            title: 'Email no verificado',
+            description:
+              'Email not confirmed. Please check your inbox to verify your account or contact an administrator.',
+            variant: 'destructive',
+          })
+          return
+        }
+
+        throw error
+      }
 
       navigate(from, { replace: true })
     } catch (error: any) {
