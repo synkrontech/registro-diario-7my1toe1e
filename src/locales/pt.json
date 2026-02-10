@@ -92,7 +92,12 @@
     "monthlyReport": "Relatório Mensal",
     "totalAccumulated": "Total Acumulado",
     "projectBreakdown": "Detalhamento por Projeto",
-    "noEntries": "Nenhum registro para este período."
+    "noEntries": "Nenhum registro para este período.",
+    "pendingHours": "Horas Pendentes",
+    "approvedHours": "Horas Aprovadas",
+    "rejectedHours": "Horas Rejeitadas",
+    "filterByStatus": "Filtrar por Status",
+    "monthlyStats": "Estatísticas Mensais"
   },
   "users": {
     "title": "Gestão de Usuários",
@@ -141,7 +146,7 @@
     "activities": "Atividades",
     "selectAllProject": "Selecionar todos para {{project}}",
     "selectAllConsultant": "Selecionar todos para {{name}}",
-    "pending": "Pendentes",
+    "pending": "Pendientes",
     "history": "Histórico",
     "filters": {
       "title": "Filtros",

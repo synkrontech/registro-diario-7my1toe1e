@@ -29,7 +29,7 @@ interface CalendarViewProps {
 export function CalendarView({ currentDate }: CalendarViewProps) {
   const { t } = useTranslation()
   const dateLocale = useDateLocale()
-  const { getEntriesByDate, getEntriesByMonth } = useTimeStore()
+  const { getEntriesByDate, getEntriesByMonth, statusFilter } = useTimeStore()
   const [selectedDate, setSelectedDate] = useState<Date | null>(null)
 
   const monthStart = startOfMonth(currentDate)
@@ -58,8 +58,11 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
     setSelectedDate(day)
   }
 
-  // Monthly stats
-  const monthlyEntries = getEntriesByMonth(currentDate)
+  // Monthly stats (Filtered)
+  const monthlyEntries = getEntriesByMonth(currentDate).filter(
+    (entry) => statusFilter === 'all' || entry.status === statusFilter,
+  )
+
   const totalMonthlyMinutes = monthlyEntries.reduce(
     (acc, curr) => acc + curr.durationMinutes,
     0,
@@ -78,13 +81,23 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
     return format(d, 'EEE', { locale: dateLocale })
   })
 
+  const getFilteredDayEntries = (day: Date) => {
+    return getEntriesByDate(day).filter(
+      (entry) => statusFilter === 'all' || entry.status === statusFilter,
+    )
+  }
+
   return (
     <>
       <div className="space-y-6 animate-fade-in">
         <div className="flex flex-col md:flex-row items-center justify-between bg-white p-4 rounded-lg border shadow-sm gap-4">
           <div className="flex flex-col items-center md:items-start w-full md:w-auto">
             <span className="text-sm text-muted-foreground uppercase tracking-wider font-semibold">
-              {t('timeEntry.totalAccumulated')}
+              {t('timeEntry.totalAccumulated')} (
+              {statusFilter === 'all'
+                ? t('common.all')
+                : t(`enums.timeEntryStatus.${statusFilter}`)}
+              )
             </span>
             <div className="text-3xl font-bold text-indigo-600">
               {totalMonthlyHours}{' '}
@@ -143,7 +156,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
                 <div className="divide-y">
                   {weeks.map((week, weekIndex) => {
                     const weekMinutes = week.reduce((acc, day) => {
-                      const dayEntries = getEntriesByDate(day)
+                      const dayEntries = getFilteredDayEntries(day)
                       return (
                         acc +
                         dayEntries.reduce(
@@ -159,7 +172,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
                         {week.map((day, dayIndex) => {
                           const isCurrentMonth = isSameMonth(day, monthStart)
                           const isToday = isSameDay(day, new Date())
-                          const dayEntries = getEntriesByDate(day)
+                          const dayEntries = getFilteredDayEntries(day)
                           const dayMinutes = dayEntries.reduce(
                             (acc, curr) => acc + curr.durationMinutes,
                             0,
@@ -249,7 +262,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
         isOpen={!!selectedDate}
         onClose={() => setSelectedDate(null)}
         date={selectedDate}
-        entries={selectedDate ? getEntriesByDate(selectedDate) : []}
+        entries={selectedDate ? getFilteredDayEntries(selectedDate) : []}
       />
     </>
   )

@@ -92,7 +92,12 @@
     "monthlyReport": "Monthly Report",
     "totalAccumulated": "Total Accumulated",
     "projectBreakdown": "Project Breakdown",
-    "noEntries": "No entries for this period."
+    "noEntries": "No entries for this period.",
+    "pendingHours": "Pending Hours",
+    "approvedHours": "Approved Hours",
+    "rejectedHours": "Rejected Hours",
+    "filterByStatus": "Filter by Status",
+    "monthlyStats": "Monthly Statistics"
   },
   "users": {
     "title": "User Management",

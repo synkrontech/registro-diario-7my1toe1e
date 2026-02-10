@@ -10,9 +10,19 @@ import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { TimeEntry } from '@/lib/types'
 import { format } from 'date-fns'
-import { Clock, Calendar, Briefcase, Building2, Monitor } from 'lucide-react'
+import {
+  Clock,
+  Calendar,
+  Briefcase,
+  Building2,
+  Monitor,
+  Hourglass,
+  CheckCircle2,
+  XCircle,
+} from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { useDateLocale } from '@/components/LanguageSelector'
+import { cn } from '@/lib/utils'
 
 interface DayDetailsSheetProps {
   isOpen: boolean
@@ -25,6 +35,27 @@ function formatDuration(minutes: number) {
   const h = Math.floor(minutes / 60)
   const m = minutes % 60
   return `${h}h ${m.toString().padStart(2, '0')}m`
+}
+
+const getStatusBadgeConfig = (status: string) => {
+  switch (status) {
+    case 'aprobado':
+      return {
+        className: 'text-green-800 bg-green-100 border-green-200',
+        icon: <CheckCircle2 className="mr-1 h-3 w-3" />,
+      }
+    case 'rechazado':
+      return {
+        className: 'text-red-800 bg-red-100 border-red-200',
+        icon: <XCircle className="mr-1 h-3 w-3" />,
+      }
+    case 'pendiente':
+    default:
+      return {
+        className: 'text-amber-800 bg-amber-100 border-amber-200',
+        icon: <Hourglass className="mr-1 h-3 w-3" />,
+      }
+  }
 }
 
 export function DayDetailsSheet({
@@ -72,60 +103,67 @@ export function DayDetailsSheet({
             <div className="space-y-6">
               {entries
                 .sort((a, b) => a.startTime.localeCompare(b.startTime))
-                .map((entry, index) => (
-                  <div
-                    key={entry.id}
-                    className="relative pl-4 border-l-2 border-slate-100 hover:border-indigo-200 transition-colors"
-                  >
-                    <div className="flex flex-col gap-2">
-                      <div className="flex justify-between items-start">
-                        <Badge
-                          variant="outline"
-                          className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100"
-                        >
-                          {entry.project_name}
-                        </Badge>
-                        <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded">
-                          {entry.startTime} - {entry.endTime}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-2 text-xs text-slate-500">
-                        <div className="flex items-center gap-1">
-                          <Building2 className="h-3 w-3" />
-                          <span>{entry.client_name || '-'}</span>
+                .map((entry, index) => {
+                  const badgeConfig = getStatusBadgeConfig(entry.status)
+                  return (
+                    <div
+                      key={entry.id}
+                      className="relative pl-4 border-l-2 border-slate-100 hover:border-indigo-200 transition-colors"
+                    >
+                      <div className="flex flex-col gap-2">
+                        <div className="flex justify-between items-start">
+                          <Badge
+                            variant="outline"
+                            className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100"
+                          >
+                            {entry.project_name}
+                          </Badge>
+                          <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded">
+                            {entry.startTime} - {entry.endTime}
+                          </span>
                         </div>
-                        <span className="text-slate-300">•</span>
-                        <div className="flex items-center gap-1">
-                          <Monitor className="h-3 w-3" />
-                          <span>{entry.system_name || '-'}</span>
+
+                        <div className="flex gap-2 text-xs text-slate-500">
+                          <div className="flex items-center gap-1">
+                            <Building2 className="h-3 w-3" />
+                            <span>{entry.client_name || '-'}</span>
+                          </div>
+                          <span className="text-slate-300">•</span>
+                          <div className="flex items-center gap-1">
+                            <Monitor className="h-3 w-3" />
+                            <span>{entry.system_name || '-'}</span>
+                          </div>
+                        </div>
+
+                        <p className="text-sm text-slate-700 leading-relaxed">
+                          {entry.description}
+                        </p>
+
+                        <div className="flex items-center gap-2 mt-1">
+                          <Badge
+                            variant="secondary"
+                            className="h-5 text-[10px] bg-emerald-50 text-emerald-700"
+                          >
+                            {formatDuration(entry.durationMinutes)}
+                          </Badge>
+                          <Badge
+                            variant="outline"
+                            className={cn(
+                              'text-[10px] h-5 px-1.5 flex items-center gap-1',
+                              badgeConfig.className,
+                            )}
+                          >
+                            {badgeConfig.icon}
+                            {t(`enums.timeEntryStatus.${entry.status}`)}
+                          </Badge>
                         </div>
                       </div>
-
-                      <p className="text-sm text-slate-700 leading-relaxed">
-                        {entry.description}
-                      </p>
-
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge
-                          variant="secondary"
-                          className="h-5 text-[10px] bg-emerald-50 text-emerald-700"
-                        >
-                          {formatDuration(entry.durationMinutes)}
-                        </Badge>
-                        <Badge
-                          variant="outline"
-                          className="text-[10px] h-5 px-1.5 capitalize"
-                        >
-                          {t(`enums.timeEntryStatus.${entry.status}`)}
-                        </Badge>
-                      </div>
+                      {index < entries.length - 1 && (
+                        <Separator className="mt-6" />
+                      )}
                     </div>
-                    {index < entries.length - 1 && (
-                      <Separator className="mt-6" />
-                    )}
-                  </div>
-                ))}
+                  )
+                })}
             </div>
           )}
         </ScrollArea>

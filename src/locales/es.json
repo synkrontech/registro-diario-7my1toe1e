@@ -92,7 +92,12 @@
     "monthlyReport": "Reporte Mensual",
     "totalAccumulated": "Total Acumulado",
     "projectBreakdown": "Desglose por Proyecto",
-    "noEntries": "No hay registros para este periodo."
+    "noEntries": "No hay registros para este periodo.",
+    "pendingHours": "Horas Pendientes",
+    "approvedHours": "Horas Aprobadas",
+    "rejectedHours": "Horas Rechazadas",
+    "filterByStatus": "Filtrar por Estado",
+    "monthlyStats": "Estadísticas Mensuales"
   },
   "users": {
     "title": "Gestión de Usuarios",

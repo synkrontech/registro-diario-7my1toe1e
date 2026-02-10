@@ -6,7 +6,12 @@ import React, {
   useEffect,
   useCallback,
 } from 'react'
-import { TimeEntry, TimeEntryFormValues, Project } from '@/lib/types'
+import {
+  TimeEntry,
+  TimeEntryFormValues,
+  Project,
+  TimeEntryStatus,
+} from '@/lib/types'
 import { isSameDay, isSameMonth, isSameYear, parseISO, format } from 'date-fns'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/components/AuthProvider'
@@ -17,7 +22,9 @@ interface TimeState {
   projects: Project[]
   viewDate: Date
   isLoading: boolean
+  statusFilter: TimeEntryStatus | 'all'
   setViewDate: (date: Date) => void
+  setStatusFilter: (status: TimeEntryStatus | 'all') => void
   addEntry: (entry: TimeEntryFormValues) => Promise<void>
   updateEntry: (id: string, entry: TimeEntryFormValues) => Promise<void>
   getEntriesByDate: (date: Date) => TimeEntry[]
@@ -36,6 +43,9 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [viewDate, setViewDate] = useState<Date>(new Date())
   const [isLoading, setIsLoading] = useState(false)
+  const [statusFilter, setStatusFilter] = useState<TimeEntryStatus | 'all'>(
+    'all',
+  )
 
   const fetchProjects = useCallback(async () => {
     if (!user || !profile) return
@@ -162,6 +172,31 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [fetchEntries, user])
 
+  // Realtime subscription to time_entries updates
+  useEffect(() => {
+    if (!user) return
+
+    const channel = supabase
+      .channel('time_entries_db_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_entries',
+          filter: `user_id=eq.${user.id}`,
+        },
+        () => {
+          fetchEntries()
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [user, fetchEntries])
+
   const calculateDuration = (startTime: string, endTime: string) => {
     const [startH, startM] = startTime.split(':').map(Number)
     const [endH, endM] = endTime.split(':').map(Number)
@@ -251,7 +286,9 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         projects,
         viewDate,
         isLoading,
+        statusFilter,
         setViewDate,
+        setStatusFilter,
         addEntry,
         updateEntry,
         getEntriesByDate,

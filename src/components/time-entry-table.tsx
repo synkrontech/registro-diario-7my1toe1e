@@ -5,6 +5,9 @@ import {
   Briefcase,
   Eye,
   Pencil,
+  Hourglass,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
 
 import {
@@ -31,6 +34,7 @@ import useTimeStore from '@/stores/useTimeStore'
 import { TimeEntry } from '@/lib/types'
 import { useTranslation } from 'react-i18next'
 import { useDateLocale } from '@/components/LanguageSelector'
+import { cn } from '@/lib/utils'
 
 function formatDuration(minutes: number) {
   const h = Math.floor(minutes / 60)
@@ -43,13 +47,37 @@ interface TimeEntryTableProps {
   onEdit: (entry: TimeEntry) => void
 }
 
+const getStatusBadgeConfig = (status: string) => {
+  switch (status) {
+    case 'aprobado':
+      return {
+        className: 'text-green-800 bg-green-100 border-green-200',
+        icon: <CheckCircle2 className="mr-1 h-3 w-3" />,
+      }
+    case 'rechazado':
+      return {
+        className: 'text-red-800 bg-red-100 border-red-200',
+        icon: <XCircle className="mr-1 h-3 w-3" />,
+      }
+    case 'pendiente':
+    default:
+      return {
+        className: 'text-amber-800 bg-amber-100 border-amber-200',
+        icon: <Hourglass className="mr-1 h-3 w-3" />,
+      }
+  }
+}
+
 export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
   const { t } = useTranslation()
   const dateLocale = useDateLocale()
-  const { getEntriesByMonth, isLoading } = useTimeStore()
-  const entries = getEntriesByMonth(date).sort(
-    (a, b) => b.date.getTime() - a.date.getTime(),
-  )
+  const { getEntriesByMonth, isLoading, statusFilter } = useTimeStore()
+
+  const allEntries = getEntriesByMonth(date)
+
+  const entries = allEntries
+    .filter((entry) => statusFilter === 'all' || entry.status === statusFilter)
+    .sort((a, b) => b.date.getTime() - a.date.getTime())
 
   if (isLoading && entries.length === 0) {
     return (
@@ -112,241 +140,259 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {entries.map((entry) => (
-                <TableRow
-                  key={entry.id}
-                  className="hover:bg-slate-50/80 transition-colors duration-150"
-                >
-                  <TableCell className="font-medium whitespace-nowrap">
-                    {format(entry.date, 'P', { locale: dateLocale })}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className="font-normal bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100"
-                    >
-                      {entry.project_name}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-sm text-slate-600">
-                    {entry.client_name || '-'}
-                  </TableCell>
-                  <TableCell className="text-sm text-slate-600">
-                    {entry.system_name || '-'}
-                  </TableCell>
-                  <TableCell className="whitespace-nowrap text-slate-600 text-xs">
-                    {entry.startTime} - {entry.endTime}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="secondary"
-                      className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100"
-                    >
-                      {formatDuration(entry.durationMinutes)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <span
-                      className="block truncate max-w-[200px] text-slate-600 text-sm"
-                      title={entry.description}
-                    >
-                      {entry.description}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant="outline"
-                      className={
-                        entry.status === 'aprobado'
-                          ? 'text-green-600 bg-green-50 border-green-200'
-                          : entry.status === 'rechazado'
-                            ? 'text-red-600 bg-red-50 border-red-200'
-                            : 'text-amber-600 bg-amber-50 border-amber-200'
-                      }
-                    >
-                      {t(`enums.timeEntryStatus.${entry.status}`)}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1">
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
-                            title={t('common.viewDetails')}
-                          >
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-md">
-                          <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2">
-                              <div className="p-2 rounded-md bg-indigo-100">
-                                <Clock className="h-5 w-5 text-indigo-600" />
-                              </div>
-                              {t('common.viewDetails')}
-                            </DialogTitle>
-                            <DialogDescription>
-                              ID: {entry.id.slice(0, 8)}
-                            </DialogDescription>
-                          </DialogHeader>
-                          <div className="space-y-6 py-4">
-                            <div className="grid grid-cols-2 gap-6">
-                              <div className="space-y-1">
-                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                  {t('timeEntry.date')}
-                                </h4>
-                                <p className="font-medium text-slate-900">
-                                  {format(entry.date, 'PPPP', {
-                                    locale: dateLocale,
-                                  })}
-                                </p>
-                              </div>
-                              <div className="space-y-1">
-                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                  {t('timeEntry.project')}
-                                </h4>
-                                <p className="font-medium text-indigo-600">
-                                  {entry.project_name}
-                                </p>
-                              </div>
-                              <div className="space-y-1">
-                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                  {t('timeEntry.client')}
-                                </h4>
-                                <p className="font-medium text-slate-900">
-                                  {entry.client_name || '-'}
-                                </p>
-                              </div>
-                              <div className="space-y-1">
-                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                  {t('timeEntry.system')}
-                                </h4>
-                                <p className="font-medium text-slate-900">
-                                  {entry.system_name || '-'}
-                                </p>
-                              </div>
-                              <div className="space-y-1">
-                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                  Horario
-                                </h4>
-                                <div className="flex items-center gap-2">
-                                  <Badge variant="outline">
-                                    {entry.startTime}
-                                  </Badge>
-                                  <span className="text-slate-400">-</span>
-                                  <Badge variant="outline">
-                                    {entry.endTime}
+              {entries.map((entry) => {
+                const badgeConfig = getStatusBadgeConfig(entry.status)
+                return (
+                  <TableRow
+                    key={entry.id}
+                    className="hover:bg-slate-50/80 transition-colors duration-150"
+                  >
+                    <TableCell className="font-medium whitespace-nowrap">
+                      {format(entry.date, 'P', { locale: dateLocale })}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className="font-normal bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100"
+                      >
+                        {entry.project_name}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-600">
+                      {entry.client_name || '-'}
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-600">
+                      {entry.system_name || '-'}
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap text-slate-600 text-xs">
+                      {entry.startTime} - {entry.endTime}
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="secondary"
+                        className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border-emerald-100"
+                      >
+                        {formatDuration(entry.durationMinutes)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className="block truncate max-w-[200px] text-slate-600 text-sm"
+                        title={entry.description}
+                      >
+                        {entry.description}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'flex items-center w-fit',
+                          badgeConfig.className,
+                        )}
+                      >
+                        {badgeConfig.icon}
+                        {t(`enums.timeEntryStatus.${entry.status}`)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Dialog>
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50"
+                              title={t('common.viewDetails')}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                              <DialogTitle className="flex items-center gap-2">
+                                <div className="p-2 rounded-md bg-indigo-100">
+                                  <Clock className="h-5 w-5 text-indigo-600" />
+                                </div>
+                                {t('common.viewDetails')}
+                              </DialogTitle>
+                              <DialogDescription>
+                                ID: {entry.id.slice(0, 8)}
+                              </DialogDescription>
+                            </DialogHeader>
+                            <div className="space-y-6 py-4">
+                              <div className="grid grid-cols-2 gap-6">
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    {t('timeEntry.date')}
+                                  </h4>
+                                  <p className="font-medium text-slate-900">
+                                    {format(entry.date, 'PPPP', {
+                                      locale: dateLocale,
+                                    })}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    {t('timeEntry.project')}
+                                  </h4>
+                                  <p className="font-medium text-indigo-600">
+                                    {entry.project_name}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    {t('timeEntry.client')}
+                                  </h4>
+                                  <p className="font-medium text-slate-900">
+                                    {entry.client_name || '-'}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    {t('timeEntry.system')}
+                                  </h4>
+                                  <p className="font-medium text-slate-900">
+                                    {entry.system_name || '-'}
+                                  </p>
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    Horario
+                                  </h4>
+                                  <div className="flex items-center gap-2">
+                                    <Badge variant="outline">
+                                      {entry.startTime}
+                                    </Badge>
+                                    <span className="text-slate-400">-</span>
+                                    <Badge variant="outline">
+                                      {entry.endTime}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="space-y-1">
+                                  <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                                    {t('timeEntry.duration')}
+                                  </h4>
+                                  <Badge
+                                    variant="secondary"
+                                    className="bg-emerald-100 text-emerald-800 border-none"
+                                  >
+                                    {formatDuration(entry.durationMinutes)}
                                   </Badge>
                                 </div>
                               </div>
-                              <div className="space-y-1">
+                              <div className="space-y-2">
                                 <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                  {t('timeEntry.duration')}
+                                  {t('timeEntry.description')}
                                 </h4>
-                                <Badge
-                                  variant="secondary"
-                                  className="bg-emerald-100 text-emerald-800 border-none"
-                                >
-                                  {formatDuration(entry.durationMinutes)}
-                                </Badge>
+                                <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border border-slate-100 leading-relaxed">
+                                  {entry.description}
+                                </div>
                               </div>
                             </div>
-                            <div className="space-y-2">
-                              <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
-                                {t('timeEntry.description')}
-                              </h4>
-                              <div className="bg-slate-50 p-4 rounded-lg text-sm text-slate-700 border border-slate-100 leading-relaxed">
-                                {entry.description}
-                              </div>
-                            </div>
-                          </div>
-                          <DialogFooter className="sm:justify-between gap-2">
-                            <span className="text-xs text-muted-foreground self-center">
-                              {t(`enums.timeEntryStatus.${entry.status}`)}
-                            </span>
-                            <Button
-                              onClick={() => onEdit(entry)}
-                              className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
-                            >
-                              <Pencil className="mr-2 h-4 w-4" />{' '}
-                              {t('common.edit')}
-                            </Button>
-                          </DialogFooter>
-                        </DialogContent>
-                      </Dialog>
+                            <DialogFooter className="sm:justify-between gap-2">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  'flex items-center',
+                                  badgeConfig.className,
+                                )}
+                              >
+                                {badgeConfig.icon}
+                                {t(`enums.timeEntryStatus.${entry.status}`)}
+                              </Badge>
+                              <Button
+                                onClick={() => onEdit(entry)}
+                                className="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700"
+                              >
+                                <Pencil className="mr-2 h-4 w-4" />{' '}
+                                {t('common.edit')}
+                              </Button>
+                            </DialogFooter>
+                          </DialogContent>
+                        </Dialog>
 
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
-                        onClick={() => onEdit(entry)}
-                        title={t('common.edit')}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-slate-400 hover:text-blue-600 hover:bg-blue-50"
+                          onClick={() => onEdit(entry)}
+                          title={t('common.edit')}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                )
+              })}
             </TableBody>
           </Table>
         </div>
 
         {/* Mobile View */}
         <div className="md:hidden flex flex-col divide-y divide-slate-100">
-          {entries.map((entry) => (
-            <div
-              key={entry.id}
-              className="p-4 space-y-3 bg-white animate-fade-in"
-            >
-              <div className="flex justify-between items-start">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                      {entry.project_name}
-                    </span>
-                    <span className="text-[10px] text-slate-400 uppercase">
-                      {t(`enums.timeEntryStatus.${entry.status}`)}
+          {entries.map((entry) => {
+            const badgeConfig = getStatusBadgeConfig(entry.status)
+            return (
+              <div
+                key={entry.id}
+                className="p-4 space-y-3 bg-white animate-fade-in"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                        {entry.project_name}
+                      </span>
+                      <Badge
+                        variant="outline"
+                        className={cn(
+                          'text-[10px] px-1.5 py-0 flex items-center gap-1',
+                          badgeConfig.className,
+                        )}
+                      >
+                        {badgeConfig.icon}
+                        {t(`enums.timeEntryStatus.${entry.status}`)}
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-medium text-slate-900">
+                      {format(entry.date, 'EEEE, P', { locale: dateLocale })}
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => onEdit(entry)}
+                    >
+                      <Pencil className="h-4 w-4 text-slate-500" />
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 text-sm text-slate-600">
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded text-xs">
+                    <Clock className="h-3 w-3 text-slate-400" />
+                    <span>
+                      {entry.startTime} - {entry.endTime}
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-slate-900">
-                    {format(entry.date, 'EEEE, P', { locale: dateLocale })}
-                  </p>
+                  <div className="flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded text-xs text-emerald-700">
+                    <span className="font-semibold">
+                      {formatDuration(entry.durationMinutes)}
+                    </span>
+                  </div>
                 </div>
-                <div className="flex gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    onClick={() => onEdit(entry)}
-                  >
-                    <Pencil className="h-4 w-4 text-slate-500" />
-                  </Button>
-                </div>
-              </div>
 
-              <div className="flex items-center gap-4 text-sm text-slate-600">
-                <div className="flex items-center gap-1.5 bg-slate-50 px-2 py-1 rounded text-xs">
-                  <Clock className="h-3 w-3 text-slate-400" />
-                  <span>
-                    {entry.startTime} - {entry.endTime}
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 bg-emerald-50 px-2 py-1 rounded text-xs text-emerald-700">
-                  <span className="font-semibold">
-                    {formatDuration(entry.durationMinutes)}
-                  </span>
+                <div className="text-sm text-slate-600 line-clamp-2 pl-2 border-l-2 border-slate-200 italic">
+                  {entry.description}
                 </div>
               </div>
-
-              <div className="text-sm text-slate-600 line-clamp-2 pl-2 border-l-2 border-slate-200 italic">
-                {entry.description}
-              </div>
-            </div>
-          ))}
+            )
+          })}
         </div>
       </CardContent>
     </Card>
