@@ -1,6 +1,12 @@
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
-import { Clock, Calendar as CalendarIcon, Briefcase } from 'lucide-react'
+import {
+  Clock,
+  Calendar as CalendarIcon,
+  Briefcase,
+  Eye,
+  Pencil,
+} from 'lucide-react'
 
 import {
   Table,
@@ -12,12 +18,18 @@ import {
 } from '@/components/ui/table'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import useTimeStore from '@/stores/useTimeStore'
+import { TimeEntry } from '@/lib/types'
 
 function formatDuration(minutes: number) {
   const h = Math.floor(minutes / 60)
@@ -25,7 +37,12 @@ function formatDuration(minutes: number) {
   return `${h}h ${m.toString().padStart(2, '0')}m`
 }
 
-export function TimeEntryTable({ date }: { date: Date }) {
+interface TimeEntryTableProps {
+  date: Date
+  onEdit: (entry: TimeEntry) => void
+}
+
+export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
   const { getEntriesByDate } = useTimeStore()
   const entries = getEntriesByDate(date)
 
@@ -63,10 +80,10 @@ export function TimeEntryTable({ date }: { date: Date }) {
               <TableRow>
                 <TableHead>Fecha</TableHead>
                 <TableHead>Proyecto</TableHead>
-                <TableHead>Inicio</TableHead>
-                <TableHead>Fin</TableHead>
+                <TableHead>Horario</TableHead>
                 <TableHead>Total</TableHead>
                 <TableHead className="w-[30%]">Descripción</TableHead>
+                <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -79,8 +96,9 @@ export function TimeEntryTable({ date }: { date: Date }) {
                     {format(entry.date, 'dd/MM/yyyy')}
                   </TableCell>
                   <TableCell>{entry.project}</TableCell>
-                  <TableCell>{entry.startTime}</TableCell>
-                  <TableCell>{entry.endTime}</TableCell>
+                  <TableCell>
+                    {entry.startTime} - {entry.endTime}
+                  </TableCell>
                   <TableCell>
                     <Badge
                       variant="secondary"
@@ -90,16 +108,93 @@ export function TimeEntryTable({ date }: { date: Date }) {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <span className="block truncate max-w-[200px] cursor-default">
-                          {entry.description}
-                        </span>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs break-words">
-                        <p>{entry.description}</p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <span className="block truncate max-w-[200px]">
+                      {entry.description}
+                    </span>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-slate-500 hover:text-indigo-600"
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>Detalles del Registro</DialogTitle>
+                            <DialogDescription>
+                              Información completa de la actividad
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 py-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <div>
+                                <h4 className="text-sm font-medium text-slate-500">
+                                  Fecha
+                                </h4>
+                                <p className="font-medium">
+                                  {format(entry.date, 'P', { locale: es })}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium text-slate-500">
+                                  Proyecto
+                                </h4>
+                                <p className="font-medium text-indigo-600">
+                                  {entry.project}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium text-slate-500">
+                                  Horario
+                                </h4>
+                                <p className="font-medium">
+                                  {entry.startTime} - {entry.endTime}
+                                </p>
+                              </div>
+                              <div>
+                                <h4 className="text-sm font-medium text-slate-500">
+                                  Duración
+                                </h4>
+                                <Badge variant="secondary" className="mt-1">
+                                  {formatDuration(entry.durationMinutes)}
+                                </Badge>
+                              </div>
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-medium text-slate-500 mb-1">
+                                Descripción
+                              </h4>
+                              <div className="bg-slate-50 p-3 rounded-md text-sm text-slate-700 border">
+                                {entry.description}
+                              </div>
+                            </div>
+                          </div>
+                          <DialogFooter>
+                            <Button
+                              onClick={() => onEdit(entry)}
+                              className="w-full sm:w-auto"
+                            >
+                              <Pencil className="mr-2 h-4 w-4" /> Editar
+                            </Button>
+                          </DialogFooter>
+                        </DialogContent>
+                      </Dialog>
+
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-slate-500 hover:text-blue-600"
+                        onClick={() => onEdit(entry)}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -122,12 +217,70 @@ export function TimeEntryTable({ date }: { date: Date }) {
                     {format(entry.date, 'dd/MM/yyyy')}
                   </p>
                 </div>
-                <Badge
-                  variant="secondary"
-                  className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100"
-                >
-                  {formatDuration(entry.durationMinutes)}
-                </Badge>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => onEdit(entry)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="w-[90%] rounded-lg">
+                      <DialogHeader>
+                        <DialogTitle>Detalle de Actividad</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                          <span className="text-xs text-slate-500">
+                            Proyecto
+                          </span>
+                          <p className="font-semibold text-indigo-700">
+                            {entry.project}
+                          </p>
+                        </div>
+                        <div className="flex justify-between">
+                          <div className="space-y-1">
+                            <span className="text-xs text-slate-500">
+                              Horario
+                            </span>
+                            <p className="text-sm font-medium">
+                              {entry.startTime} - {entry.endTime}
+                            </p>
+                          </div>
+                          <div className="space-y-1 text-right">
+                            <span className="text-xs text-slate-500">
+                              Total
+                            </span>
+                            <p className="text-sm font-bold text-emerald-600">
+                              {formatDuration(entry.durationMinutes)}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="space-y-1">
+                          <span className="text-xs text-slate-500">
+                            Descripción
+                          </span>
+                          <p className="text-sm bg-slate-50 p-2 rounded border">
+                            {entry.description}
+                          </p>
+                        </div>
+                        <Button
+                          onClick={() => onEdit(entry)}
+                          className="w-full"
+                        >
+                          <Pencil className="mr-2 h-4 w-4" /> Editar Registro
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </div>
 
               <div className="flex items-center gap-4 text-sm text-slate-600">
@@ -137,9 +290,15 @@ export function TimeEntryTable({ date }: { date: Date }) {
                     {entry.startTime} - {entry.endTime}
                   </span>
                 </div>
+                <Badge
+                  variant="secondary"
+                  className="bg-emerald-50 text-emerald-700 border-none"
+                >
+                  {formatDuration(entry.durationMinutes)}
+                </Badge>
               </div>
 
-              <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md">
+              <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md line-clamp-2">
                 {entry.description}
               </div>
             </div>

@@ -18912,6 +18912,20 @@ var Calendar = createLucideIcon("calendar", [
 		key: "8toen8"
 	}]
 ]);
+var ChartNoAxesColumnIncreasing = createLucideIcon("chart-no-axes-column-increasing", [
+	["path", {
+		d: "M5 21v-6",
+		key: "1hz6c0"
+	}],
+	["path", {
+		d: "M12 21V9",
+		key: "uvy0l4"
+	}],
+	["path", {
+		d: "M19 21V3",
+		key: "11j9sm"
+	}]
+]);
 var ChartPie = createLucideIcon("chart-pie", [["path", {
 	d: "M21 12c.552 0 1.005-.449.95-.998a10 10 0 0 0-8.953-8.951c-.55-.055-.998.398-.998.95v8a1 1 0 0 0 1 1z",
 	key: "pzmjnu"
@@ -18948,6 +18962,15 @@ var Clock = createLucideIcon("clock", [["path", {
 	r: "10",
 	key: "1mglay"
 }]]);
+var Eye = createLucideIcon("eye", [["path", {
+	d: "M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0",
+	key: "1nclc0"
+}], ["circle", {
+	cx: "12",
+	cy: "12",
+	r: "3",
+	key: "1v7zrd"
+}]]);
 var PanelLeft = createLucideIcon("panel-left", [["rect", {
 	width: "18",
 	height: "18",
@@ -18959,6 +18982,13 @@ var PanelLeft = createLucideIcon("panel-left", [["rect", {
 	d: "M9 3v18",
 	key: "fh3hqa"
 }]]);
+var Pencil = createLucideIcon("pencil", [["path", {
+	d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+	key: "1a8usu"
+}], ["path", {
+	d: "m15 5 4 4",
+	key: "1mk7zo"
+}]]);
 var Plus = createLucideIcon("plus", [["path", {
 	d: "M5 12h14",
 	key: "1ays0h"
@@ -18966,6 +18996,20 @@ var Plus = createLucideIcon("plus", [["path", {
 	d: "M12 5v14",
 	key: "s699le"
 }]]);
+var Save = createLucideIcon("save", [
+	["path", {
+		d: "M15.2 3a2 2 0 0 1 1.4.6l3.8 3.8a2 2 0 0 1 .6 1.4V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z",
+		key: "1c8476"
+	}],
+	["path", {
+		d: "M17 21v-7a1 1 0 0 0-1-1H8a1 1 0 0 0-1 1v7",
+		key: "1ydtos"
+	}],
+	["path", {
+		d: "M7 3v4a1 1 0 0 0 1 1h7",
+		key: "t51u73"
+	}]
+]);
 var Settings = createLucideIcon("settings", [["path", {
 	d: "M9.671 4.136a2.34 2.34 0 0 1 4.659 0 2.34 2.34 0 0 0 3.319 1.915 2.34 2.34 0 0 1 2.33 4.033 2.34 2.34 0 0 0 0 3.831 2.34 2.34 0 0 1-2.33 4.033 2.34 2.34 0 0 0-3.319 1.915 2.34 2.34 0 0 1-4.659 0 2.34 2.34 0 0 0-3.32-1.915 2.34 2.34 0 0 1-2.33-4.033 2.34 2.34 0 0 0 0-3.831A2.34 2.34 0 0 1 6.35 6.051a2.34 2.34 0 0 0 3.319-1.915",
 	key: "1i5ecw"
@@ -35548,10 +35592,13 @@ const timeEntrySchema = object({
 var TimeStoreContext = (0, import_react.createContext)(void 0);
 const TimeStoreProvider = ({ children }) => {
 	const [entries, setEntries] = (0, import_react.useState)([]);
+	const calculateDuration = (startTime, endTime) => {
+		const [startH, startM] = startTime.split(":").map(Number);
+		const [endH, endM] = endTime.split(":").map(Number);
+		return endH * 60 + endM - (startH * 60 + startM);
+	};
 	const addEntry = (data) => {
-		const [startH, startM] = data.startTime.split(":").map(Number);
-		const [endH, endM] = data.endTime.split(":").map(Number);
-		const durationMinutes = endH * 60 + endM - (startH * 60 + startM);
+		const durationMinutes = calculateDuration(data.startTime, data.endTime);
 		const newEntry = {
 			id: crypto.randomUUID(),
 			...data,
@@ -35559,8 +35606,19 @@ const TimeStoreProvider = ({ children }) => {
 		};
 		setEntries((prev) => [...prev, newEntry]);
 	};
+	const updateEntry = (id, data) => {
+		const durationMinutes = calculateDuration(data.startTime, data.endTime);
+		setEntries((prev) => prev.map((entry) => entry.id === id ? {
+			...entry,
+			...data,
+			durationMinutes
+		} : entry));
+	};
 	const getEntriesByDate = (date$3) => {
 		return entries.filter((entry) => isSameDay(entry.date, date$3));
+	};
+	const getEntriesByMonth = (date$3) => {
+		return entries.filter((entry) => isSameMonth(entry.date, date$3) && isSameYear(entry.date, date$3));
 	};
 	const getTotalHoursToday = () => {
 		const today = /* @__PURE__ */ new Date();
@@ -35570,7 +35628,9 @@ const TimeStoreProvider = ({ children }) => {
 	return import_react.createElement(TimeStoreContext.Provider, { value: {
 		entries,
 		addEntry,
+		updateEntry,
 		getEntriesByDate,
+		getEntriesByMonth,
 		getTotalHoursToday
 	} }, children);
 };
@@ -35580,8 +35640,8 @@ var useTimeStore = () => {
 	return context;
 };
 var useTimeStore_default = useTimeStore;
-function TimeEntryForm({ onDateChange }) {
-	const { addEntry } = useTimeStore_default();
+function TimeEntryForm({ onDateChange, entryToEdit, onCancelEdit }) {
+	const { addEntry, updateEntry } = useTimeStore_default();
 	const { toast: toast$2 } = useToast();
 	const form = useForm({
 		resolver: a(timeEntrySchema),
@@ -35593,16 +35653,37 @@ function TimeEntryForm({ onDateChange }) {
 			project: ""
 		}
 	});
+	(0, import_react.useEffect)(() => {
+		if (entryToEdit) form.reset({
+			date: entryToEdit.date,
+			project: entryToEdit.project,
+			startTime: entryToEdit.startTime,
+			endTime: entryToEdit.endTime,
+			description: entryToEdit.description
+		});
+	}, [entryToEdit, form]);
 	const watchedDate = form.watch("date");
-	if (watchedDate) setTimeout(() => onDateChange(watchedDate), 0);
+	(0, import_react.useEffect)(() => {
+		if (watchedDate) onDateChange(watchedDate);
+	}, [watchedDate, onDateChange]);
 	function onSubmit(data) {
 		try {
-			addEntry(data);
-			toast$2({
-				title: "Registro guardado exitosamente",
-				description: "Tu actividad ha sido registrada.",
-				className: "bg-emerald-50 border-emerald-200 text-emerald-800"
-			});
+			if (entryToEdit) {
+				updateEntry(entryToEdit.id, data);
+				toast$2({
+					title: "Registro actualizado",
+					description: "La actividad ha sido modificada correctamente.",
+					className: "bg-blue-50 border-blue-200 text-blue-800"
+				});
+				onCancelEdit();
+			} else {
+				addEntry(data);
+				toast$2({
+					title: "Registro guardado",
+					description: "Tu actividad ha sido registrada.",
+					className: "bg-emerald-50 border-emerald-200 text-emerald-800"
+				});
+			}
 			form.reset({
 				date: data.date,
 				project: data.project,
@@ -35619,11 +35700,27 @@ function TimeEntryForm({ onDateChange }) {
 			});
 		}
 	}
+	function handleCancel() {
+		onCancelEdit();
+		form.reset({
+			date: /* @__PURE__ */ new Date(),
+			startTime: "",
+			endTime: "",
+			description: "",
+			project: ""
+		});
+	}
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 		className: "border-none shadow-md",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
-			className: "text-xl font-semibold text-slate-800",
-			children: "Registro de Actividad"
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+			className: "text-xl font-semibold text-slate-800 flex justify-between items-center",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", { children: entryToEdit ? "Editar Actividad" : "Registro de Actividad" }), entryToEdit && /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+				variant: "ghost",
+				size: "sm",
+				onClick: handleCancel,
+				className: "text-slate-500",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "mr-1 h-4 w-4" }), " Cancelar"]
+			})]
 		}) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Form, {
 			...form,
 			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("form", {
@@ -35719,8 +35816,8 @@ function TimeEntryForm({ onDateChange }) {
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 						type: "submit",
-						className: "w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 transition-colors duration-150",
-						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "mr-2 h-4 w-4" }), "Guardar Registro"]
+						className: cn("w-full md:w-auto transition-colors duration-150", entryToEdit ? "bg-blue-600 hover:bg-blue-700" : "bg-indigo-600 hover:bg-indigo-700"),
+						children: [entryToEdit ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Save, { className: "mr-2 h-4 w-4" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, { className: "mr-2 h-4 w-4" }), entryToEdit ? "Actualizar Registro" : "Guardar Registro"]
 					})
 				]
 			})
@@ -35793,230 +35890,10 @@ function Badge({ className, variant, ...props }) {
 		...props
 	});
 }
-function formatDuration(minutes) {
-	return `${Math.floor(minutes / 60)}h ${(minutes % 60).toString().padStart(2, "0")}m`;
-}
-function TimeEntryTable({ date: date$3 }) {
-	const { getEntriesByDate } = useTimeStore_default();
-	const entries = getEntriesByDate(date$3);
-	if (entries.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-		className: "border-none shadow-sm bg-white/50",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-			className: "flex flex-col items-center justify-center py-12 text-center text-muted-foreground",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					className: "bg-slate-100 p-4 rounded-full mb-4",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "h-8 w-8 text-slate-400" })
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-					className: "text-lg font-medium text-slate-900 mb-1",
-					children: "No hay registros para este día"
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					className: "max-w-xs mx-auto text-sm",
-					children: "Tus registros de tiempo aparecerán aquí una vez que comiences a trabajar."
-				})
-			]
-		})
-	});
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-		className: "border-none shadow-md overflow-hidden",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
-			className: "pb-2",
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
-				className: "text-lg font-semibold text-slate-800 flex items-center gap-2",
-				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Briefcase, { className: "h-5 w-5 text-indigo-500" }), "Registros del Día"]
-			})
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-			className: "p-0",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "hidden md:block",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-					className: "bg-slate-50",
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Fecha" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Proyecto" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Inicio" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Fin" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Total" }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-							className: "w-[30%]",
-							children: "Descripción"
-						})
-					] })
-				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, { children: entries.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-					className: "hover:bg-slate-50/80 transition-colors duration-150",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-							className: "font-medium",
-							children: format(entry.date, "dd/MM/yyyy")
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: entry.project }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: entry.startTime }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: entry.endTime }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-							variant: "secondary",
-							className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200",
-							children: formatDuration(entry.durationMinutes)
-						}) }),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tooltip, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipTrigger, {
-							asChild: true,
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								className: "block truncate max-w-[200px] cursor-default",
-								children: entry.description
-							})
-						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TooltipContent, {
-							className: "max-w-xs break-words",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", { children: entry.description })
-						})] }) })
-					]
-				}, entry.id)) })] })
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				className: "md:hidden flex flex-col divide-y divide-slate-100",
-				children: entries.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					className: "p-4 space-y-3 bg-white animate-fade-in",
-					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							className: "flex justify-between items-start",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "space-y-1",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									className: "text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full",
-									children: entry.project
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									className: "text-sm font-medium text-slate-500",
-									children: format(entry.date, "dd/MM/yyyy")
-								})]
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
-								variant: "secondary",
-								className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100",
-								children: formatDuration(entry.durationMinutes)
-							})]
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "flex items-center gap-4 text-sm text-slate-600",
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								className: "flex items-center gap-1",
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-3.5 w-3.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
-									entry.startTime,
-									" - ",
-									entry.endTime
-								] })]
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-							className: "text-sm text-slate-600 bg-slate-50 p-3 rounded-md",
-							children: entry.description
-						})
-					]
-				}, entry.id))
-			})]
-		})]
-	});
-}
-var Index = () => {
-	const [selectedDate, setSelectedDate] = (0, import_react.useState)(/* @__PURE__ */ new Date());
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-		className: "container max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in",
-		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "flex flex-col gap-2",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-				className: "text-3xl font-bold tracking-tight text-slate-900",
-				children: "Bienvenido de nuevo"
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-				className: "text-muted-foreground",
-				children: "Registra tus actividades diarias y mantén un control preciso de tu tiempo."
-			})]
-		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "space-y-8",
-			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
-				"aria-label": "Formulario de registro",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryForm, { onDateChange: setSelectedDate })
-			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
-				"aria-label": "Tabla de registros",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryTable, { date: selectedDate })
-			})]
-		})]
-	});
-};
-var Index_default = Index;
-var NotFound = () => {
-	const location = useLocation();
-	(0, import_react.useEffect)(() => {
-		console.error("404 Error: User attempted to access non-existent route:", location.pathname);
-	}, [location.pathname]);
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-		className: "min-h-screen flex items-center justify-center bg-gray-100",
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-			className: "text-center",
-			children: [
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
-					className: "text-4xl font-bold mb-4",
-					children: "404"
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					className: "text-xl text-gray-600 mb-4",
-					children: "Oops! Page not found"
-				}),
-				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
-					href: "/",
-					className: "text-blue-500 hover:text-blue-700 underline",
-					children: "Return to Home"
-				})
-			]
-		})
-	});
-};
-var NotFound_default = NotFound;
-var MOBILE_BREAKPOINT = 768;
-function useIsMobile() {
-	const [isMobile, setIsMobile] = import_react.useState(void 0);
-	import_react.useEffect(() => {
-		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
-		const onChange = () => {
-			setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-		};
-		mql.addEventListener("change", onChange);
-		setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
-		return () => mql.removeEventListener("change", onChange);
-	}, []);
-	return !!isMobile;
-}
-var NAME = "Separator";
-var DEFAULT_ORIENTATION = "horizontal";
-var ORIENTATIONS = ["horizontal", "vertical"];
-var Separator$1 = import_react.forwardRef((props, forwardedRef) => {
-	const { decorative, orientation: orientationProp = DEFAULT_ORIENTATION, ...domProps } = props;
-	const orientation = isValidOrientation(orientationProp) ? orientationProp : DEFAULT_ORIENTATION;
-	const ariaOrientation = orientation === "vertical" ? orientation : void 0;
-	const semanticProps = decorative ? { role: "none" } : {
-		"aria-orientation": ariaOrientation,
-		role: "separator"
-	};
-	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
-		"data-orientation": orientation,
-		...semanticProps,
-		...domProps,
-		ref: forwardedRef
-	});
-});
-Separator$1.displayName = NAME;
-function isValidOrientation(orientation) {
-	return ORIENTATIONS.includes(orientation);
-}
-var Root$2 = Separator$1;
-var Separator = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
-	ref,
-	decorative,
-	orientation,
-	className: cn("shrink-0 bg-border", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
-	...props
-}));
-Separator.displayName = Root$2.displayName;
 var DIALOG_NAME = "Dialog";
 var [createDialogContext, createDialogScope] = createContextScope$1(DIALOG_NAME);
 var [DialogProvider, useDialogContext] = createDialogContext(DIALOG_NAME);
-var Dialog = (props) => {
+var Dialog$1 = (props) => {
 	const { __scopeDialog, children, open: openProp, defaultOpen, onOpenChange, modal = true } = props;
 	const triggerRef = import_react.useRef(null);
 	const contentRef = import_react.useRef(null);
@@ -36040,9 +35917,9 @@ var Dialog = (props) => {
 		children
 	});
 };
-Dialog.displayName = DIALOG_NAME;
+Dialog$1.displayName = DIALOG_NAME;
 var TRIGGER_NAME = "DialogTrigger";
-var DialogTrigger = import_react.forwardRef((props, forwardedRef) => {
+var DialogTrigger$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...triggerProps } = props;
 	const context = useDialogContext(TRIGGER_NAME, __scopeDialog);
 	const composedTriggerRef = useComposedRefs(forwardedRef, context.triggerRef);
@@ -36057,10 +35934,10 @@ var DialogTrigger = import_react.forwardRef((props, forwardedRef) => {
 		onClick: composeEventHandlers(props.onClick, context.onOpenToggle)
 	});
 });
-DialogTrigger.displayName = TRIGGER_NAME;
+DialogTrigger$1.displayName = TRIGGER_NAME;
 var PORTAL_NAME = "DialogPortal";
 var [PortalProvider, usePortalContext] = createDialogContext(PORTAL_NAME, { forceMount: void 0 });
-var DialogPortal = (props) => {
+var DialogPortal$1 = (props) => {
 	const { __scopeDialog, forceMount, children, container } = props;
 	const context = useDialogContext(PORTAL_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PortalProvider, {
@@ -36076,9 +35953,9 @@ var DialogPortal = (props) => {
 		}))
 	});
 };
-DialogPortal.displayName = PORTAL_NAME;
+DialogPortal$1.displayName = PORTAL_NAME;
 var OVERLAY_NAME = "DialogOverlay";
-var DialogOverlay = import_react.forwardRef((props, forwardedRef) => {
+var DialogOverlay$1 = import_react.forwardRef((props, forwardedRef) => {
 	const portalContext = usePortalContext(OVERLAY_NAME, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...overlayProps } = props;
 	const context = useDialogContext(OVERLAY_NAME, props.__scopeDialog);
@@ -36090,7 +35967,7 @@ var DialogOverlay = import_react.forwardRef((props, forwardedRef) => {
 		})
 	}) : null;
 });
-DialogOverlay.displayName = OVERLAY_NAME;
+DialogOverlay$1.displayName = OVERLAY_NAME;
 var Slot$1 = /* @__PURE__ */ createSlot("DialogOverlay.RemoveScroll");
 var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...overlayProps } = props;
@@ -36111,7 +35988,7 @@ var DialogOverlayImpl = import_react.forwardRef((props, forwardedRef) => {
 	});
 });
 var CONTENT_NAME = "DialogContent";
-var DialogContent = import_react.forwardRef((props, forwardedRef) => {
+var DialogContent$1 = import_react.forwardRef((props, forwardedRef) => {
 	const portalContext = usePortalContext(CONTENT_NAME, props.__scopeDialog);
 	const { forceMount = portalContext.forceMount, ...contentProps } = props;
 	const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
@@ -36126,7 +36003,7 @@ var DialogContent = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-DialogContent.displayName = CONTENT_NAME;
+DialogContent$1.displayName = CONTENT_NAME;
 var DialogContentModal = import_react.forwardRef((props, forwardedRef) => {
 	const context = useDialogContext(CONTENT_NAME, props.__scopeDialog);
 	const contentRef = import_react.useRef(null);
@@ -36210,7 +36087,7 @@ var DialogContentImpl = import_react.forwardRef((props, forwardedRef) => {
 	})] })] });
 });
 var TITLE_NAME = "DialogTitle";
-var DialogTitle = import_react.forwardRef((props, forwardedRef) => {
+var DialogTitle$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...titleProps } = props;
 	const context = useDialogContext(TITLE_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.h2, {
@@ -36219,9 +36096,9 @@ var DialogTitle = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	});
 });
-DialogTitle.displayName = TITLE_NAME;
+DialogTitle$1.displayName = TITLE_NAME;
 var DESCRIPTION_NAME = "DialogDescription";
-var DialogDescription = import_react.forwardRef((props, forwardedRef) => {
+var DialogDescription$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...descriptionProps } = props;
 	const context = useDialogContext(DESCRIPTION_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.p, {
@@ -36230,9 +36107,9 @@ var DialogDescription = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	});
 });
-DialogDescription.displayName = DESCRIPTION_NAME;
+DialogDescription$1.displayName = DESCRIPTION_NAME;
 var CLOSE_NAME = "DialogClose";
-var DialogClose = import_react.forwardRef((props, forwardedRef) => {
+var DialogClose$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { __scopeDialog, ...closeProps } = props;
 	const context = useDialogContext(CLOSE_NAME, __scopeDialog);
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
@@ -36242,7 +36119,7 @@ var DialogClose = import_react.forwardRef((props, forwardedRef) => {
 		onClick: composeEventHandlers(props.onClick, () => context.onOpenChange(false))
 	});
 });
-DialogClose.displayName = CLOSE_NAME;
+DialogClose$1.displayName = CLOSE_NAME;
 function getState(open) {
 	return open ? "open" : "closed";
 }
@@ -36281,14 +36158,536 @@ var DescriptionWarning = ({ contentRef, descriptionId }) => {
 	]);
 	return null;
 };
-var Root$1 = Dialog;
-var Portal$1 = DialogPortal;
-var Overlay = DialogOverlay;
-var Content = DialogContent;
-var Title = DialogTitle;
-var Description = DialogDescription;
-var Close = DialogClose;
-var Sheet = Root$1;
+var Root$2 = Dialog$1;
+var Trigger = DialogTrigger$1;
+var Portal$1 = DialogPortal$1;
+var Overlay = DialogOverlay$1;
+var Content = DialogContent$1;
+var Title = DialogTitle$1;
+var Description = DialogDescription$1;
+var Close = DialogClose$1;
+var Dialog = Root$2;
+var DialogTrigger = Trigger;
+var DialogPortal = Portal$1;
+var DialogOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
+	ref,
+	className: cn("fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
+	...props
+}));
+DialogOverlay.displayName = Overlay.displayName;
+var DialogContent = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogPortal, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogOverlay, {}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Content, {
+	ref,
+	className: cn("fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg overflow-y-auto max-h-screen", className),
+	...props,
+	children: [children, /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Close, {
+		className: "absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, { className: "h-4 w-4" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+			className: "sr-only",
+			children: "Close"
+		})]
+	})]
+})] }));
+DialogContent.displayName = Content.displayName;
+var DialogHeader = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col space-y-1.5 text-center sm:text-left", className),
+	...props
+});
+DialogHeader.displayName = "DialogHeader";
+var DialogFooter = ({ className, ...props }) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	className: cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className),
+	...props
+});
+DialogFooter.displayName = "DialogFooter";
+var DialogTitle = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Title, {
+	ref,
+	className: cn("text-lg font-semibold leading-none tracking-tight", className),
+	...props
+}));
+DialogTitle.displayName = Title.displayName;
+var DialogDescription = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Description, {
+	ref,
+	className: cn("text-sm text-muted-foreground", className),
+	...props
+}));
+DialogDescription.displayName = Description.displayName;
+function formatDuration(minutes) {
+	return `${Math.floor(minutes / 60)}h ${(minutes % 60).toString().padStart(2, "0")}m`;
+}
+function TimeEntryTable({ date: date$3, onEdit }) {
+	const { getEntriesByDate } = useTimeStore_default();
+	const entries = getEntriesByDate(date$3);
+	if (entries.length === 0) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+		className: "border-none shadow-sm bg-white/50",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+			className: "flex flex-col items-center justify-center py-12 text-center text-muted-foreground",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "bg-slate-100 p-4 rounded-full mb-4",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, { className: "h-8 w-8 text-slate-400" })
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+					className: "text-lg font-medium text-slate-900 mb-1",
+					children: "No hay registros para este día"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "max-w-xs mx-auto text-sm",
+					children: "Tus registros de tiempo aparecerán aquí una vez que comiences a trabajar."
+				})
+			]
+		})
+	});
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		className: "border-none shadow-md overflow-hidden",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
+			className: "pb-2",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+				className: "text-lg font-semibold text-slate-800 flex items-center gap-2",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Briefcase, { className: "h-5 w-5 text-indigo-500" }), "Registros del Día"]
+			})
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+			className: "p-0",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "hidden md:block",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+					className: "bg-slate-50",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, { children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Fecha" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Proyecto" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Horario" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, { children: "Total" }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "w-[30%]",
+							children: "Descripción"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+							className: "text-right",
+							children: "Acciones"
+						})
+					] })
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, { children: entries.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+					className: "hover:bg-slate-50/80 transition-colors duration-150",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "font-medium",
+							children: format(entry.date, "dd/MM/yyyy")
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: entry.project }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableCell, { children: [
+							entry.startTime,
+							" - ",
+							entry.endTime
+						] }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+							variant: "secondary",
+							className: "bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200",
+							children: formatDuration(entry.durationMinutes)
+						}) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "block truncate max-w-[200px]",
+							children: entry.description
+						}) }),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+							className: "text-right",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex justify-end gap-2",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
+									asChild: true,
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+										variant: "ghost",
+										size: "icon",
+										className: "h-8 w-8 text-slate-500 hover:text-indigo-600",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-4 w-4" })
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, { children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogHeader, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Detalles del Registro" }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogDescription, { children: "Información completa de la actividad" })] }),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "space-y-4 py-4",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											className: "grid grid-cols-2 gap-4",
+											children: [
+												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+													className: "text-sm font-medium text-slate-500",
+													children: "Fecha"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+													className: "font-medium",
+													children: format(entry.date, "P", { locale: es })
+												})] }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+													className: "text-sm font-medium text-slate-500",
+													children: "Proyecto"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+													className: "font-medium text-indigo-600",
+													children: entry.project
+												})] }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+													className: "text-sm font-medium text-slate-500",
+													children: "Horario"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+													className: "font-medium",
+													children: [
+														entry.startTime,
+														" - ",
+														entry.endTime
+													]
+												})] }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+													className: "text-sm font-medium text-slate-500",
+													children: "Duración"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+													variant: "secondary",
+													className: "mt-1",
+													children: formatDuration(entry.durationMinutes)
+												})] })
+											]
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+											className: "text-sm font-medium text-slate-500 mb-1",
+											children: "Descripción"
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+											className: "bg-slate-50 p-3 rounded-md text-sm text-slate-700 border",
+											children: entry.description
+										})] })]
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogFooter, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+										onClick: () => onEdit(entry),
+										className: "w-full sm:w-auto",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "mr-2 h-4 w-4" }), " Editar"]
+									}) })
+								] })] }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+									variant: "ghost",
+									size: "icon",
+									className: "h-8 w-8 text-slate-500 hover:text-blue-600",
+									onClick: () => onEdit(entry),
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "h-4 w-4" })
+								})]
+							})
+						})
+					]
+				}, entry.id)) })] })
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				className: "md:hidden flex flex-col divide-y divide-slate-100",
+				children: entries.map((entry) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					className: "p-4 space-y-3 bg-white animate-fade-in",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex justify-between items-start",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "space-y-1",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+									className: "text-xs font-semibold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-full",
+									children: entry.project
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									className: "text-sm font-medium text-slate-500",
+									children: format(entry.date, "dd/MM/yyyy")
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex gap-1",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+									variant: "ghost",
+									size: "icon",
+									className: "h-8 w-8",
+									onClick: () => onEdit(entry),
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "h-3.5 w-3.5" })
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Dialog, { children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTrigger, {
+									asChild: true,
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+										variant: "ghost",
+										size: "icon",
+										className: "h-8 w-8",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Eye, { className: "h-3.5 w-3.5" })
+									})
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(DialogContent, {
+									className: "w-[90%] rounded-lg",
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogHeader, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DialogTitle, { children: "Detalle de Actividad" }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										className: "space-y-4",
+										children: [
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "space-y-1",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+													className: "text-xs text-slate-500",
+													children: "Proyecto"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+													className: "font-semibold text-indigo-700",
+													children: entry.project
+												})]
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "flex justify-between",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+													className: "space-y-1",
+													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+														className: "text-xs text-slate-500",
+														children: "Horario"
+													}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
+														className: "text-sm font-medium",
+														children: [
+															entry.startTime,
+															" - ",
+															entry.endTime
+														]
+													})]
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+													className: "space-y-1 text-right",
+													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+														className: "text-xs text-slate-500",
+														children: "Total"
+													}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+														className: "text-sm font-bold text-emerald-600",
+														children: formatDuration(entry.durationMinutes)
+													})]
+												})]
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+												className: "space-y-1",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+													className: "text-xs text-slate-500",
+													children: "Descripción"
+												}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+													className: "text-sm bg-slate-50 p-2 rounded border",
+													children: entry.description
+												})]
+											}),
+											/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+												onClick: () => onEdit(entry),
+												className: "w-full",
+												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, { className: "mr-2 h-4 w-4" }), " Editar Registro"]
+											})
+										]
+									})]
+								})] })]
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center gap-4 text-sm text-slate-600",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								className: "flex items-center gap-1",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-3.5 w-3.5" }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", { children: [
+									entry.startTime,
+									" - ",
+									entry.endTime
+								] })]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Badge, {
+								variant: "secondary",
+								className: "bg-emerald-50 text-emerald-700 border-none",
+								children: formatDuration(entry.durationMinutes)
+							})]
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							className: "text-sm text-slate-600 bg-slate-50 p-3 rounded-md line-clamp-2",
+							children: entry.description
+						})
+					]
+				}, entry.id))
+			})]
+		})]
+	});
+}
+function MonthlyReport({ date: date$3 }) {
+	const { getEntriesByMonth } = useTimeStore_default();
+	const entries = getEntriesByMonth(date$3);
+	const totalMinutes = entries.reduce((acc, curr) => acc + curr.durationMinutes, 0);
+	const totalHours = Math.floor(totalMinutes / 60);
+	const remainingMinutes = totalMinutes % 60;
+	const projectStats = PROJECTS.map((project) => {
+		const minutes = entries.filter((e) => e.project === project).reduce((acc, curr) => acc + curr.durationMinutes, 0);
+		return {
+			name: project,
+			minutes,
+			hours: (minutes / 60).toFixed(1)
+		};
+	}).filter((stat) => stat.minutes > 0).sort((a$1, b$1) => b$1.minutes - a$1.minutes);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+		className: "border-none shadow-md bg-white",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardHeader, {
+			className: "pb-2",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "flex items-center justify-between",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardTitle, {
+					className: "text-xl font-semibold text-slate-800 flex items-center gap-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ChartNoAxesColumnIncreasing, { className: "h-5 w-5 text-indigo-500" }), "Reporte Mensual"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+					className: "text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1 rounded-full capitalize",
+					children: format(date$3, "MMMM yyyy", { locale: es })
+				})]
+			})
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "grid grid-cols-1 md:grid-cols-3 gap-6",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "bg-indigo-50 rounded-lg p-6 flex flex-col items-center justify-center text-center",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Clock, { className: "h-8 w-8 text-indigo-600 mb-2" }),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+						className: "text-sm text-indigo-600 font-medium",
+						children: "Total Horas"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+						className: "text-3xl font-bold text-indigo-900",
+						children: [
+							totalHours,
+							"h ",
+							remainingMinutes,
+							"m"
+						]
+					})
+				]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				className: "md:col-span-2 space-y-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h4", {
+					className: "text-sm font-medium text-slate-500 uppercase tracking-wider",
+					children: "Desglose por Proyecto"
+				}), projectStats.length === 0 ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-sm text-muted-foreground italic",
+					children: "No hay registros este mes."
+				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					className: "space-y-3",
+					children: projectStats.map((stat) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						className: "flex items-center justify-between p-3 bg-slate-50 rounded-md border border-slate-100",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "font-medium text-slate-700",
+							children: stat.name
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							className: "flex items-center gap-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("span", {
+								className: "text-sm font-bold text-slate-900",
+								children: [stat.hours, "h"]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								className: "w-24 h-2 bg-slate-200 rounded-full overflow-hidden",
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+									className: "h-full bg-indigo-500 rounded-full",
+									style: { width: `${Math.min(stat.minutes / totalMinutes * 100, 100)}%` }
+								})
+							})]
+						})]
+					}, stat.name))
+				})]
+			})]
+		}) })]
+	});
+}
+var Index = () => {
+	const [selectedDate, setSelectedDate] = (0, import_react.useState)(/* @__PURE__ */ new Date());
+	const [editingEntry, setEditingEntry] = (0, import_react.useState)(null);
+	const handleEdit = (entry) => {
+		setEditingEntry(entry);
+		setSelectedDate(entry.date);
+		const formElement = document.getElementById("entry-form");
+		if (formElement) formElement.scrollIntoView({ behavior: "smooth" });
+	};
+	const handleCancelEdit = () => {
+		setEditingEntry(null);
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		className: "container max-w-6xl mx-auto p-4 md:p-8 space-y-8 animate-fade-in",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "flex flex-col gap-2",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+				className: "text-3xl font-bold tracking-tight text-slate-900",
+				children: "Bienvenido de nuevo"
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+				className: "text-muted-foreground",
+				children: "Registra tus actividades diarias y mantén un control preciso de tu tiempo."
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "space-y-8",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+					"aria-label": "Formulario de registro",
+					id: "entry-form",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryForm, {
+						onDateChange: setSelectedDate,
+						entryToEdit: editingEntry,
+						onCancelEdit: handleCancelEdit
+					})
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+					"aria-label": "Reporte Mensual",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(MonthlyReport, { date: selectedDate })
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("section", {
+					"aria-label": "Tabla de registros",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeEntryTable, {
+						date: selectedDate,
+						onEdit: handleEdit
+					})
+				})
+			]
+		})]
+	});
+};
+var Index_default = Index;
+var NotFound = () => {
+	const location = useLocation();
+	(0, import_react.useEffect)(() => {
+		console.error("404 Error: User attempted to access non-existent route:", location.pathname);
+	}, [location.pathname]);
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+		className: "min-h-screen flex items-center justify-center bg-gray-100",
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			className: "text-center",
+			children: [
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+					className: "text-4xl font-bold mb-4",
+					children: "404"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					className: "text-xl text-gray-600 mb-4",
+					children: "Oops! Page not found"
+				}),
+				/* @__PURE__ */ (0, import_jsx_runtime.jsx)("a", {
+					href: "/",
+					className: "text-blue-500 hover:text-blue-700 underline",
+					children: "Return to Home"
+				})
+			]
+		})
+	});
+};
+var NotFound_default = NotFound;
+var MOBILE_BREAKPOINT = 768;
+function useIsMobile() {
+	const [isMobile, setIsMobile] = import_react.useState(void 0);
+	import_react.useEffect(() => {
+		const mql = window.matchMedia(`(max-width: ${MOBILE_BREAKPOINT - 1}px)`);
+		const onChange = () => {
+			setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+		};
+		mql.addEventListener("change", onChange);
+		setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+		return () => mql.removeEventListener("change", onChange);
+	}, []);
+	return !!isMobile;
+}
+var NAME = "Separator";
+var DEFAULT_ORIENTATION = "horizontal";
+var ORIENTATIONS = ["horizontal", "vertical"];
+var Separator$1 = import_react.forwardRef((props, forwardedRef) => {
+	const { decorative, orientation: orientationProp = DEFAULT_ORIENTATION, ...domProps } = props;
+	const orientation = isValidOrientation(orientationProp) ? orientationProp : DEFAULT_ORIENTATION;
+	const ariaOrientation = orientation === "vertical" ? orientation : void 0;
+	const semanticProps = decorative ? { role: "none" } : {
+		"aria-orientation": ariaOrientation,
+		role: "separator"
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.div, {
+		"data-orientation": orientation,
+		...semanticProps,
+		...domProps,
+		ref: forwardedRef
+	});
+});
+Separator$1.displayName = NAME;
+function isValidOrientation(orientation) {
+	return ORIENTATIONS.includes(orientation);
+}
+var Root$1 = Separator$1;
+var Separator = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+	ref,
+	decorative,
+	orientation,
+	className: cn("shrink-0 bg-border", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
+	...props
+}));
+Separator.displayName = Root$1.displayName;
+var Sheet = Root$2;
 var SheetPortal = Portal$1;
 var SheetOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
 	className: cn("fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0", className),
@@ -36859,7 +37258,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 				value,
 				getSnapshot
 			]);
-			useEffect$2(function() {
+			useEffect$3(function() {
 				checkIfSnapshotChanged(inst) && forceUpdate({ inst });
 				return subscribe$1(function() {
 					checkIfSnapshotChanged(inst) && forceUpdate({ inst });
@@ -36882,7 +37281,7 @@ var require_use_sync_external_store_shim_development = /* @__PURE__ */ __commonJ
 			return getSnapshot();
 		}
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStart(Error());
-		var React$31 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$5 = React$31.useState, useEffect$2 = React$31.useEffect, useLayoutEffect$2 = React$31.useLayoutEffect, useDebugValue = React$31.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
+		var React$31 = require_react(), objectIs = "function" === typeof Object.is ? Object.is : is, useState$5 = React$31.useState, useEffect$3 = React$31.useEffect, useLayoutEffect$2 = React$31.useLayoutEffect, useDebugValue = React$31.useDebugValue, didWarnOld18Alpha = !1, didWarnUncachedGetSnapshot = !1, shim = "undefined" === typeof window || "undefined" === typeof window.document || "undefined" === typeof window.document.createElement ? useSyncExternalStore$1 : useSyncExternalStore$2;
 		exports.useSyncExternalStore = void 0 !== React$31.useSyncExternalStore ? React$31.useSyncExternalStore : shim;
 		"undefined" !== typeof __REACT_DEVTOOLS_GLOBAL_HOOK__ && "function" === typeof __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop && __REACT_DEVTOOLS_GLOBAL_HOOK__.registerInternalModuleStop(Error());
 	})();
@@ -37093,4 +37492,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-BLKHKjNT.js.map
+//# sourceMappingURL=index-CNrztcVM.js.map

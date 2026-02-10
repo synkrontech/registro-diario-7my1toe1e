@@ -1,6 +1,7 @@
+import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarIcon, Plus } from 'lucide-react'
+import { CalendarIcon, Plus, Save, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -30,16 +31,27 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TimeEntryFormValues, timeEntrySchema, PROJECTS } from '@/lib/types'
+import {
+  TimeEntryFormValues,
+  timeEntrySchema,
+  PROJECTS,
+  TimeEntry,
+} from '@/lib/types'
 import useTimeStore from '@/stores/useTimeStore'
 import { useToast } from '@/hooks/use-toast'
 
+interface TimeEntryFormProps {
+  onDateChange: (date: Date) => void
+  entryToEdit?: TimeEntry | null
+  onCancelEdit: () => void
+}
+
 export function TimeEntryForm({
   onDateChange,
-}: {
-  onDateChange: (date: Date) => void
-}) {
-  const { addEntry } = useTimeStore()
+  entryToEdit,
+  onCancelEdit,
+}: TimeEntryFormProps) {
+  const { addEntry, updateEntry } = useTimeStore()
   const { toast } = useToast()
 
   const form = useForm<TimeEntryFormValues>({
@@ -53,21 +65,46 @@ export function TimeEntryForm({
     },
   })
 
-  // Sync selected date with parent
+  // Populate form when editing
+  useEffect(() => {
+    if (entryToEdit) {
+      form.reset({
+        date: entryToEdit.date,
+        project: entryToEdit.project,
+        startTime: entryToEdit.startTime,
+        endTime: entryToEdit.endTime,
+        description: entryToEdit.description,
+      })
+    }
+  }, [entryToEdit, form])
+
+  // Sync selected date with parent safely
   const watchedDate = form.watch('date')
-  if (watchedDate) {
-    // Wrap in timeout to avoid render cycle warning if this happens during render
-    setTimeout(() => onDateChange(watchedDate), 0)
-  }
+  useEffect(() => {
+    if (watchedDate) {
+      onDateChange(watchedDate)
+    }
+  }, [watchedDate, onDateChange])
 
   function onSubmit(data: TimeEntryFormValues) {
     try {
-      addEntry(data)
-      toast({
-        title: 'Registro guardado exitosamente',
-        description: 'Tu actividad ha sido registrada.',
-        className: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-      })
+      if (entryToEdit) {
+        updateEntry(entryToEdit.id, data)
+        toast({
+          title: 'Registro actualizado',
+          description: 'La actividad ha sido modificada correctamente.',
+          className: 'bg-blue-50 border-blue-200 text-blue-800',
+        })
+        onCancelEdit()
+      } else {
+        addEntry(data)
+        toast({
+          title: 'Registro guardado',
+          description: 'Tu actividad ha sido registrada.',
+          className: 'bg-emerald-50 border-emerald-200 text-emerald-800',
+        })
+      }
+
       form.reset({
         date: data.date,
         project: data.project,
@@ -85,11 +122,34 @@ export function TimeEntryForm({
     }
   }
 
+  function handleCancel() {
+    onCancelEdit()
+    form.reset({
+      date: new Date(),
+      startTime: '',
+      endTime: '',
+      description: '',
+      project: '',
+    })
+  }
+
   return (
     <Card className="border-none shadow-md">
       <CardHeader>
-        <CardTitle className="text-xl font-semibold text-slate-800">
-          Registro de Actividad
+        <CardTitle className="text-xl font-semibold text-slate-800 flex justify-between items-center">
+          <span>
+            {entryToEdit ? 'Editar Actividad' : 'Registro de Actividad'}
+          </span>
+          {entryToEdit && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleCancel}
+              className="text-slate-500"
+            >
+              <X className="mr-1 h-4 w-4" /> Cancelar
+            </Button>
+          )}
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -218,10 +278,19 @@ export function TimeEntryForm({
 
             <Button
               type="submit"
-              className="w-full md:w-auto bg-indigo-600 hover:bg-indigo-700 transition-colors duration-150"
+              className={cn(
+                'w-full md:w-auto transition-colors duration-150',
+                entryToEdit
+                  ? 'bg-blue-600 hover:bg-blue-700'
+                  : 'bg-indigo-600 hover:bg-indigo-700',
+              )}
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Guardar Registro
+              {entryToEdit ? (
+                <Save className="mr-2 h-4 w-4" />
+              ) : (
+                <Plus className="mr-2 h-4 w-4" />
+              )}
+              {entryToEdit ? 'Actualizar Registro' : 'Guardar Registro'}
             </Button>
           </form>
         </Form>
