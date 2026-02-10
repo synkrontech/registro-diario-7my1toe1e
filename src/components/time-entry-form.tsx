@@ -55,7 +55,7 @@ export function TimeEntryForm({
 }: TimeEntryFormProps) {
   const { t } = useTranslation()
   const dateLocale = useDateLocale()
-  const { addEntry, updateEntry, projects } = useTimeStore()
+  const { addEntry, updateEntry, projects, isProjectsLoading } = useTimeStore()
   const { toast } = useToast()
 
   const formSchema = createTimeEntrySchema(t)
@@ -233,16 +233,26 @@ export function TimeEntryForm({
                       onValueChange={field.onChange}
                       defaultValue={field.value}
                       value={field.value}
+                      disabled={isProjectsLoading}
                     >
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue
-                            placeholder={t('validation.selectProject')}
+                            placeholder={
+                              isProjectsLoading
+                                ? 'Cargando proyectos...'
+                                : t('validation.selectProject')
+                            }
                           />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {projects.length === 0 ? (
+                        {isProjectsLoading ? (
+                          <div className="flex items-center justify-center p-2 text-sm text-muted-foreground">
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Cargando...
+                          </div>
+                        ) : projects.length === 0 ? (
                           <div className="p-2 text-sm text-muted-foreground text-center">
                             No hay proyectos disponibles
                           </div>
@@ -318,7 +328,7 @@ export function TimeEntryForm({
                   : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200',
               )}
               size="lg"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isProjectsLoading}
             >
               {isSubmitting ? (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -22,6 +22,7 @@ interface TimeState {
   projects: Project[]
   viewDate: Date
   isLoading: boolean
+  isProjectsLoading: boolean
   statusFilter: TimeEntryStatus | 'all'
   setViewDate: (date: Date) => void
   setStatusFilter: (status: TimeEntryStatus | 'all') => void
@@ -43,6 +44,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
   const [projects, setProjects] = useState<Project[]>([])
   const [viewDate, setViewDate] = useState<Date>(new Date())
   const [isLoading, setIsLoading] = useState(false)
+  const [isProjectsLoading, setIsProjectsLoading] = useState(false)
   const [statusFilter, setStatusFilter] = useState<TimeEntryStatus | 'all'>(
     'all',
   )
@@ -50,21 +52,35 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
   const fetchProjects = useCallback(async () => {
     if (!user || !profile) return
 
+    setIsProjectsLoading(true)
     try {
       let data: Project[] = []
 
-      // Role-based project selection
+      // Role-based project selection with robust error handling and split queries
+      // to avoid complex join issues or empty response parsing errors
       if (profile.role === 'consultor') {
-        // Consultors only see projects they are assigned to
-        const { data: res, error } = await supabase
-          .from('projects')
-          .select('*, project_assignments!inner(user_id)')
-          .eq('status', 'activo')
-          .eq('project_assignments.user_id', user.id)
-          .order('nombre')
+        // 1. Get assignments first
+        const { data: assignments, error: assignError } = await supabase
+          .from('project_assignments')
+          .select('project_id')
+          .eq('user_id', user.id)
 
-        if (error) throw error
-        data = res as unknown as Project[]
+        if (assignError) throw assignError
+
+        const projectIds = assignments?.map((a) => a.project_id) || []
+
+        // 2. Get projects if there are assignments
+        if (projectIds.length > 0) {
+          const { data: res, error } = await supabase
+            .from('projects')
+            .select('*')
+            .in('id', projectIds)
+            .eq('status', 'activo')
+            .order('nombre')
+
+          if (error) throw error
+          data = (res as Project[]) || []
+        }
       } else if (profile.role === 'gerente') {
         // Managers see projects they manage
         const { data: res, error } = await supabase
@@ -75,7 +91,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
           .order('nombre')
 
         if (error) throw error
-        data = res as Project[]
+        data = (res as Project[]) || []
       } else {
         // Admin/Director see all active projects
         const { data: res, error } = await supabase
@@ -85,7 +101,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
           .order('nombre')
 
         if (error) throw error
-        data = res as Project[]
+        data = (res as Project[]) || []
       }
 
       setProjects(data)
@@ -96,6 +112,10 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         description: 'No se pudieron cargar los proyectos asignados.',
         variant: 'destructive',
       })
+      // Ensure projects is at least an empty array on error
+      setProjects([])
+    } finally {
+      setIsProjectsLoading(false)
     }
   }, [user, profile, toast])
 
@@ -133,7 +153,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error
 
-      const formattedEntries: TimeEntry[] = data.map((item: any) => ({
+      const formattedEntries: TimeEntry[] = (data || []).map((item: any) => ({
         id: item.id,
         user_id: item.user_id,
         project_id: item.project_id,
@@ -155,6 +175,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         title: 'Error al cargar registros',
         variant: 'destructive',
       })
+      setEntries([])
     } finally {
       setIsLoading(false)
     }
@@ -286,6 +307,7 @@ export const TimeStoreProvider = ({ children }: { children: ReactNode }) => {
         projects,
         viewDate,
         isLoading,
+        isProjectsLoading,
         statusFilter,
         setViewDate,
         setStatusFilter,
