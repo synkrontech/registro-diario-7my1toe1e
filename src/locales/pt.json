@@ -105,9 +105,11 @@
     "title": "Relatórios",
     "subtitle": "Análise detalhada de tempos e produtividade.",
     "projectReportTitle": "Relatório por Projeto",
+    "managerReportTitle": "Relatório Gerencial",
     "selectUser": "Selecionar Usuário",
     "selectMonth": "Selecionar Mês",
     "selectYear": "Selecionar Ano",
+    "selectManager": "Selecionar Gerente",
     "generate": "Gerar Relatório",
     "week": "Semana",
     "weeklySubtotal": "Subtotal Semanal",
@@ -126,7 +128,15 @@
     "hoursDistribution": "Distribuição de Horas",
     "consultant": "Consultor",
     "consultantSubtotal": "Subtotal Consultor",
-    "totalProjectHours": "Total Horas Projeto"
+    "totalProjectHours": "Total Horas Projeto",
+    "totalActiveProjects": "Projetos Ativos",
+    "totalApprovedHours": "Horas Aprovadas",
+    "avgHoursPerProject": "Média Horas / Projeto",
+    "uniqueConsultants": "Consultores",
+    "pendingApprovals": "Aprovações Pendentes",
+    "manager": "Gerente",
+    "projectWorkload": "Carga de Trabalho por Projeto",
+    "hoursPerProject": "Horas por Projeto"
   },
   "users": {
     "title": "Gestão de Usuários",

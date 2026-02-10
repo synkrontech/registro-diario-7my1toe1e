@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import { UserProfile, TimeEntry } from '@/lib/types'
+import { UserProfile, TimeEntry, ManagerProjectStat } from '@/lib/types'
 import { format, startOfMonth, endOfMonth, parseISO } from 'date-fns'
 
 export const reportService = {
@@ -105,7 +105,7 @@ export const reportService = {
       startTime: item.startTime,
       endTime: item.endTime,
       description: item.description,
-      durationMinutes: item.durationMinutes,
+      durationMinutes: item.durationminutes, // Corrected casing from Supabase return
       status: item.status,
       project_name: item.projects?.nombre || 'Desconocido',
       client_name: item.projects?.clients?.nombre || '-',
@@ -152,5 +152,88 @@ export const reportService = {
     if (entriesError) throw entriesError
 
     return { project, entries }
+  },
+
+  async getManagerReportData(managerId: string, month: number, year: number) {
+    const startDate = startOfMonth(new Date(year, month))
+    const endDate = endOfMonth(new Date(year, month))
+
+    // 1. Get projects managed by managerId
+    const { data: projects, error: projectsError } = await supabase
+      .from('projects')
+      .select('*, clients(nombre), systems(nombre)')
+      .eq('gerente_id', managerId)
+
+    if (projectsError) throw projectsError
+
+    const projectIds = projects.map((p) => p.id)
+
+    if (projectIds.length === 0) {
+      return {
+        projects: [],
+        stats: {
+          activeProjects: 0,
+          totalApprovedHours: 0,
+          avgHoursPerProject: 0,
+        },
+      }
+    }
+
+    // 2. Get time entries for these projects in range
+    const { data: entries, error: entriesError } = await supabase
+      .from('time_entries')
+      .select('*, users(id)')
+      .in('project_id', projectIds)
+      .gte('fecha', format(startDate, 'yyyy-MM-dd'))
+      .lte('fecha', format(endDate, 'yyyy-MM-dd'))
+
+    if (entriesError) throw entriesError
+
+    // 3. Process data
+    const projectStats: ManagerProjectStat[] = projects.map((project: any) => {
+      const projectEntries = entries.filter((e) => e.project_id === project.id)
+      const approvedEntries = projectEntries.filter(
+        (e) => e.status === 'aprobado',
+      )
+      const pendingEntries = projectEntries.filter(
+        (e) => e.status === 'pendiente',
+      )
+
+      const approvedMinutes = approvedEntries.reduce(
+        (sum, e) => sum + e.durationminutes,
+        0,
+      )
+      const uniqueConsultants = new Set(projectEntries.map((e) => e.user_id))
+        .size
+
+      return {
+        ...project,
+        client_name: project.clients?.nombre || '-',
+        system_name: project.systems?.nombre || '-',
+        approvedHours: approvedMinutes / 60,
+        pendingCount: pendingEntries.length,
+        consultantCount: uniqueConsultants,
+      }
+    })
+
+    const activeProjectsCount = projects.filter(
+      (p) => p.status === 'activo',
+    ).length
+    const totalApprovedHours = projectStats.reduce(
+      (sum, p) => sum + p.approvedHours,
+      0,
+    )
+
+    return {
+      projects: projectStats,
+      stats: {
+        activeProjects: activeProjectsCount,
+        totalApprovedHours,
+        avgHoursPerProject:
+          activeProjectsCount > 0
+            ? totalApprovedHours / activeProjectsCount
+            : 0,
+      },
+    }
   },
 }

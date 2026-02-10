@@ -74,6 +74,12 @@ export interface Project {
   assigned_users?: string[]
 }
 
+export interface ManagerProjectStat extends Project {
+  approvedHours: number
+  pendingCount: number
+  consultantCount: number
+}
+
 export interface ProjectAssignment {
   id: string
   project_id: string

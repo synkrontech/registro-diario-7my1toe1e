@@ -1,4 +1,4 @@
-import { TimeEntry, Project } from '@/lib/types'
+import { TimeEntry, Project, ManagerProjectStat } from '@/lib/types'
 import { format } from 'date-fns'
 import { Locale } from 'date-fns'
 import i18n from '@/lib/i18n'
@@ -147,11 +147,66 @@ export const downloadProjectReportCsv = (
   generateAndDownloadCsv(allRows, filename)
 }
 
+export const downloadManagerReportCsv = (
+  projects: ManagerProjectStat[],
+  stats: any,
+  managerName: string,
+  date: Date,
+  locale: Locale,
+) => {
+  if (!projects.length) return
+
+  const t = i18n.t
+  const monthName = format(date, 'MMMM yyyy', { locale })
+  const filename = `reporte-gerencial-${managerName.replace(/\s+/g, '-')}-${format(date, 'MM-yyyy')}.csv`
+
+  // Metadata
+  const metadata = [
+    [`${t('reports.managerReportTitle')}`],
+    [`${t('reports.manager')}: ${managerName}`],
+    [`${t('reports.period')}: ${monthName}`],
+    [],
+    [`${t('reports.totalActiveProjects')}: ${stats.activeProjects}`],
+    [
+      `${t('reports.totalApprovedHours')}: ${stats.totalApprovedHours.toFixed(2).replace('.', ',')}`,
+    ],
+    [
+      `${t('reports.avgHoursPerProject')}: ${stats.avgHoursPerProject.toFixed(2).replace('.', ',')}`,
+    ],
+    [],
+  ]
+
+  const headers = [
+    t('projects.project'),
+    t('clients.title'),
+    t('systems.title'),
+    t('reports.hoursWorked'),
+    t('reports.pendingApprovals'),
+    t('reports.uniqueConsultants'),
+    t('common.status'),
+  ]
+
+  const rows = projects.map((project) => {
+    return [
+      project.nombre,
+      project.client_name,
+      project.system_name,
+      project.approvedHours.toFixed(2).replace('.', ','),
+      project.pendingCount,
+      project.consultantCount,
+      t(`enums.projectStatus.${project.status}`),
+    ]
+  })
+
+  const allRows = [...metadata, headers, ...rows]
+
+  generateAndDownloadCsv(allRows, filename)
+}
+
 const generateAndDownloadCsv = (rows: any[][], filename: string) => {
   // Add BOM for Excel utf-8 compatibility
-  const BOM = '\uFEFF'
   const csvContent =
-    BOM +
+    '\uFEFF' +
     rows
       .map((row) =>
         row
