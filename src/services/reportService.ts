@@ -112,4 +112,45 @@ export const reportService = {
       system_name: item.projects?.systems?.nombre || '-',
     })) as TimeEntry[]
   },
+
+  async getProjectReportData(
+    projectId: string,
+    startDate: Date,
+    endDate: Date,
+  ) {
+    // Fetch Project Details with metadata
+    const { data: project, error: projectError } = await supabase
+      .from('projects')
+      .select(
+        `
+        *,
+        clients ( nombre ),
+        systems ( nombre ),
+        users ( nombre, apellido )
+      `,
+      )
+      .eq('id', projectId)
+      .single()
+
+    if (projectError) throw projectError
+
+    // Fetch Time Entries for the project, approved only
+    const { data: entries, error: entriesError } = await supabase
+      .from('time_entries')
+      .select(
+        `
+        *,
+        users ( nombre, apellido, email )
+      `,
+      )
+      .eq('project_id', projectId)
+      .eq('status', 'aprobado')
+      .gte('fecha', format(startDate, 'yyyy-MM-dd'))
+      .lte('fecha', format(endDate, 'yyyy-MM-dd'))
+      .order('fecha', { ascending: true })
+
+    if (entriesError) throw entriesError
+
+    return { project, entries }
+  },
 }

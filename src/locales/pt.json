@@ -35,7 +35,8 @@
     "apply": "Aplicar",
     "clear": "Limpar",
     "filter": "Filtrar",
-    "all": "Todos"
+    "all": "Todos",
+    "user": "Usuário"
   },
   "auth": {
     "loginTitle": "Registro Diário",
@@ -101,21 +102,31 @@
     "hours": "Horas"
   },
   "reports": {
-    "title": "Relatório Mensal por Pessoa",
+    "title": "Relatórios",
     "subtitle": "Análise detalhada de tempos e produtividade.",
+    "projectReportTitle": "Relatório por Projeto",
     "selectUser": "Selecionar Usuário",
     "selectMonth": "Selecionar Mês",
     "selectYear": "Selecionar Ano",
     "generate": "Gerar Relatório",
     "week": "Semana",
     "weeklySubtotal": "Subtotal Semanal",
-    "monthlyTotal": "Total Mensal",
+    "monthlyTotal": "Total Mensual",
     "hoursWorked": "Horas Trabalhadas",
     "dayOfMonth": "Dia do Mês",
     "exportExcel": "Exportar para Excel",
     "reportFor": "Relatório de",
     "period": "Período",
-    "dailyDistribution": "Distribuição Diária de Horas"
+    "dailyDistribution": "Distribuição Diária de Horas",
+    "filterClient": "Cliente (Opcional)",
+    "filterProject": "Projeto",
+    "dateRange": "Intervalo de Datas",
+    "allClients": "Todos os Clientes",
+    "selectProject": "Selecionar Projeto",
+    "hoursDistribution": "Distribuição de Horas",
+    "consultant": "Consultor",
+    "consultantSubtotal": "Subtotal Consultor",
+    "totalProjectHours": "Total Horas Projeto"
   },
   "users": {
     "title": "Gestão de Usuários",
@@ -148,7 +159,8 @@
     "manager": "Gerente",
     "team": "Equipe",
     "assignTeam": "Atribuir Equipe",
-    "workFront": "Frente de Trabalho"
+    "workFront": "Frente de Trabalho",
+    "project": "Projeto"
   },
   "approvals": {
     "title": "Painel de Aprovação",

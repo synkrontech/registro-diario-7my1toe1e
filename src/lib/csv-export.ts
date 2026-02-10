@@ -1,4 +1,4 @@
-import { TimeEntry } from '@/lib/types'
+import { TimeEntry, Project } from '@/lib/types'
 import { format } from 'date-fns'
 import { Locale } from 'date-fns'
 import i18n from '@/lib/i18n'
@@ -82,11 +82,77 @@ export const downloadReportCsv = (
 
   const allRows = [...metadata, headers, ...rows, [], totalRow]
 
+  generateAndDownloadCsv(allRows, filename)
+}
+
+export const downloadProjectReportCsv = (
+  project: any,
+  entries: any[],
+  startDate: Date,
+  endDate: Date,
+  locale: Locale,
+) => {
+  if (!entries.length) return
+
+  const t = i18n.t
+  const dateRange = `${format(startDate, 'dd/MM/yyyy')} - ${format(endDate, 'dd/MM/yyyy')}`
+  const filename = `reporte-proyecto-${project.codigo}-${format(new Date(), 'yyyyMMdd')}.csv`
+
+  // Metadata
+  const metadata = [
+    [`${t('reports.projectReportTitle')}`],
+    [`${t('projects.project')}: ${project.nombre} (${project.codigo})`],
+    [`${t('clients.title')}: ${project.clients?.nombre || '-'}`],
+    [`${t('systems.title')}: ${project.systems?.nombre || '-'}`],
+    [
+      `${t('projects.manager')}: ${project.users ? `${project.users.nombre} ${project.users.apellido}` : '-'}`,
+    ],
+    [`${t('projects.workFront')}: ${project.work_front || '-'}`],
+    [`${t('reports.period')}: ${dateRange}`],
+    [],
+  ]
+
+  const headers = [
+    t('reports.consultant'),
+    t('timeEntry.date'),
+    t('reports.hoursWorked'),
+    t('timeEntry.description'),
+  ]
+
+  const rows = entries.map((entry) => {
+    const hours = (entry.durationMinutes / 60).toFixed(2)
+    const consultantName = entry.users
+      ? `${entry.users.nombre} ${entry.users.apellido}`
+      : '-'
+
+    return [
+      consultantName,
+      format(new Date(entry.fecha), 'dd/MM/yyyy'),
+      hours.replace('.', ','),
+      entry.description,
+    ]
+  })
+
+  // Calculate total
+  const totalMinutes = entries.reduce(
+    (acc, curr) => acc + curr.durationminutes,
+    0,
+  )
+  const totalHours = (totalMinutes / 60).toFixed(2).replace('.', ',')
+
+  const totalRow = ['', '', t('reports.totalProjectHours'), totalHours]
+
+  const allRows = [...metadata, headers, ...rows, [], totalRow]
+
+  generateAndDownloadCsv(allRows, filename)
+}
+
+const generateAndDownloadCsv = (rows: any[][], filename: string) => {
   // Add BOM for Excel utf-8 compatibility
   const BOM = '\uFEFF'
   const csvContent =
     BOM +
-    allRows
+    rows
       .map((row) =>
         row
           .map((field) => {

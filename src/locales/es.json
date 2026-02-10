@@ -35,7 +35,8 @@
     "apply": "Aplicar",
     "clear": "Limpiar",
     "filter": "Filtrar",
-    "all": "Todos"
+    "all": "Todos",
+    "user": "Usuario"
   },
   "auth": {
     "loginTitle": "Registro Diario",
@@ -101,8 +102,9 @@
     "hours": "Horas"
   },
   "reports": {
-    "title": "Reporte Mensual por Persona",
+    "title": "Reportes",
     "subtitle": "Análisis detallado de tiempos y productividad.",
+    "projectReportTitle": "Reporte por Proyecto",
     "selectUser": "Seleccionar Usuario",
     "selectMonth": "Seleccionar Mes",
     "selectYear": "Seleccionar Año",
@@ -115,7 +117,16 @@
     "exportExcel": "Exportar a Excel",
     "reportFor": "Reporte de",
     "period": "Periodo",
-    "dailyDistribution": "Distribución Diaria de Horas"
+    "dailyDistribution": "Distribución Diaria de Horas",
+    "filterClient": "Cliente (Opcional)",
+    "filterProject": "Proyecto",
+    "dateRange": "Rango de Fechas",
+    "allClients": "Todos los Clientes",
+    "selectProject": "Seleccionar Proyecto",
+    "hoursDistribution": "Distribución de Horas",
+    "consultant": "Consultor",
+    "consultantSubtotal": "Subtotal Consultor",
+    "totalProjectHours": "Total Horas Proyecto"
   },
   "users": {
     "title": "Gestión de Usuarios",
@@ -148,7 +159,8 @@
     "manager": "Gerente",
     "team": "Equipo",
     "assignTeam": "Asignar Equipo",
-    "workFront": "Frente de Trabajo"
+    "workFront": "Frente de Trabajo",
+    "project": "Proyecto"
   },
   "approvals": {
     "title": "Panel de Aprobaciones",

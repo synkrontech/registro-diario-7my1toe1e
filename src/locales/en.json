@@ -35,7 +35,8 @@
     "apply": "Apply",
     "clear": "Clear",
     "filter": "Filter",
-    "all": "All"
+    "all": "All",
+    "user": "User"
   },
   "auth": {
     "loginTitle": "Daily Log",
@@ -101,8 +102,9 @@
     "hours": "Hours"
   },
   "reports": {
-    "title": "Monthly Report by Person",
+    "title": "Reports",
     "subtitle": "Detailed analysis of time and productivity.",
+    "projectReportTitle": "Project Report",
     "selectUser": "Select User",
     "selectMonth": "Select Month",
     "selectYear": "Select Year",
@@ -115,7 +117,16 @@
     "exportExcel": "Export to Excel",
     "reportFor": "Report for",
     "period": "Period",
-    "dailyDistribution": "Daily Hours Distribution"
+    "dailyDistribution": "Daily Hours Distribution",
+    "filterClient": "Client (Optional)",
+    "filterProject": "Project",
+    "dateRange": "Date Range",
+    "allClients": "All Clients",
+    "selectProject": "Select Project",
+    "hoursDistribution": "Hours Distribution",
+    "consultant": "Consultant",
+    "consultantSubtotal": "Consultant Subtotal",
+    "totalProjectHours": "Total Project Hours"
   },
   "users": {
     "title": "User Management",
@@ -148,7 +159,8 @@
     "manager": "Manager",
     "team": "Team",
     "assignTeam": "Assign Team",
-    "workFront": "Work Front"
+    "workFront": "Work Front",
+    "project": "Project"
   },
   "approvals": {
     "title": "Approval Panel",
