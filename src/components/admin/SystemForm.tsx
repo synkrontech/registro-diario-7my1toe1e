@@ -69,7 +69,7 @@ export function SystemForm({
           name="nombre"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre del Sistema</FormLabel>
+              <FormLabel>{t('auth.name')}</FormLabel>
               <FormControl>
                 <Input placeholder="Ej. SAP IBP" {...field} />
               </FormControl>
@@ -83,7 +83,7 @@ export function SystemForm({
           name="codigo"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Código</FormLabel>
+              <FormLabel>{t('clients.code')}</FormLabel>
               <FormControl>
                 <Input placeholder="Ej. SAP-IBP-001" {...field} />
               </FormControl>
@@ -97,10 +97,10 @@ export function SystemForm({
           name="descripcion"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Descripción</FormLabel>
+              <FormLabel>{t('systems.description')}</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Descripción breve del sistema"
+                  placeholder={t('systems.description')}
                   className="resize-none"
                   {...field}
                 />
@@ -119,9 +119,7 @@ export function SystemForm({
                 <FormLabel className="text-base">
                   {t('common.status')} {t('common.active')}
                 </FormLabel>
-                <FormDescription>
-                  Los sistemas inactivos no aparecerán en novas selecciones.
-                </FormDescription>
+                <FormDescription>{t('common.inactive')}</FormDescription>
               </div>
               <FormControl>
                 <Switch

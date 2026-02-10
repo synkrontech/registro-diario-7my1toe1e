@@ -49,7 +49,7 @@ export function DayDetailsSheet({
         <SheetHeader className="pb-4 border-b">
           <SheetTitle className="flex items-center gap-2 text-xl">
             <Calendar className="h-5 w-5 text-indigo-600" />
-            {format(date, "EEEE, d 'de' MMMM", { locale: dateLocale })}
+            {format(date, 'PPPP', { locale: dateLocale })}
           </SheetTitle>
           <SheetDescription className="flex items-center gap-2">
             <Clock className="h-4 w-4" />
@@ -115,9 +115,9 @@ export function DayDetailsSheet({
                         </Badge>
                         <Badge
                           variant="outline"
-                          className="text-[10px] h-5 px-1.5"
+                          className="text-[10px] h-5 px-1.5 capitalize"
                         >
-                          {entry.status}
+                          {t(`enums.timeEntryStatus.${entry.status}`)}
                         </Badge>
                       </div>
                     </div>

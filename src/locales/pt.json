@@ -23,7 +23,15 @@
     "logout": "Sair",
     "myAccount": "Minha Conta",
     "settings": "Configurações",
-    "exportCsv": "Exportar CSV"
+    "exportCsv": "Exportar CSV",
+    "error": "Erro",
+    "success": "Sucesso",
+    "saved": "Salvo com sucesso",
+    "deleted": "Excluído com sucesso",
+    "updated": "Atualizado com sucesso",
+    "errorLoad": "Erro ao carregar dados",
+    "errorSave": "Erro ao salvar dados",
+    "errorDelete": "Erro ao excluir"
   },
   "auth": {
     "loginTitle": "Registro Diário",
@@ -129,5 +137,30 @@
     "language": "Idioma",
     "selectLanguage": "Selecione seu idioma preferido",
     "languageUpdated": "Idioma atualizado com sucesso"
+  },
+  "enums": {
+    "roles": {
+      "admin": "Administrador",
+      "director": "Diretor",
+      "gerente": "Gerente",
+      "consultor": "Consultor"
+    },
+    "projectStatus": {
+      "activo": "Ativo",
+      "pausado": "Pausado",
+      "finalizado": "Finalizado",
+      "all": "Todos"
+    },
+    "timeEntryStatus": {
+      "pendiente": "Pendente",
+      "aprobado": "Aprovado",
+      "rechazado": "Rejeitado"
+    },
+    "workFront": {
+      "Procesos": "Processos",
+      "SAP IBP": "SAP IBP",
+      "SAP MDG": "SAP MDG",
+      "Otro": "Outro"
+    }
   }
 }

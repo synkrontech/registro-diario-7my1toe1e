@@ -31,8 +31,7 @@ export default function PendingApproval() {
         <CardContent className="space-y-6 text-center">
           <p className="text-slate-600">{t('auth.pendingMessage')}</p>
           <p className="text-sm text-muted-foreground">
-            Por favor, contacta a tu supervisor o al administrador del sistema
-            para activar tu cuenta.
+            Contact: admin@goskip.app
           </p>
 
           <Button

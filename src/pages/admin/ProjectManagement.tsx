@@ -68,8 +68,8 @@ export default function ProjectManagement() {
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudieron cargar los datos de proyectos',
+        title: t('common.error'),
+        description: t('common.errorLoad'),
         variant: 'destructive',
       })
     } finally {
@@ -96,18 +96,18 @@ export default function ProjectManagement() {
     try {
       if (editingProject) {
         await projectService.updateProject(editingProject.id, data)
-        toast({ title: 'Proyecto actualizado exitosamente' })
+        toast({ title: t('common.updated') })
       } else {
         await projectService.createProject(data)
-        toast({ title: 'Proyecto creado exitosamente' })
+        toast({ title: t('common.saved') })
       }
       setIsModalOpen(false)
       loadData()
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'Ocurrió un error al guardar el proyecto',
+        title: t('common.error'),
+        description: t('common.errorSave'),
         variant: 'destructive',
       })
     } finally {
@@ -118,13 +118,13 @@ export default function ProjectManagement() {
   const handleDelete = async (id: string) => {
     try {
       await projectService.deleteProject(id)
-      toast({ title: 'Proyecto eliminado' })
+      toast({ title: t('common.deleted') })
       loadData()
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudo eliminar el proyecto',
+        title: t('common.error'),
+        description: t('common.errorDelete'),
         variant: 'destructive',
       })
     }
@@ -142,14 +142,14 @@ export default function ProjectManagement() {
     setIsSavingAssignment(true)
     try {
       await projectService.updateProjectAssignments(projectId, userIds)
-      toast({ title: 'Asignaciones actualizadas exitosamente' })
+      toast({ title: t('common.saved') })
       setIsAssignmentModalOpen(false)
       loadData() // Refresh list to update counts
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudieron guardar las asignaciones',
+        title: t('common.error'),
+        description: t('common.errorSave'),
         variant: 'destructive',
       })
     } finally {

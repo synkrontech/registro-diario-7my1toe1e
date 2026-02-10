@@ -121,10 +121,16 @@ export function ProjectTable({
             <SelectValue placeholder={t('common.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
-            <SelectItem value="activo">{t('common.active')}</SelectItem>
-            <SelectItem value="pausado">Pausado</SelectItem>
-            <SelectItem value="finalizado">Finalizado</SelectItem>
+            <SelectItem value="all">{t('enums.projectStatus.all')}</SelectItem>
+            <SelectItem value="activo">
+              {t('enums.projectStatus.activo')}
+            </SelectItem>
+            <SelectItem value="pausado">
+              {t('enums.projectStatus.pausado')}
+            </SelectItem>
+            <SelectItem value="finalizado">
+              {t('enums.projectStatus.finalizado')}
+            </SelectItem>
           </SelectContent>
         </Select>
 
@@ -133,7 +139,7 @@ export function ProjectTable({
             <SelectValue placeholder={t('timeEntry.client')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">{t('enums.projectStatus.all')}</SelectItem>
             {clients.map((c) => (
               <SelectItem key={c.id} value={c.id}>
                 {c.nombre}
@@ -147,7 +153,7 @@ export function ProjectTable({
             <SelectValue placeholder={t('projects.manager')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">{t('enums.projectStatus.all')}</SelectItem>
             {managers.map((m) => (
               <SelectItem key={m.id} value={m.id!}>
                 {m.nombre} {m.apellido}
@@ -179,7 +185,7 @@ export function ProjectTable({
                   colSpan={7}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No se encontraron proyectos.
+                  {t('timeEntry.noEntries')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -208,7 +214,7 @@ export function ProjectTable({
                         getStatusColor(project.status),
                       )}
                     >
-                      {project.status}
+                      {t(`enums.projectStatus.${project.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">

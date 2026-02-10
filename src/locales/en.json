@@ -23,7 +23,15 @@
     "logout": "Logout",
     "myAccount": "My Account",
     "settings": "Settings",
-    "exportCsv": "Export CSV"
+    "exportCsv": "Export CSV",
+    "error": "Error",
+    "success": "Success",
+    "saved": "Saved successfully",
+    "deleted": "Deleted successfully",
+    "updated": "Updated successfully",
+    "errorLoad": "Error loading data",
+    "errorSave": "Error saving data",
+    "errorDelete": "Error deleting"
   },
   "auth": {
     "loginTitle": "Daily Log",
@@ -129,5 +137,30 @@
     "language": "Language",
     "selectLanguage": "Select your preferred language",
     "languageUpdated": "Language updated successfully"
+  },
+  "enums": {
+    "roles": {
+      "admin": "Administrator",
+      "director": "Director",
+      "gerente": "Manager",
+      "consultor": "Consultant"
+    },
+    "projectStatus": {
+      "activo": "Active",
+      "pausado": "Paused",
+      "finalizado": "Finished",
+      "all": "All"
+    },
+    "timeEntryStatus": {
+      "pendiente": "Pending",
+      "aprobado": "Approved",
+      "rechazado": "Rejected"
+    },
+    "workFront": {
+      "Procesos": "Processes",
+      "SAP IBP": "SAP IBP",
+      "SAP MDG": "SAP MDG",
+      "Otro": "Other"
+    }
   }
 }

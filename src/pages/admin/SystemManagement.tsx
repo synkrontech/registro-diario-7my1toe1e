@@ -31,8 +31,8 @@ export default function SystemManagement() {
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudieron cargar los sistemas',
+        title: t('common.error'),
+        description: t('common.errorLoad'),
         variant: 'destructive',
       })
     } finally {
@@ -59,18 +59,18 @@ export default function SystemManagement() {
     try {
       if (editingSystem) {
         await systemService.updateSystem(editingSystem.id, data)
-        toast({ title: 'Sistema actualizado exitosamente' })
+        toast({ title: t('common.updated') })
       } else {
         await systemService.createSystem(data)
-        toast({ title: 'Sistema creado exitosamente' })
+        toast({ title: t('common.saved') })
       }
       setIsModalOpen(false)
       loadSystems()
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'Ocurrió un error al guardar el sistema',
+        title: t('common.error'),
+        description: t('common.errorSave'),
         variant: 'destructive',
       })
     } finally {
@@ -81,13 +81,13 @@ export default function SystemManagement() {
   const handleDelete = async (id: string) => {
     try {
       await systemService.deleteSystem(id)
-      toast({ title: 'Sistema eliminado' })
+      toast({ title: t('common.deleted') })
       loadSystems()
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudo eliminar el sistema',
+        title: t('common.error'),
+        description: t('common.errorDelete'),
         variant: 'destructive',
       })
     }

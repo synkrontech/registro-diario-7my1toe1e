@@ -83,7 +83,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
             <SelectValue placeholder={t('common.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">{t('enums.projectStatus.all')}</SelectItem>
             <SelectItem value="active">{t('common.active')}</SelectItem>
             <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
           </SelectContent>
@@ -94,10 +94,10 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
+              <TableHead>{t('auth.name')}</TableHead>
               <TableHead>{t('clients.code')}</TableHead>
               <TableHead>{t('clients.country')}</TableHead>
-              <TableHead>Fecha Creación</TableHead>
+              <TableHead>{t('timeEntry.date')}</TableHead>
               <TableHead>{t('common.status')}</TableHead>
               <TableHead className="text-right">
                 {t('common.actions')}
@@ -111,7 +111,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
                   colSpan={6}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No se encontraron clientes.
+                  {t('clients.subtitle')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -122,7 +122,7 @@ export function ClientTable({ clients, onEdit, onDelete }: ClientTableProps) {
                   <TableCell>{client.pais}</TableCell>
                   <TableCell>
                     {client.created_at
-                      ? format(new Date(client.created_at), 'dd MMM yyyy', {
+                      ? format(new Date(client.created_at), 'P', {
                           locale: dateLocale,
                         })
                       : '-'}

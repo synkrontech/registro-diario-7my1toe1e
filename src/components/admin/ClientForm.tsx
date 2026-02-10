@@ -100,7 +100,7 @@ export function ClientForm({
           name="nombre"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Nombre del Cliente</FormLabel>
+              <FormLabel>{t('auth.name')}</FormLabel>
               <FormControl>
                 <Input placeholder="Ej. ACME Corp" {...field} />
               </FormControl>
@@ -137,7 +137,9 @@ export function ClientForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
+                      <SelectValue
+                        placeholder={t('validation.selectCountry')}
+                      />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -163,9 +165,7 @@ export function ClientForm({
                 <FormLabel className="text-base">
                   {t('common.status')} {t('common.active')}
                 </FormLabel>
-                <FormDescription>
-                  Los clientes inactivos no aparecerán en nuevas selecciones.
-                </FormDescription>
+                <FormDescription>{t('common.inactive')}</FormDescription>
               </div>
               <FormControl>
                 <Switch

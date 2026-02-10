@@ -118,8 +118,7 @@ export default function Login() {
           setUnverifiedEmail(data.email)
           toast({
             title: t('auth.verifyEmail'),
-            description:
-              'Por favor verifica tu correo electrónico para continuar.',
+            description: t('auth.pendingMessage'),
             variant: 'destructive',
           })
           return
@@ -132,7 +131,7 @@ export default function Login() {
     } catch (error: any) {
       toast({
         title: t('auth.errorAuth'),
-        description: error.message || 'Credenciales incorrectas',
+        description: error.message || t('common.errorLoad'),
         variant: 'destructive',
       })
     } finally {
@@ -183,7 +182,7 @@ export default function Login() {
       console.error('Registration Error:', error)
       toast({
         title: t('auth.errorRegister'),
-        description: error.message || 'Ocurrió un error al crear la cuenta',
+        description: error.message || t('common.errorSave'),
         variant: 'destructive',
       })
     } finally {
@@ -206,12 +205,12 @@ export default function Login() {
       if (error) throw error
 
       toast({
-        title: 'Correo enviado',
-        description: `Se ha enviado un nuevo enlace de verificación a ${unverifiedEmail}`,
+        title: t('common.success'),
+        description: t('auth.resendEmail'),
       })
     } catch (error: any) {
       toast({
-        title: 'Error al reenviar',
+        title: t('common.error'),
         description: error.message,
         variant: 'destructive',
       })
@@ -240,9 +239,7 @@ export default function Login() {
               <Alert variant="destructive">
                 <MailWarning className="h-4 w-4" />
                 <AlertTitle>{t('auth.verifyEmail')}</AlertTitle>
-                <AlertDescription>
-                  El correo {unverifiedEmail} no ha sido verificado aún.
-                </AlertDescription>
+                <AlertDescription>{unverifiedEmail}</AlertDescription>
               </Alert>
               <Button
                 onClick={handleResendVerification}
@@ -384,7 +381,7 @@ export default function Login() {
                           <FormControl>
                             <Input
                               type="password"
-                              placeholder="Min. 6 caracteres"
+                              placeholder={t('validation.minChar', { min: 6 })}
                               {...field}
                             />
                           </FormControl>
@@ -412,11 +409,17 @@ export default function Login() {
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="consultor">
-                                Consultor
+                                {t('enums.roles.consultor')}
                               </SelectItem>
-                              <SelectItem value="gerente">Gerente</SelectItem>
-                              <SelectItem value="director">Director</SelectItem>
-                              <SelectItem value="admin">Admin</SelectItem>
+                              <SelectItem value="gerente">
+                                {t('enums.roles.gerente')}
+                              </SelectItem>
+                              <SelectItem value="director">
+                                {t('enums.roles.director')}
+                              </SelectItem>
+                              <SelectItem value="admin">
+                                {t('enums.roles.admin')}
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -437,7 +440,9 @@ export default function Login() {
                             >
                               <FormControl>
                                 <SelectTrigger>
-                                  <SelectValue placeholder="Asignar a proyecto (Opcional)" />
+                                  <SelectValue
+                                    placeholder={t('validation.selectProject')}
+                                  />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>

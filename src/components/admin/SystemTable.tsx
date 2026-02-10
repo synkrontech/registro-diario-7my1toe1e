@@ -80,7 +80,7 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
             <SelectValue placeholder={t('common.status')} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Todos</SelectItem>
+            <SelectItem value="all">{t('enums.projectStatus.all')}</SelectItem>
             <SelectItem value="active">{t('common.active')}</SelectItem>
             <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
           </SelectContent>
@@ -91,9 +91,9 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nombre</TableHead>
-              <TableHead>Código</TableHead>
-              <TableHead>Descripción</TableHead>
+              <TableHead>{t('auth.name')}</TableHead>
+              <TableHead>{t('clients.code')}</TableHead>
+              <TableHead>{t('systems.description')}</TableHead>
               <TableHead>{t('common.status')}</TableHead>
               <TableHead className="text-right">
                 {t('common.actions')}
@@ -107,7 +107,7 @@ export function SystemTable({ systems, onEdit, onDelete }: SystemTableProps) {
                   colSpan={5}
                   className="h-24 text-center text-muted-foreground"
                 >
-                  No se encontraron sistemas.
+                  {t('systems.subtitle')}
                 </TableCell>
               </TableRow>
             ) : (

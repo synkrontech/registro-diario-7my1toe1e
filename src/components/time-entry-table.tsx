@@ -98,7 +98,9 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                 <TableHead>{t('timeEntry.project')}</TableHead>
                 <TableHead>{t('timeEntry.client')}</TableHead>
                 <TableHead>{t('timeEntry.system')}</TableHead>
-                <TableHead>Horario</TableHead>
+                <TableHead>
+                  {t('timeEntry.startTime')} / {t('timeEntry.endTime')}
+                </TableHead>
                 <TableHead>{t('timeEntry.duration')}</TableHead>
                 <TableHead className="w-[20%]">
                   {t('timeEntry.description')}
@@ -116,7 +118,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                   className="hover:bg-slate-50/80 transition-colors duration-150"
                 >
                   <TableCell className="font-medium whitespace-nowrap">
-                    {format(entry.date, 'dd MMM yyyy', { locale: dateLocale })}
+                    {format(entry.date, 'P', { locale: dateLocale })}
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -162,7 +164,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                             : 'text-amber-600 bg-amber-50 border-amber-200'
                       }
                     >
-                      {entry.status}
+                      {t(`enums.timeEntryStatus.${entry.status}`)}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right">
@@ -263,7 +265,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                           </div>
                           <DialogFooter className="sm:justify-between gap-2">
                             <span className="text-xs text-muted-foreground self-center">
-                              {entry.status}
+                              {t(`enums.timeEntryStatus.${entry.status}`)}
                             </span>
                             <Button
                               onClick={() => onEdit(entry)}
@@ -307,11 +309,11 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                       {entry.project_name}
                     </span>
                     <span className="text-[10px] text-slate-400 uppercase">
-                      {entry.status}
+                      {t(`enums.timeEntryStatus.${entry.status}`)}
                     </span>
                   </div>
                   <p className="text-sm font-medium text-slate-900">
-                    {format(entry.date, 'EEEE, d MMM', { locale: dateLocale })}
+                    {format(entry.date, 'EEEE, P', { locale: dateLocale })}
                   </p>
                 </div>
                 <div className="flex gap-1">

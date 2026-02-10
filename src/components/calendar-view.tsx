@@ -71,11 +71,8 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
   }
 
   const daysOfWeek = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom', 'Total']
-  // A helper to map short days based on locale could be added if needed, but for now hardcoded strings might be better replaced by date-fns formatting if we want true internationalization of day headers.
-  // Using date-fns to generate day headers:
+  // Use date-fns for dynamic day headers
   const dayHeaders = Array.from({ length: 7 }).map((_, i) => {
-    // Create a date for each day of the week starting from Monday
-    // We can use the start date of the view which is always a Monday
     const d = new Date(startDate)
     d.setDate(d.getDate() + i)
     return format(d, 'EEE', { locale: dateLocale })

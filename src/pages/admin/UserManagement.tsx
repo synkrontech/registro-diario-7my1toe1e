@@ -60,8 +60,8 @@ export default function UserManagement() {
     } catch (error: any) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudieron cargar los datos de administración',
+        title: t('common.error'),
+        description: t('common.errorLoad'),
         variant: 'destructive',
       })
     } finally {
@@ -97,7 +97,7 @@ export default function UserManagement() {
           role_name: selectedRole?.name || 'unknown',
           activo: data.activo,
         })
-        toast({ title: 'Usuario actualizado exitosamente' })
+        toast({ title: t('common.updated') })
       } else {
         // Create User
         const selectedRole = roles.find((r) => r.id === data.role_id)
@@ -105,15 +105,15 @@ export default function UserManagement() {
           ...data,
           role: selectedRole?.name || 'consultor',
         })
-        toast({ title: 'Usuario creado exitosamente' })
+        toast({ title: t('common.saved') })
       }
       setIsModalOpen(false)
       loadData()
     } catch (error: any) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: error.message || 'Ocurrió un error al guardar',
+        title: t('common.error'),
+        description: error.message || t('common.errorSave'),
         variant: 'destructive',
       })
     } finally {
@@ -137,10 +137,10 @@ export default function UserManagement() {
           description,
           permissionIds,
         )
-        toast({ title: 'Rol actualizado' })
+        toast({ title: t('common.updated') })
       } else {
         await adminService.createRole(user.id, name, description, permissionIds)
-        toast({ title: 'Rol creado' })
+        toast({ title: t('common.saved') })
       }
       const [newRoles, newLogs] = await Promise.all([
         adminService.getRoles(),
@@ -150,8 +150,8 @@ export default function UserManagement() {
       setAuditLogs(newLogs)
     } catch (error) {
       toast({
-        title: 'Error',
-        description: 'No se pudo guardar el rol',
+        title: t('common.error'),
+        description: t('common.errorSave'),
         variant: 'destructive',
       })
     }
@@ -208,10 +208,8 @@ export default function UserManagement() {
           <TabsContent value="roles" className="animate-fade-in">
             <Card>
               <CardHeader>
-                <CardTitle>Configuración de Roles</CardTitle>
-                <CardDescription>
-                  Define roles personalizados y sus niveles de acceso.
-                </CardDescription>
+                <CardTitle>{t('users.rolesPermissions')}</CardTitle>
+                <CardDescription>{t('users.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <RoleManager
@@ -226,10 +224,8 @@ export default function UserManagement() {
           <TabsContent value="audit" className="animate-fade-in">
             <Card>
               <CardHeader>
-                <CardTitle>Historial de Actividad</CardTitle>
-                <CardDescription>
-                  Registro inmutable de acciones administrativas.
-                </CardDescription>
+                <CardTitle>{t('users.audit')}</CardTitle>
+                <CardDescription>{t('users.subtitle')}</CardDescription>
               </CardHeader>
               <CardContent>
                 <AuditLogViewer logs={auditLogs} />

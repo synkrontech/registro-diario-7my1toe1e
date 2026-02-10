@@ -128,8 +128,8 @@ export function TimeEntryForm({
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudo guardar el registro. Intenta nuevamente.',
+        title: t('common.error'),
+        description: t('common.errorSave'),
         variant: 'destructive',
       })
     }
@@ -197,7 +197,7 @@ export function TimeEntryForm({
                             )}
                           >
                             {field.value ? (
-                              format(field.value, 'PPP', { locale: dateLocale })
+                              format(field.value, 'P', { locale: dateLocale })
                             ) : (
                               <span>{t('timeEntry.date')}</span>
                             )}

@@ -1,6 +1,7 @@
 import { TimeEntry } from '@/lib/types'
 import { format } from 'date-fns'
 import { Locale } from 'date-fns'
+import i18n from '@/lib/i18n'
 
 export const downloadMonthlyCsv = (
   entries: TimeEntry[],
@@ -9,25 +10,27 @@ export const downloadMonthlyCsv = (
 ) => {
   if (!entries.length) return
 
+  const t = i18n.t
   const monthName = format(date, 'MMMM-yyyy', { locale })
   const filename = `registro-tiempos-${monthName}.csv`
 
   const headers = [
-    'Fecha',
-    'Proyecto',
-    'Cliente',
-    'Sistema',
-    'Hora Inicio',
-    'Hora Fin',
-    'Duración',
-    'Descripción',
-    'Estado',
+    t('timeEntry.date'),
+    t('timeEntry.project'),
+    t('timeEntry.client'),
+    t('timeEntry.system'),
+    t('timeEntry.startTime'),
+    t('timeEntry.endTime'),
+    t('timeEntry.duration'),
+    t('timeEntry.description'),
+    t('common.status'),
   ]
 
   const rows = entries.map((entry) => {
     const hours = Math.floor(entry.durationMinutes / 60)
     const minutes = entry.durationMinutes % 60
     const durationStr = `${hours}:${minutes.toString().padStart(2, '0')}`
+    const status = t(`enums.timeEntryStatus.${entry.status}`)
 
     return [
       format(entry.date, 'yyyy-MM-dd'),
@@ -38,7 +41,7 @@ export const downloadMonthlyCsv = (
       entry.endTime,
       durationStr,
       entry.description,
-      entry.status,
+      status,
     ]
   })
 

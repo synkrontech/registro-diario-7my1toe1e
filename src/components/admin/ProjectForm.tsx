@@ -96,7 +96,7 @@ export function ProjectForm({
             name="nombre"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Nombre del Proyecto</FormLabel>
+                <FormLabel>{t('timeEntry.project')}</FormLabel>
                 <FormControl>
                   <Input placeholder="Ej. Implementación SAP" {...field} />
                 </FormControl>
@@ -163,7 +163,7 @@ export function ProjectForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
+                      <SelectValue placeholder={t('validation.required')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -194,7 +194,7 @@ export function ProjectForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
+                      <SelectValue placeholder={t('validation.required')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
@@ -223,14 +223,22 @@ export function ProjectForm({
                 >
                   <FormControl>
                     <SelectTrigger>
-                      <SelectValue placeholder="Seleccionar" />
+                      <SelectValue placeholder={t('validation.required')} />
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    <SelectItem value="Procesos">Procesos</SelectItem>
-                    <SelectItem value="SAP IBP">SAP IBP</SelectItem>
-                    <SelectItem value="SAP MDG">SAP MDG</SelectItem>
-                    <SelectItem value="Otro">Otro</SelectItem>
+                    <SelectItem value="Procesos">
+                      {t('enums.workFront.Procesos')}
+                    </SelectItem>
+                    <SelectItem value="SAP IBP">
+                      {t('enums.workFront.SAP IBP')}
+                    </SelectItem>
+                    <SelectItem value="SAP MDG">
+                      {t('enums.workFront.SAP MDG')}
+                    </SelectItem>
+                    <SelectItem value="Otro">
+                      {t('enums.workFront.Otro')}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -252,13 +260,19 @@ export function ProjectForm({
               >
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Estado del proyecto" />
+                    <SelectValue placeholder={t('common.status')} />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="activo">{t('common.active')}</SelectItem>
-                  <SelectItem value="pausado">Pausado</SelectItem>
-                  <SelectItem value="finalizado">Finalizado</SelectItem>
+                  <SelectItem value="activo">
+                    {t('enums.projectStatus.activo')}
+                  </SelectItem>
+                  <SelectItem value="pausado">
+                    {t('enums.projectStatus.pausado')}
+                  </SelectItem>
+                  <SelectItem value="finalizado">
+                    {t('enums.projectStatus.finalizado')}
+                  </SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

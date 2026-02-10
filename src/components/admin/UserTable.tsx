@@ -99,7 +99,9 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
               <SelectValue placeholder={t('auth.role')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">
+                {t('enums.projectStatus.all')}
+              </SelectItem>
               {roles.map((r) => (
                 <SelectItem key={r.id} value={r.id}>
                   {r.name}
@@ -113,7 +115,9 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
               <SelectValue placeholder={t('common.status')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">Todos</SelectItem>
+              <SelectItem value="all">
+                {t('enums.projectStatus.all')}
+              </SelectItem>
               <SelectItem value="active">{t('common.active')}</SelectItem>
               <SelectItem value="inactive">{t('common.inactive')}</SelectItem>
             </SelectContent>
@@ -151,7 +155,7 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
                   colSpan={5}
                   className="text-center py-8 text-muted-foreground"
                 >
-                  No se encontraron usuarios
+                  {t('users.subtitle')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -184,7 +188,8 @@ export function UserTable({ users, roles, onEdit }: UserTableProps) {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline" className="capitalize">
-                      {user.role}
+                      {/* Trying to translate role name if it matches key */}
+                      {t(`enums.roles.${user.role}`, user.role)}
                     </Badge>
                   </TableCell>
                   <TableCell>

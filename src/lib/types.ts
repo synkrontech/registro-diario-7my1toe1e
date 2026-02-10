@@ -140,10 +140,10 @@ export const createTimeEntrySchema = (
         .min(1, t('validation.selectProject')),
       startTime: z
         .string()
-        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido'),
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, t('validation.required')),
       endTime: z
         .string()
-        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, 'Formato inválido'),
+        .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, t('validation.required')),
       description: z.string().min(5, t('validation.minChar', { min: 5 })),
     })
     .refine(

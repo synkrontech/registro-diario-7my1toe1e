@@ -59,7 +59,9 @@ function LayoutContent() {
                     : 'Usuario'}
                 </span>
                 <span className="text-xs text-slate-500 capitalize">
-                  {profile?.role || 'Invitado'}
+                  {profile
+                    ? t(`enums.roles.${profile.role}`, profile.role)
+                    : 'Invitado'}
                 </span>
               </div>
 

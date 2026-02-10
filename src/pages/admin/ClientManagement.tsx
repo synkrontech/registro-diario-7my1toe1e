@@ -31,8 +31,8 @@ export default function ClientManagement() {
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudieron cargar los clientes',
+        title: t('common.error'),
+        description: t('common.errorLoad'),
         variant: 'destructive',
       })
     } finally {
@@ -59,18 +59,18 @@ export default function ClientManagement() {
     try {
       if (editingClient) {
         await clientService.updateClient(editingClient.id, data)
-        toast({ title: 'Cliente actualizado exitosamente' })
+        toast({ title: t('common.updated') })
       } else {
         await clientService.createClient(data)
-        toast({ title: 'Cliente creado exitosamente' })
+        toast({ title: t('common.saved') })
       }
       setIsModalOpen(false)
       loadClients()
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'Ocurrió un error al guardar el cliente',
+        title: t('common.error'),
+        description: t('common.errorSave'),
         variant: 'destructive',
       })
     } finally {
@@ -81,13 +81,13 @@ export default function ClientManagement() {
   const handleDelete = async (id: string) => {
     try {
       await clientService.deleteClient(id)
-      toast({ title: 'Cliente eliminado' })
+      toast({ title: t('common.deleted') })
       loadClients()
     } catch (error) {
       console.error(error)
       toast({
-        title: 'Error',
-        description: 'No se pudo eliminar el cliente',
+        title: t('common.error'),
+        description: t('common.errorDelete'),
         variant: 'destructive',
       })
     }
