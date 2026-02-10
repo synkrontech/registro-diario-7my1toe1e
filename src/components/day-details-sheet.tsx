@@ -79,7 +79,7 @@ export function DayDetailsSheet({
                           variant="outline"
                           className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100"
                         >
-                          {entry.project}
+                          {entry.project_name}
                         </Badge>
                         <span className="text-xs font-medium text-slate-500 bg-slate-50 px-2 py-1 rounded">
                           {entry.startTime} - {entry.endTime}
@@ -96,6 +96,12 @@ export function DayDetailsSheet({
                           className="h-5 text-[10px] bg-emerald-50 text-emerald-700"
                         >
                           {formatDuration(entry.durationMinutes)}
+                        </Badge>
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] h-5 px-1.5"
+                        >
+                          {entry.status}
                         </Badge>
                       </div>
                     </div>

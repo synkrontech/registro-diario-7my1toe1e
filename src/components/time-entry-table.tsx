@@ -44,11 +44,20 @@ interface TimeEntryTableProps {
 }
 
 export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
-  const { getEntriesByMonth } = useTimeStore()
-  // Changed from getEntriesByDate to getEntriesByMonth to show all records for the selected month
+  const { getEntriesByMonth, isLoading } = useTimeStore()
   const entries = getEntriesByMonth(date).sort(
     (a, b) => b.date.getTime() - a.date.getTime(),
   )
+
+  if (isLoading && entries.length === 0) {
+    return (
+      <Card className="border-none shadow-sm bg-white/50 h-48 flex items-center justify-center">
+        <div className="text-muted-foreground animate-pulse">
+          Cargando registros...
+        </div>
+      </Card>
+    )
+  }
 
   if (entries.length === 0) {
     return (
@@ -92,6 +101,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                 <TableHead>Horario</TableHead>
                 <TableHead>Duración</TableHead>
                 <TableHead className="w-[30%]">Descripción</TableHead>
+                <TableHead>Estado</TableHead>
                 <TableHead className="text-right">Acciones</TableHead>
               </TableRow>
             </TableHeader>
@@ -109,7 +119,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                       variant="outline"
                       className="font-normal bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border-indigo-100"
                     >
-                      {entry.project}
+                      {entry.project_name}
                     </Badge>
                   </TableCell>
                   <TableCell className="whitespace-nowrap text-slate-600">
@@ -130,6 +140,20 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                     >
                       {entry.description}
                     </span>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      variant="outline"
+                      className={
+                        entry.status === 'aprobado'
+                          ? 'text-green-600 bg-green-50 border-green-200'
+                          : entry.status === 'rechazado'
+                            ? 'text-red-600 bg-red-50 border-red-200'
+                            : 'text-amber-600 bg-amber-50 border-amber-200'
+                      }
+                    >
+                      {entry.status}
+                    </Badge>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-1">
@@ -171,7 +195,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                                   Proyecto
                                 </h4>
                                 <p className="font-medium text-indigo-600">
-                                  {entry.project}
+                                  {entry.project_name}
                                 </p>
                               </div>
                               <div className="space-y-1">
@@ -252,7 +276,10 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
-                      {entry.project}
+                      {entry.project_name}
+                    </span>
+                    <span className="text-[10px] text-slate-400 uppercase">
+                      {entry.status}
                     </span>
                   </div>
                   <p className="text-sm font-medium text-slate-900">
@@ -285,7 +312,7 @@ export function TimeEntryTable({ date, onEdit }: TimeEntryTableProps) {
                             Proyecto
                           </span>
                           <p className="font-semibold text-indigo-700 text-lg">
-                            {entry.project}
+                            {entry.project_name}
                           </p>
                         </div>
                         <div className="flex justify-between items-center bg-slate-50 p-3 rounded-lg">

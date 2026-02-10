@@ -10,9 +10,21 @@ import { Outlet } from 'react-router-dom'
 import useTimeStore from '@/stores/useTimeStore'
 import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
+import { useAuth } from '@/components/AuthProvider'
+import { LogOut } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 function LayoutContent() {
   const { viewDate, getEntriesByMonth } = useTimeStore()
+  const { profile, signOut } = useAuth()
 
   // Calculate monthly stats for the footer
   const monthlyEntries = getEntriesByMonth(viewDate)
@@ -21,7 +33,7 @@ function LayoutContent() {
     0,
   )
   const totalHours = (totalMinutes / 60).toFixed(1)
-  const uniqueProjects = new Set(monthlyEntries.map((e) => e.project)).size
+  const uniqueProjects = new Set(monthlyEntries.map((e) => e.project_id)).size
 
   return (
     <SidebarProvider>
@@ -37,17 +49,39 @@ function LayoutContent() {
             <div className="flex items-center gap-3">
               <div className="hidden md:flex flex-col items-end mr-2">
                 <span className="text-sm font-medium text-slate-900">
-                  Usuario Demo
+                  {profile
+                    ? `${profile.nombre} ${profile.apellido}`
+                    : 'Usuario'}
                 </span>
-                <span className="text-xs text-slate-500">Frontend Dev</span>
+                <span className="text-xs text-slate-500 capitalize">
+                  {profile?.role || 'Invitado'}
+                </span>
               </div>
-              <Avatar className="h-9 w-9 border border-slate-200">
-                <AvatarImage
-                  src="https://img.usecurling.com/ppl/thumbnail?gender=male"
-                  alt="@usuario"
-                />
-                <AvatarFallback>UD</AvatarFallback>
-              </Avatar>
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Avatar className="h-9 w-9 border border-slate-200 cursor-pointer hover:ring-2 hover:ring-indigo-100 transition-all">
+                    <AvatarImage
+                      src={`https://img.usecurling.com/ppl/thumbnail?gender=male&seed=${profile?.id}`}
+                      alt={profile?.nombre}
+                    />
+                    <AvatarFallback>
+                      {profile?.nombre?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuLabel>Mi Cuenta</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={signOut}
+                    className="text-red-600 focus:text-red-600 focus:bg-red-50 cursor-pointer"
+                  >
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Cerrar Sesión
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </header>

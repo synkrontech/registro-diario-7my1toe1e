@@ -15,6 +15,7 @@ export const downloadMonthlyCsv = (entries: TimeEntry[], date: Date) => {
     'Hora Fin',
     'Duración',
     'Descripción',
+    'Estado',
   ]
 
   const rows = entries.map((entry) => {
@@ -24,11 +25,12 @@ export const downloadMonthlyCsv = (entries: TimeEntry[], date: Date) => {
 
     return [
       format(entry.date, 'yyyy-MM-dd'),
-      entry.project,
+      entry.project_name,
       entry.startTime,
       entry.endTime,
       durationStr,
       entry.description,
+      entry.status,
     ]
   })
 

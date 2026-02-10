@@ -1,29 +1,74 @@
 import { z } from 'zod'
 
+export type UserRole = 'admin' | 'director' | 'gerente' | 'consultor'
+export type ProjectStatus = 'activo' | 'pausado' | 'finalizado'
+export type TimeEntryStatus = 'pendiente' | 'aprobado' | 'rechazado'
+
+export interface UserProfile {
+  id: string
+  email: string
+  nombre: string
+  apellido: string
+  role: UserRole
+  activo: boolean
+  created_at?: string
+}
+
+export interface Client {
+  id: string
+  nombre: string
+  codigo: string
+  pais: string
+  activo: boolean
+}
+
+export interface System {
+  id: string
+  nombre: string
+  codigo: string
+  descripcion: string
+  activo: boolean
+}
+
+export interface Project {
+  id: string
+  nombre: string
+  codigo: string
+  client_id: string
+  gerente_id: string
+  system_id: string
+  status: ProjectStatus
+  // Joined fields for UI convenience
+  client_name?: string
+  system_name?: string
+}
+
+export interface ProjectAssignment {
+  id: string
+  project_id: string
+  user_id: string
+}
+
 export interface TimeEntry {
   id: string
+  user_id: string
+  project_id: string
   date: Date
-  project: string
   startTime: string
   endTime: string
   description: string
   durationMinutes: number
+  status: TimeEntryStatus
+  // For UI display
+  project_name: string
 }
-
-export const PROJECTS = [
-  'Proyecto Alfa',
-  'Proyecto Beta',
-  'Mantenimiento',
-  'Reunión Interna',
-  'Desarrollo Frontend',
-] as const
 
 export const timeEntrySchema = z
   .object({
     date: z.date({
       required_error: 'La fecha es requerida',
     }),
-    project: z
+    projectId: z
       .string({
         required_error: 'Selecciona un proyecto',
       })

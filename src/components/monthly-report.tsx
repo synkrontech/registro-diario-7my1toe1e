@@ -4,12 +4,10 @@ import { format } from 'date-fns'
 import { es } from 'date-fns/locale'
 import useTimeStore from '@/stores/useTimeStore'
 import { BarChart, Clock, CalendarDays, Download } from 'lucide-react'
-import { PROJECTS } from '@/lib/types'
 import { downloadMonthlyCsv } from '@/lib/csv-export'
-import { cn } from '@/lib/utils'
 
 export function MonthlyReport({ date }: { date: Date }) {
-  const { getEntriesByMonth } = useTimeStore()
+  const { getEntriesByMonth, projects } = useTimeStore()
   const entries = getEntriesByMonth(date)
 
   const totalMinutes = entries.reduce(
@@ -19,17 +17,24 @@ export function MonthlyReport({ date }: { date: Date }) {
   const totalHours = Math.floor(totalMinutes / 60)
   const remainingMinutes = totalMinutes % 60
 
-  const projectStats = PROJECTS.map((project) => {
-    const minutes = entries
-      .filter((e) => e.project === project)
-      .reduce((acc, curr) => acc + curr.durationMinutes, 0)
-    return {
-      name: project,
-      minutes,
-      hours: (minutes / 60).toFixed(1),
-    }
-  })
-    .filter((stat) => stat.minutes > 0)
+  // Calculate stats based on project names in entries (to handle historical projects)
+  // or use the projects list if we want to show 0 for active projects.
+  // Here we group by project_name found in entries.
+  const uniqueProjectNames = Array.from(
+    new Set(entries.map((e) => e.project_name)),
+  )
+
+  const projectStats = uniqueProjectNames
+    .map((name) => {
+      const minutes = entries
+        .filter((e) => e.project_name === name)
+        .reduce((acc, curr) => acc + curr.durationMinutes, 0)
+      return {
+        name: name,
+        minutes,
+        hours: (minutes / 60).toFixed(1),
+      }
+    })
     .sort((a, b) => b.minutes - a.minutes)
 
   const handleExport = () => {

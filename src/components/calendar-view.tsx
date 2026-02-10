@@ -210,7 +210,7 @@ export function CalendarView({ currentDate }: CalendarViewProps) {
                                     key={entry.id}
                                     className="text-[10px] truncate px-1.5 py-0.5 rounded bg-white border border-slate-100 text-slate-600 shadow-sm"
                                   >
-                                    {entry.project}
+                                    {entry.project_name}
                                   </div>
                                 ))}
                                 {dayEntries.length > 3 && (

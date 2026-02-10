@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { CalendarIcon, Plus, Save, X } from 'lucide-react'
+import { CalendarIcon, Plus, Save, X, Loader2 } from 'lucide-react'
 import { format, isSameMonth } from 'date-fns'
 import { es } from 'date-fns/locale'
 
@@ -31,12 +31,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import {
-  TimeEntryFormValues,
-  timeEntrySchema,
-  PROJECTS,
-  TimeEntry,
-} from '@/lib/types'
+import { TimeEntryFormValues, timeEntrySchema, TimeEntry } from '@/lib/types'
 import useTimeStore from '@/stores/useTimeStore'
 import { useToast } from '@/hooks/use-toast'
 
@@ -53,7 +48,7 @@ export function TimeEntryForm({
   entryToEdit,
   onCancelEdit,
 }: TimeEntryFormProps) {
-  const { addEntry, updateEntry } = useTimeStore()
+  const { addEntry, updateEntry, projects } = useTimeStore()
   const { toast } = useToast()
 
   const form = useForm<TimeEntryFormValues>({
@@ -63,16 +58,12 @@ export function TimeEntryForm({
       startTime: '',
       endTime: '',
       description: '',
-      project: '',
+      projectId: '',
     },
   })
 
-  // Update form date when currentDate changes (month navigation) and we are NOT editing
   useEffect(() => {
     if (!entryToEdit) {
-      // If the current form date is in a different month than the new currentDate
-      // update it to the new currentDate (which is usually 1st of month or today)
-      // to keep the form in sync with the view context.
       const currentFormDate = form.getValues('date')
       if (!isSameMonth(currentFormDate, currentDate)) {
         form.setValue('date', currentDate)
@@ -80,12 +71,11 @@ export function TimeEntryForm({
     }
   }, [currentDate, entryToEdit, form])
 
-  // Populate form when editing
   useEffect(() => {
     if (entryToEdit) {
       form.reset({
         date: entryToEdit.date,
-        project: entryToEdit.project,
+        projectId: entryToEdit.project_id, // Use ID here
         startTime: entryToEdit.startTime,
         endTime: entryToEdit.endTime,
         description: entryToEdit.description,
@@ -93,10 +83,6 @@ export function TimeEntryForm({
     }
   }, [entryToEdit, form])
 
-  // Sync selected date with parent safely
-  // We only want to notify parent if the USER changes the date in the form
-  // But strictly speaking, the parent passes currentDate down.
-  // If the user picks a date in the form, we might want to update the parent's view to that month.
   const watchedDate = form.watch('date')
   useEffect(() => {
     if (watchedDate) {
@@ -104,10 +90,10 @@ export function TimeEntryForm({
     }
   }, [watchedDate, onDateChange])
 
-  function onSubmit(data: TimeEntryFormValues) {
+  async function onSubmit(data: TimeEntryFormValues) {
     try {
       if (entryToEdit) {
-        updateEntry(entryToEdit.id, data)
+        await updateEntry(entryToEdit.id, data)
         toast({
           title: 'Registro actualizado',
           description: 'La actividad ha sido modificada correctamente.',
@@ -115,7 +101,7 @@ export function TimeEntryForm({
         })
         onCancelEdit()
       } else {
-        addEntry(data)
+        await addEntry(data)
         toast({
           title: 'Registro guardado',
           description: 'Tu actividad ha sido registrada exitosamente.',
@@ -123,10 +109,9 @@ export function TimeEntryForm({
         })
       }
 
-      // Reset form but keep the current date context
       form.reset({
-        date: data.date, // Keep the same date for next entry
-        project: data.project, // Keep project for convenience
+        date: data.date,
+        projectId: data.projectId,
         startTime: '',
         endTime: '',
         description: '',
@@ -135,7 +120,7 @@ export function TimeEntryForm({
       console.error(error)
       toast({
         title: 'Error',
-        description: 'Revisa los campos e intenta nuevamente.',
+        description: 'No se pudo guardar el registro. Intenta nuevamente.',
         variant: 'destructive',
       })
     }
@@ -148,9 +133,11 @@ export function TimeEntryForm({
       startTime: '',
       endTime: '',
       description: '',
-      project: '',
+      projectId: '',
     })
   }
+
+  const isSubmitting = form.formState.isSubmitting
 
   return (
     <Card className="border-none shadow-md overflow-hidden">
@@ -226,7 +213,7 @@ export function TimeEntryForm({
 
               <FormField
                 control={form.control}
-                name="project"
+                name="projectId"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Proyecto</FormLabel>
@@ -241,11 +228,17 @@ export function TimeEntryForm({
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {PROJECTS.map((project) => (
-                          <SelectItem key={project} value={project}>
-                            {project}
-                          </SelectItem>
-                        ))}
+                        {projects.length === 0 ? (
+                          <div className="p-2 text-sm text-muted-foreground text-center">
+                            No hay proyectos disponibles
+                          </div>
+                        ) : (
+                          projects.map((project) => (
+                            <SelectItem key={project.id} value={project.id}>
+                              {project.nombre}
+                            </SelectItem>
+                          ))
+                        )}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -311,8 +304,11 @@ export function TimeEntryForm({
                   : 'bg-indigo-600 hover:bg-indigo-700 shadow-indigo-200',
               )}
               size="lg"
+              disabled={isSubmitting}
             >
-              {entryToEdit ? (
+              {isSubmitting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : entryToEdit ? (
                 <Save className="mr-2 h-4 w-4" />
               ) : (
                 <Plus className="mr-2 h-4 w-4" />
