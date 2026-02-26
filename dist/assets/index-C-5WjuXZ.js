@@ -35286,7 +35286,7 @@ function shouldShowDeprecationWarning() {
 	return parseInt(versionMatch[1], 10) <= 18;
 }
 if (shouldShowDeprecationWarning()) console.warn("⚠️  Node.js 18 and below are deprecated and will no longer be supported in future versions of @supabase/supabase-js. Please upgrade to Node.js 20 or later. For more information, visit: https://github.com/orgs/supabase/discussions/37217");
-const supabase = createClient("https://dmmzcnmkgtnjeptamves.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRtbXpjbm1rZ3RuamVwdGFtdmVzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1MDgzMzAsImV4cCI6MjA4NjA4NDMzMH0.GJlXVXioi2Ed8LHiY3zfl73F5lQjNRj5Ht5YCZYfgCY", { auth: {
+const supabase = createClient("https://hxpwbvthjhndltrbyhfp.supabase.co", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh4cHdidnRoamhuZGx0cmJ5aGZwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIxMzc4NDYsImV4cCI6MjA4NzcxMzg0Nn0.bRDuCRnqgwiSvJXyybzj7Ri81p04zV6AMwgZm5W45Hw", { auth: {
 	storage: localStorage,
 	persistSession: true,
 	autoRefreshToken: true
@@ -84545,4 +84545,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-PMAKxsZy.js.map
+//# sourceMappingURL=index-C-5WjuXZ.js.map
