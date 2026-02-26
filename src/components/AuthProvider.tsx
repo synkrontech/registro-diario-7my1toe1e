@@ -107,11 +107,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         setProfile(userProfile)
 
-        // Fetch User Preferences
-        const userPrefs = await userService.getUserPreferences(userId)
-        setPreferences(userPrefs)
-        if (userPrefs?.idioma) {
-          i18n.changeLanguage(userPrefs.idioma)
+        // Fetch User Preferences gracefully
+        try {
+          const userPrefs = await userService.getUserPreferences(userId)
+          setPreferences(userPrefs || null)
+          if (userPrefs?.idioma) {
+            i18n.changeLanguage(userPrefs.idioma)
+          }
+        } catch (prefError) {
+          console.error(
+            'Failed to load user preferences gracefully:',
+            prefError,
+          )
+          setPreferences(null)
         }
       }
     } catch (err) {

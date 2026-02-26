@@ -35293,8 +35293,8 @@ const supabase = createClient("https://hxpwbvthjhndltrbyhfp.supabase.co", "eyJhb
 } });
 const userService = {
 	async getUserPreferences(userId) {
-		const { data, error } = await supabase.from("user_preferences").select("*").eq("user_id", userId).single();
-		if (error && error.code !== "PGRST116") {
+		const { data, error } = await supabase.from("user_preferences").select("*").eq("user_id", userId).maybeSingle();
+		if (error) {
 			console.error("Error fetching user preferences:", error);
 			return null;
 		}
@@ -35379,9 +35379,14 @@ function AuthProvider({ children }) {
 					role_id: roleData?.id,
 					permissions
 				});
-				const userPrefs = await userService.getUserPreferences(userId);
-				setPreferences(userPrefs);
-				if (userPrefs?.idioma) i18n_default.changeLanguage(userPrefs.idioma);
+				try {
+					const userPrefs = await userService.getUserPreferences(userId);
+					setPreferences(userPrefs || null);
+					if (userPrefs?.idioma) i18n_default.changeLanguage(userPrefs.idioma);
+				} catch (prefError) {
+					console.error("Failed to load user preferences gracefully:", prefError);
+					setPreferences(null);
+				}
 			}
 		} catch (err) {
 			console.error("Error in profile fetch:", err);
@@ -84545,4 +84550,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-CMzTJKhN.js.map
+//# sourceMappingURL=index-DyhXDln4.js.map

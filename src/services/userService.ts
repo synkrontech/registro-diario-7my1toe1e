@@ -7,9 +7,9 @@ export const userService = {
       .from('user_preferences')
       .select('*')
       .eq('user_id', userId)
-      .single()
+      .maybeSingle()
 
-    if (error && error.code !== 'PGRST116') {
+    if (error) {
       console.error('Error fetching user preferences:', error)
       return null
     }
