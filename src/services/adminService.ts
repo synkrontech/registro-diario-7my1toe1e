@@ -349,8 +349,8 @@ export const adminService = {
       .select(
         `
         *,
-        admin:admin_id ( email ),
-        target:target_user_id ( email )
+        admin:users!audit_logs_admin_id_fkey ( email ),
+        target:users!audit_logs_target_user_id_fkey ( email )
       `,
       )
       .order('created_at', { ascending: false })

@@ -76553,8 +76553,8 @@ const adminService = {
 	async getAuditLogs() {
 		const { data, error } = await supabase.from("audit_logs").select(`
         *,
-        admin:admin_id ( email ),
-        target:target_user_id ( email )
+        admin:users!audit_logs_admin_id_fkey ( email ),
+        target:users!audit_logs_target_user_id_fkey ( email )
       `).order("created_at", { ascending: false }).limit(100);
 		if (error) throw error;
 		return data.map((log$1) => ({
@@ -84545,4 +84545,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-C-5WjuXZ.js.map
+//# sourceMappingURL=index-CMzTJKhN.js.map
