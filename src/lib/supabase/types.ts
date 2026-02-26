@@ -624,8 +624,108 @@ export const Constants = {
 
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
-// This section contains constraints, RLS policies, functions, triggers,
-// indexes and materialized views not present in the type definitions above.
+// This section contains actual PostgreSQL column types, constraints, RLS policies,
+// functions, triggers, indexes and materialized views not present in the type definitions above.
+// IMPORTANT: The TypeScript types above map UUID, TEXT, VARCHAR all to "string".
+// Use the COLUMN TYPES section below to know the real PostgreSQL type for each column.
+// Always use the correct PostgreSQL type when writing SQL migrations.
+
+// --- COLUMN TYPES (actual PostgreSQL types) ---
+// Use this to know the real database type when writing migrations.
+// "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
+// Table: audit_logs
+//   id: uuid (not null, default: gen_random_uuid())
+//   admin_id: uuid (nullable)
+//   action_type: text (not null)
+//   target_user_id: uuid (nullable)
+//   details: jsonb (nullable)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+// Table: clients
+//   id: uuid (not null, default: gen_random_uuid())
+//   nombre: text (not null)
+//   codigo: text (not null)
+//   pais: text (not null)
+//   activo: boolean (nullable, default: true)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+// Table: email_templates
+//   id: uuid (not null, default: gen_random_uuid())
+//   slug: text (not null)
+//   subject: text (not null)
+//   body: text (not null)
+//   updated_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+// Table: notifications
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   title: text (not null)
+//   message: text (not null)
+//   type: text (not null)
+//   is_read: boolean (not null, default: false)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+// Table: permissions
+//   id: uuid (not null, default: gen_random_uuid())
+//   code: text (not null)
+//   description: text (nullable)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+//   resource_id: uuid (nullable)
+//   resource_type: text (nullable)
+// Table: project_assignments
+//   id: uuid (not null, default: gen_random_uuid())
+//   project_id: uuid (not null)
+//   user_id: uuid (not null)
+// Table: projects
+//   id: uuid (not null, default: gen_random_uuid())
+//   nombre: text (not null)
+//   codigo: text (not null)
+//   client_id: uuid (not null)
+//   gerente_id: uuid (nullable)
+//   system_id: uuid (nullable)
+//   status: project_status (nullable, default: 'activo'::project_status)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+//   work_front: text (nullable)
+// Table: role_permissions
+//   role_id: uuid (not null)
+//   permission_id: uuid (not null)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+// Table: roles
+//   id: uuid (not null, default: gen_random_uuid())
+//   name: text (not null)
+//   description: text (nullable)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+// Table: systems
+//   id: uuid (not null, default: gen_random_uuid())
+//   nombre: text (not null)
+//   codigo: text (not null)
+//   descripcion: text (nullable)
+//   activo: boolean (nullable, default: true)
+// Table: time_entries
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   project_id: uuid (not null)
+//   fecha: date (not null)
+//   starttime: text (not null)
+//   endtime: text (not null)
+//   description: text (nullable)
+//   durationminutes: integer (not null)
+//   status: time_entry_status (nullable, default: 'pendiente'::time_entry_status)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+//   processed_by: uuid (nullable)
+//   processed_at: timestamp with time zone (nullable)
+// Table: user_preferences
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   idioma: text (nullable)
+//   timezone: text (nullable)
+//   created_at: timestamp with time zone (nullable, default: now())
+//   updated_at: timestamp with time zone (nullable, default: now())
+// Table: users
+//   id: uuid (not null)
+//   email: text (not null)
+//   nombre: text (not null)
+//   apellido: text (not null)
+//   activo: boolean (nullable, default: false)
+//   created_at: timestamp with time zone (not null, default: timezone('utc'::text, now()))
+//   role_id: uuid (not null)
+//   role: text (nullable, default: 'consultor'::text)
 
 // --- CONSTRAINTS ---
 // Table: audit_logs
@@ -715,8 +815,8 @@ export const Constants = {
 //     USING: true
 //   Policy "Consultor view assigned projects" (SELECT, PERMISSIVE) roles={public}
 //     USING: (id IN ( SELECT project_assignments.project_id
-   FROM project_assignments
-  WHERE (project_assignments.user_id = auth.uid())))
+//               FROM project_assignments
+//              WHERE (project_assignments.user_id = auth.uid())))
 //   Policy "Gerente view managed projects" (SELECT, PERMISSIVE) roles={public}
 //     USING: (gerente_id = auth.uid())
 // Table: role_permissions
@@ -737,8 +837,8 @@ export const Constants = {
 //     USING: (get_current_user_role() = ANY (ARRAY['admin'::text, 'director'::text]))
 //   Policy "Gerente view project entries" (SELECT, PERMISSIVE) roles={public}
 //     USING: (project_id IN ( SELECT projects.id
-   FROM projects
-  WHERE (projects.gerente_id = auth.uid())))
+//               FROM projects
+//              WHERE (projects.gerente_id = auth.uid())))
 //   Policy "Users manage own entries" (ALL, PERMISSIVE) roles={public}
 //     USING: (user_id = auth.uid())
 // Table: user_preferences
@@ -841,7 +941,26 @@ export const Constants = {
 //   AS $function$
 //   DECLARE
 //       admin_record RECORD;
+//       new_record_json JSONB;
+//       param_value TEXT;
 //   BEGIN
+//       -- Convert NEW record to JSONB to safely access fields dynamically
+//       -- This prevents "record has no field" errors when the field doesn't exist in the specific table
+//       new_record_json := to_jsonb(NEW);
+//   
+//       -- Determine the value to use in format() based on the table name
+//       IF TG_TABLE_NAME = 'users' THEN
+//           -- For users table, we want to show the email (matches existing logic)
+//           param_value := COALESCE(new_record_json->>'email', 'Desconocido');
+//       ELSIF TG_TABLE_NAME = 'audit_logs' THEN
+//           -- For audit_logs table, we want to show the action_type
+//           param_value := COALESCE(new_record_json->>'action_type', 'Desconocido');
+//       ELSE
+//           -- Fallback for safety to prevent runtime errors on other tables
+//           param_value := 'Desconocido';
+//       END IF;
+//   
+//       -- Notify all active admins
 //       FOR admin_record IN 
 //           SELECT u.id FROM public.users u
 //           JOIN public.roles r ON u.role_id = r.id
@@ -851,7 +970,7 @@ export const Constants = {
 //           VALUES (
 //               admin_record.id, 
 //               TG_ARGV[0], 
-//               format(TG_ARGV[1], COALESCE(NEW.email, 'Desconocido')), 
+//               format(TG_ARGV[1], param_value), 
 //               TG_ARGV[2]
 //           );
 //       END LOOP;
