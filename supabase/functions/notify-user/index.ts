@@ -14,12 +14,12 @@ Deno.serve(async (req) => {
 
   try {
     const { to, name, type, data } = await req.json()
-    
+
     // Connect to Supabase to fetch templates
     // Use service role key to access email_templates table (protected)
     const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
     let subject = ''
@@ -28,15 +28,15 @@ Deno.serve(async (req) => {
 
     // Determine which template to use based on type
     if (type === 'status_change') {
-       if (data.status === 'active') {
-         templateSlug = 'user_approval'
-       } else {
-         templateSlug = 'user_rejection'
-       }
+      if (data.status === 'active') {
+        templateSlug = 'user_approval'
+      } else {
+        templateSlug = 'user_rejection'
+      }
     } else if (type === 'welcome_admin') {
-       templateSlug = 'admin_new_user'
+      templateSlug = 'admin_new_user'
     } else if (type === 'registration') {
-       templateSlug = 'user_registration'
+      templateSlug = 'user_registration'
     }
 
     if (templateSlug) {
@@ -72,7 +72,10 @@ Deno.serve(async (req) => {
     // Integration with actual email provider would go here (Resend, etc.)
 
     return new Response(
-      JSON.stringify({ success: true, message: 'Email processed via template' }),
+      JSON.stringify({
+        success: true,
+        message: 'Email processed via template',
+      }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },

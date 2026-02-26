@@ -84410,7 +84410,7 @@ var ProtectedRoute = ({ children }) => {
 		children: "Cargando..."
 	});
 	if (!user) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-		to: "/login",
+		to: "/login-time",
 		state: { from: location },
 		replace: true
 	});
@@ -84453,7 +84453,7 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$1, {}),
 		/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AuthProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeStoreProvider, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Routes, { children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-				path: "/login",
+				path: "/login-time",
 				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Login, {})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
@@ -84545,4 +84545,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-CY3z8oep.js.map
+//# sourceMappingURL=index-PMAKxsZy.js.map
