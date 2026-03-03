@@ -64,7 +64,7 @@ const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) return null
 
   if (profile?.role !== 'admin') {
-    return <Navigate to="/" replace />
+    return <Navigate to="/index-time" replace />
   }
 
   return <>{children}</>
@@ -82,7 +82,7 @@ const RoleRoute = ({
   if (loading) return null
 
   if (!profile || !allowedRoles.includes(profile.role)) {
-    return <Navigate to="/" replace />
+    return <Navigate to="/index-time" replace />
   }
 
   return <>{children}</>
@@ -116,7 +116,8 @@ const App = () => (
                 </ProtectedRoute>
               }
             >
-              <Route path="/" element={<Index />} />
+              <Route path="/" element={<Navigate to="/index-time" replace />} />
+              <Route path="/index-time" element={<Index />} />
               <Route path="/timesheet" element={<TimeSheet />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/profile" element={<Profile />} />

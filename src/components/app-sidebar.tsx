@@ -53,7 +53,7 @@ export function AppSidebar() {
   const items = [
     {
       title: t('sidebar.dashboard'),
-      url: '/',
+      url: '/index-time',
       icon: Clock,
       visible: true,
     },
@@ -131,7 +131,7 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton size="lg" asChild>
-              <Link to="/">
+              <Link to="/index-time">
                 <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-600 text-sidebar-primary-foreground">
                   <Hexagon className="size-4" />
                 </div>

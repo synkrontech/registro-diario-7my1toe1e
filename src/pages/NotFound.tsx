@@ -23,7 +23,7 @@ const NotFound = () => {
           Oops! {t('common.error')} - Page not found
         </p>
         <Button asChild>
-          <Link to="/">{t('sidebar.dashboard')}</Link>
+          <Link to="/index-time">{t('sidebar.dashboard')}</Link>
         </Button>
       </div>
     </div>

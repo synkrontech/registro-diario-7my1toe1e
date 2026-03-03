@@ -47,7 +47,8 @@ export default function Login() {
   const { toast } = useToast()
 
   // Handle redirect logic, correcting legacy /settings path to /profile
-  const rawFrom = location.state?.from?.pathname || '/'
+  // Default rawFrom to /index-time as requested
+  const rawFrom = location.state?.from?.pathname || '/index-time'
   const from = rawFrom === '/settings' ? '/profile' : rawFrom
 
   // Schemas with translation
@@ -157,7 +158,7 @@ export default function Login() {
         password: data.password,
         options: {
           data: metadata,
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/index-time`,
         },
       })
 
@@ -200,7 +201,7 @@ export default function Login() {
         type: 'signup',
         email: unverifiedEmail,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/index-time`,
         },
       })
 

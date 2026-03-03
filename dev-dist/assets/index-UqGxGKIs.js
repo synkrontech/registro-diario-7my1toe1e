@@ -75654,7 +75654,7 @@ function Login() {
 	const navigate = useNavigate();
 	const location = useLocation();
 	const { toast: toast$2 } = useToast();
-	const rawFrom = location.state?.from?.pathname || "/";
+	const rawFrom = location.state?.from?.pathname || "/index-time";
 	const from = rawFrom === "/settings" ? "/profile" : rawFrom;
 	const loginSchema = object({
 		email: string().email(t$2("validation.emailInvalid")),
@@ -75747,7 +75747,7 @@ function Login() {
 				password: data.password,
 				options: {
 					data: metadata,
-					emailRedirectTo: `${window.location.origin}/`
+					emailRedirectTo: `${window.location.origin}/index-time`
 				}
 			});
 			if (error) throw error;
@@ -75780,7 +75780,7 @@ function Login() {
 			const { error } = await supabase.auth.resend({
 				type: "signup",
 				email: unverifiedEmail,
-				options: { emailRedirectTo: `${window.location.origin}/` }
+				options: { emailRedirectTo: `${window.location.origin}/index-time` }
 			});
 			if (error) throw error;
 			toast$2({
@@ -76050,7 +76050,7 @@ var NotFound = () => {
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 					asChild: true,
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-						to: "/",
+						to: "/index-time",
 						children: t$2("sidebar.dashboard")
 					})
 				})
@@ -84207,7 +84207,7 @@ function AppSidebar() {
 	const items = [
 		{
 			title: t$2("sidebar.dashboard"),
-			url: "/",
+			url: "/index-time",
 			icon: Clock,
 			visible: true
 		},
@@ -84282,7 +84282,7 @@ function AppSidebar() {
 				size: "lg",
 				asChild: true,
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-					to: "/",
+					to: "/index-time",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						className: "flex aspect-square size-8 items-center justify-center rounded-lg bg-indigo-600 text-sidebar-primary-foreground",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Hexagon, { className: "size-4" })
@@ -84434,7 +84434,7 @@ var AdminRoute = ({ children }) => {
 	const { profile: profile$3, loading } = useAuth();
 	if (loading) return null;
 	if (profile$3?.role !== "admin") return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-		to: "/",
+		to: "/index-time",
 		replace: true
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
@@ -84443,7 +84443,7 @@ var RoleRoute = ({ children, allowedRoles }) => {
 	const { profile: profile$3, loading } = useAuth();
 	if (loading) return null;
 	if (!profile$3 || !allowedRoles.includes(profile$3.role)) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-		to: "/",
+		to: "/index-time",
 		replace: true
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
@@ -84470,6 +84470,13 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 				children: [
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 						path: "/",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
+							to: "/index-time",
+							replace: true
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+						path: "/index-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index_default, {})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
@@ -84550,4 +84557,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-DyhXDln4.js.map
+//# sourceMappingURL=index-UqGxGKIs.js.map
