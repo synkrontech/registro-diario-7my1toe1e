@@ -52,7 +52,7 @@ const ActiveUserRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) return null
 
   if (profile && !profile.activo) {
-    return <Navigate to="/pending-approval" replace />
+    return <Navigate to="/pending-approval-time" replace />
   }
 
   return <>{children}</>
@@ -100,7 +100,7 @@ const App = () => (
           <Routes>
             <Route path="/login-time" element={<Login />} />
             <Route
-              path="/pending-approval"
+              path="/pending-approval-time"
               element={
                 <ProtectedRoute>
                   <PendingApproval />
@@ -118,18 +118,23 @@ const App = () => (
             >
               <Route path="/" element={<Navigate to="/index-time" replace />} />
               <Route path="/index-time" element={<Index />} />
-              <Route path="/timesheet" element={<TimeSheet />} />
-              <Route path="/reports" element={<Reports />} />
-              <Route path="/profile" element={<Profile />} />
-              {/* Redirect legacy /settings to /profile */}
+              <Route path="/timesheet-time" element={<TimeSheet />} />
+              <Route path="/reports-time" element={<Reports />} />
+              <Route path="/profile-time" element={<Profile />} />
+              {/* Redirect legacy /settings to /profile-time */}
               <Route
                 path="/settings"
-                element={<Navigate to="/profile" replace />}
+                element={<Navigate to="/profile-time" replace />}
+              />
+              {/* Redirect legacy /profile to /profile-time */}
+              <Route
+                path="/profile"
+                element={<Navigate to="/profile-time" replace />}
               />
 
               {/* Admin Routes */}
               <Route
-                path="/admin/users"
+                path="/admin/users-time"
                 element={
                   <RoleRoute allowedRoles={['admin', 'director']}>
                     <UserManagement />
@@ -137,7 +142,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/admin/approvals"
+                path="/admin/approvals-time"
                 element={
                   <RoleRoute allowedRoles={['admin', 'director', 'gerente']}>
                     <ApprovalPanel />
@@ -145,7 +150,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/admin/notifications"
+                path="/admin/notifications-time"
                 element={
                   <AdminRoute>
                     <NotificationsPage />
@@ -153,7 +158,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/admin/settings/emails"
+                path="/admin/settings/emails-time"
                 element={
                   <AdminRoute>
                     <EmailSettingsPage />
@@ -161,7 +166,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/admin/clients"
+                path="/admin/clients-time"
                 element={
                   <RoleRoute allowedRoles={['admin', 'director']}>
                     <ClientManagement />
@@ -169,7 +174,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/admin/systems"
+                path="/admin/systems-time"
                 element={
                   <RoleRoute allowedRoles={['admin', 'director']}>
                     <SystemManagement />
@@ -177,7 +182,7 @@ const App = () => (
                 }
               />
               <Route
-                path="/admin/projects"
+                path="/admin/projects-time"
                 element={
                   <RoleRoute allowedRoles={['admin', 'director']}>
                     <ProjectManagement />

@@ -69,7 +69,7 @@ export function ManagerDashboard() {
         <h1 className="text-3xl font-bold text-slate-900">
           {t('sidebar.dashboard')}
         </h1>
-        <Link to="/admin/approvals">
+        <Link to="/admin/approvals-time">
           <Button className="bg-indigo-600 hover:bg-indigo-700">
             {t('dashboard.manager.goToApprovals')}
             <ArrowRight className="ml-2 h-4 w-4" />

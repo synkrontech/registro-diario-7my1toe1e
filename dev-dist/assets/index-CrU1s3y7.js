@@ -73016,7 +73016,7 @@ function ManagerDashboard() {
 					className: "text-3xl font-bold text-slate-900",
 					children: t$2("sidebar.dashboard")
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Link, {
-					to: "/admin/approvals",
+					to: "/admin/approvals-time",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 						className: "bg-indigo-600 hover:bg-indigo-700",
 						children: [t$2("dashboard.manager.goToApprovals"), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ArrowRight, { className: "ml-2 h-4 w-4" })]
@@ -75655,7 +75655,7 @@ function Login() {
 	const location = useLocation();
 	const { toast: toast$2 } = useToast();
 	const rawFrom = location.state?.from?.pathname || "/index-time";
-	const from = rawFrom === "/settings" ? "/profile" : rawFrom;
+	const from = ["/settings", "/profile"].includes(rawFrom) ? "/profile-time" : rawFrom;
 	const loginSchema = object({
 		email: string().email(t$2("validation.emailInvalid")),
 		password: string().min(6, t$2("validation.minChar", { min: 6 }))
@@ -84213,19 +84213,19 @@ function AppSidebar() {
 		},
 		{
 			title: t$2("sidebar.timeRegistry"),
-			url: "/timesheet",
+			url: "/timesheet-time",
 			icon: CalendarDays,
 			visible: true
 		},
 		{
 			title: t$2("sidebar.reports"),
-			url: "/reports",
+			url: "/reports-time",
 			icon: ChartPie,
 			visible: true
 		},
 		{
 			title: t$2("sidebar.profile"),
-			url: "/profile",
+			url: "/profile-time",
 			icon: CircleUser,
 			visible: true
 		}
@@ -84233,44 +84233,44 @@ function AppSidebar() {
 	const adminItems = [
 		{
 			title: t$2("sidebar.approvals"),
-			url: "/admin/approvals",
+			url: "/admin/approvals-time",
 			icon: FileCheck,
 			visible: hasApprovalAccess,
 			badge: pendingCount > 0 ? pendingCount : void 0
 		},
 		{
 			title: t$2("sidebar.users"),
-			url: "/admin/users",
+			url: "/admin/users-time",
 			icon: Users,
 			visible: isAdmin
 		},
 		{
 			title: t$2("sidebar.clients"),
-			url: "/admin/clients",
+			url: "/admin/clients-time",
 			icon: Building2,
 			visible: hasManagementAccess
 		},
 		{
 			title: t$2("sidebar.projects"),
-			url: "/admin/projects",
+			url: "/admin/projects-time",
 			icon: Briefcase,
 			visible: hasManagementAccess
 		},
 		{
 			title: t$2("sidebar.systems"),
-			url: "/admin/systems",
+			url: "/admin/systems-time",
 			icon: MonitorSmartphone,
 			visible: hasManagementAccess
 		},
 		{
 			title: t$2("sidebar.notifications"),
-			url: "/admin/notifications",
+			url: "/admin/notifications-time",
 			icon: Bell,
 			visible: isAdmin
 		},
 		{
 			title: t$2("sidebar.emailTemplates"),
-			url: "/admin/settings/emails",
+			url: "/admin/settings/emails-time",
 			icon: Mail,
 			visible: isAdmin
 		}
@@ -84372,7 +84372,7 @@ function LayoutContent() {
 										/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DropdownMenuItem, {
 											asChild: true,
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-												to: "/profile",
+												to: "/profile-time",
 												className: "cursor-pointer",
 												children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, { className: "mr-2 h-4 w-4" }), t$2("sidebar.profile")]
 											})
@@ -84425,7 +84425,7 @@ var ActiveUserRoute = ({ children }) => {
 	const { profile: profile$3, loading } = useAuth();
 	if (loading) return null;
 	if (profile$3 && !profile$3.activo) return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-		to: "/pending-approval",
+		to: "/pending-approval-time",
 		replace: true
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(import_jsx_runtime.Fragment, { children });
@@ -84462,7 +84462,7 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Login, {})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-				path: "/pending-approval",
+				path: "/pending-approval-time",
 				element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProtectedRoute, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(PendingApproval, {}) })
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
@@ -84480,33 +84480,40 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index_default, {})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/timesheet",
+						path: "/timesheet-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TimeSheet_default, {})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/reports",
+						path: "/reports-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Reports, {})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/profile",
+						path: "/profile-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Profile, {})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 						path: "/settings",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
-							to: "/profile",
+							to: "/profile-time",
 							replace: true
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/admin/users",
+						path: "/profile",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Navigate, {
+							to: "/profile-time",
+							replace: true
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+						path: "/admin/users-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RoleRoute, {
 							allowedRoles: ["admin", "director"],
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserManagement, {})
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/admin/approvals",
+						path: "/admin/approvals-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RoleRoute, {
 							allowedRoles: [
 								"admin",
@@ -84517,29 +84524,29 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/admin/notifications",
+						path: "/admin/notifications-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AdminRoute, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(NotificationsPage, {}) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/admin/settings/emails",
+						path: "/admin/settings/emails-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AdminRoute, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(EmailSettingsPage, {}) })
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/admin/clients",
+						path: "/admin/clients-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RoleRoute, {
 							allowedRoles: ["admin", "director"],
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ClientManagement, {})
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/admin/systems",
+						path: "/admin/systems-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RoleRoute, {
 							allowedRoles: ["admin", "director"],
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SystemManagement, {})
 						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						path: "/admin/projects",
+						path: "/admin/projects-time",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RoleRoute, {
 							allowedRoles: ["admin", "director"],
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ProjectManagement, {})
@@ -84557,4 +84564,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-UqGxGKIs.js.map
+//# sourceMappingURL=index-CrU1s3y7.js.map

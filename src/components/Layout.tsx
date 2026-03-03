@@ -67,7 +67,7 @@ function LayoutContent() {
                   <DropdownMenuLabel>{t('common.myAccount')}</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="cursor-pointer">
+                    <Link to="/profile-time" className="cursor-pointer">
                       <User className="mr-2 h-4 w-4" />
                       {t('sidebar.profile')}
                     </Link>

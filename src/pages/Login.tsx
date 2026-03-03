@@ -46,10 +46,11 @@ export default function Login() {
   const location = useLocation()
   const { toast } = useToast()
 
-  // Handle redirect logic, correcting legacy /settings path to /profile
-  // Default rawFrom to /index-time as requested
+  // Handle redirect logic, correcting legacy paths to /profile-time
   const rawFrom = location.state?.from?.pathname || '/index-time'
-  const from = rawFrom === '/settings' ? '/profile' : rawFrom
+  const from = ['/settings', '/profile'].includes(rawFrom)
+    ? '/profile-time'
+    : rawFrom
 
   // Schemas with translation
   const loginSchema = z.object({
