@@ -75650,6 +75650,7 @@ function Login() {
 	const { t: t$2 } = useTranslation();
 	const [isLoading, setIsLoading] = (0, import_react.useState)(false);
 	const [projects$3, setProjects] = (0, import_react.useState)([]);
+	const [isProjectsLoaded, setIsProjectsLoaded] = (0, import_react.useState)(false);
 	const [unverifiedEmail, setUnverifiedEmail] = (0, import_react.useState)(null);
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -75657,14 +75658,26 @@ function Login() {
 	const rawFrom = location.state?.from?.pathname || "/index-time";
 	const from = ["/settings", "/profile"].includes(rawFrom) ? "/profile-time" : rawFrom;
 	const loginSchema = object({
-		email: string().email(t$2("validation.emailInvalid")),
-		password: string().min(6, t$2("validation.minChar", { min: 6 }))
+		email: string().email(t$2("validation.emailInvalid", "Correo inválido")),
+		password: string().min(6, t$2("validation.minChar", {
+			min: 6,
+			defaultValue: "Mínimo 6 caracteres"
+		}))
 	});
 	const registerSchema = object({
-		email: string().email(t$2("validation.emailInvalid")),
-		password: string().min(6, t$2("validation.minChar", { min: 6 })),
-		nombre: string().min(2, t$2("validation.minChar", { min: 2 })),
-		apellido: string().min(2, t$2("validation.minChar", { min: 2 })),
+		email: string().email(t$2("validation.emailInvalid", "Correo inválido")),
+		password: string().min(6, t$2("validation.minChar", {
+			min: 6,
+			defaultValue: "Mínimo 6 caracteres"
+		})),
+		nombre: string().min(2, t$2("validation.minChar", {
+			min: 2,
+			defaultValue: "Mínimo 2 caracteres"
+		})),
+		apellido: string().min(2, t$2("validation.minChar", {
+			min: 2,
+			defaultValue: "Mínimo 2 caracteres"
+		})),
 		role: _enum([
 			"admin",
 			"director",
@@ -75674,19 +75687,36 @@ function Login() {
 		projectId: string().optional()
 	});
 	(0, import_react.useEffect)(() => {
+		let isMounted = true;
 		const fetchProjects = async () => {
 			try {
 				const { data, error } = await supabase.from("projects").select("id, nombre").eq("status", "activo");
+				if (!isMounted) return;
 				if (error) {
-					console.warn("Could not fetch projects for registration form:", error.message);
+					console.debug("Project fetch blocked or failed (RLS/Network):", error.message);
+					setIsProjectsLoaded(true);
 					return;
 				}
-				if (data) setProjects(data);
+				if (data && Array.isArray(data)) setProjects(data);
 			} catch (err) {
-				console.warn("Network exception while fetching projects:", err);
+				if (isMounted) console.debug("Network exception handled safely for projects:", err?.message || err);
+			} finally {
+				if (isMounted) setIsProjectsLoaded(true);
 			}
 		};
-		fetchProjects();
+		try {
+			fetchProjects().catch((err) => {
+				if (isMounted) {
+					console.debug("Promise chain rejection caught:", err);
+					setIsProjectsLoaded(true);
+				}
+			});
+		} catch (err) {
+			if (isMounted) setIsProjectsLoaded(true);
+		}
+		return () => {
+			isMounted = false;
+		};
 	}, []);
 	const loginForm = useForm({
 		resolver: a(loginSchema),
@@ -75718,8 +75748,8 @@ function Login() {
 				if (error.message.includes("Email not confirmed") || error.code === "email_not_confirmed") {
 					setUnverifiedEmail(data.email);
 					toast$2({
-						title: t$2("auth.verifyEmail"),
-						description: t$2("auth.pendingMessage"),
+						title: t$2("auth.verifyEmail", "Verifica tu correo"),
+						description: t$2("auth.pendingMessage", "Revisa tu bandeja de entrada."),
 						variant: "destructive"
 					});
 					return;
@@ -75729,8 +75759,8 @@ function Login() {
 			navigate(from, { replace: true });
 		} catch (error) {
 			toast$2({
-				title: t$2("auth.errorAuth"),
-				description: error.message || t$2("common.errorLoad"),
+				title: t$2("auth.errorAuth", "Error de autenticación"),
+				description: error.message || t$2("common.errorLoad", "Ocurrió un error al cargar."),
 				variant: "destructive"
 			});
 		} finally {
@@ -75744,7 +75774,7 @@ function Login() {
 				nombre: data.nombre,
 				apellido: data.apellido,
 				role: data.role,
-				projectId: data.role === "consultor" && data.projectId ? data.projectId : null
+				projectId: data.role === "consultor" && data.projectId && data.projectId !== "none" ? data.projectId : null
 			};
 			const { error } = await supabase.auth.signUp({
 				email: data.email,
@@ -75756,8 +75786,8 @@ function Login() {
 			});
 			if (error) throw error;
 			toast$2({
-				title: t$2("auth.successRegister"),
-				description: t$2("auth.pendingMessage"),
+				title: t$2("auth.successRegister", "Registro exitoso"),
+				description: t$2("auth.pendingMessage", "Revisa tu bandeja de entrada para verificar tu cuenta."),
 				className: "bg-green-50 text-green-800 border-green-200"
 			});
 			const { data: sessionData } = await supabase.auth.getSession();
@@ -75769,8 +75799,8 @@ function Login() {
 		} catch (error) {
 			console.error("Registration Error:", error);
 			toast$2({
-				title: t$2("auth.errorRegister"),
-				description: error.message || t$2("common.errorSave"),
+				title: t$2("auth.errorRegister", "Error al registrarse"),
+				description: error.message || t$2("common.errorSave", "Error al guardar. Intenta nuevamente."),
 				variant: "destructive"
 			});
 		} finally {
@@ -75788,12 +75818,12 @@ function Login() {
 			});
 			if (error) throw error;
 			toast$2({
-				title: t$2("common.success"),
-				description: t$2("auth.resendEmail")
+				title: t$2("common.success", "Éxito"),
+				description: t$2("auth.resendEmail", "Correo reenviado exitosamente.")
 			});
 		} catch (error) {
 			toast$2({
-				title: t$2("common.error"),
+				title: t$2("common.error", "Error"),
 				description: error.message,
 				variant: "destructive"
 			});
@@ -75813,10 +75843,10 @@ function Login() {
 					className: "space-y-1",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
 						className: "text-2xl font-bold text-center text-slate-900",
-						children: t$2("auth.loginTitle")
+						children: t$2("auth.loginTitle", "Registro Diario")
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardDescription, {
 						className: "text-center",
-						children: t$2("auth.loginSubtitle")
+						children: t$2("auth.loginSubtitle", "Inicia sesión en tu cuenta")
 					})]
 				}),
 				/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardContent, { children: unverifiedEmail ? /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -75826,7 +75856,7 @@ function Login() {
 							variant: "destructive",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(MailWarning, { className: "h-4 w-4" }),
-								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: t$2("auth.verifyEmail") }),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertTitle, { children: t$2("auth.verifyEmail", "Verifica tu correo") }),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AlertDescription, { children: unverifiedEmail })
 							]
 						}),
@@ -75834,13 +75864,13 @@ function Login() {
 							onClick: handleResendVerification,
 							className: "w-full",
 							disabled: isLoading,
-							children: [isLoading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "mr-2 h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { className: "mr-2 h-4 w-4" }), t$2("auth.resendEmail")]
+							children: [isLoading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "mr-2 h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Send, { className: "mr-2 h-4 w-4" }), t$2("auth.resendEmail", "Reenviar correo")]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
 							variant: "ghost",
 							className: "w-full",
 							onClick: () => setUnverifiedEmail(null),
-							children: t$2("auth.backToLogin")
+							children: t$2("auth.backToLogin", "Volver al inicio")
 						})
 					]
 				}) : /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Tabs, {
@@ -75851,10 +75881,10 @@ function Login() {
 							className: "grid w-full grid-cols-2 mb-4",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
 								value: "login",
-								children: t$2("auth.login")
+								children: t$2("auth.login", "Iniciar sesión")
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsTrigger, {
 								value: "register",
-								children: t$2("auth.register")
+								children: t$2("auth.register", "Registrarse")
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TabsContent, {
@@ -75869,7 +75899,7 @@ function Login() {
 											control: loginForm.control,
 											name: "email",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.email") }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.email", "Correo electrónico") }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 													placeholder: "usuario@empresa.com",
 													...field
@@ -75881,7 +75911,7 @@ function Login() {
 											control: loginForm.control,
 											name: "password",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.password") }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.password", "Contraseña") }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 													type: "password",
 													placeholder: "******",
@@ -75894,7 +75924,7 @@ function Login() {
 											type: "submit",
 											className: "w-full bg-indigo-600 hover:bg-indigo-700",
 											disabled: isLoading,
-											children: [isLoading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "mr-2 h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogIn, { className: "mr-2 h-4 w-4" }), t$2("auth.login")]
+											children: [isLoading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "mr-2 h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogIn, { className: "mr-2 h-4 w-4" }), t$2("auth.login", "Iniciar sesión")]
 										})
 									]
 								})
@@ -75914,7 +75944,7 @@ function Login() {
 												control: registerForm.control,
 												name: "nombre",
 												render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.name") }),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.name", "Nombre") }),
 													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 														placeholder: "Juan",
 														...field
@@ -75925,7 +75955,7 @@ function Login() {
 												control: registerForm.control,
 												name: "apellido",
 												render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.lastName") }),
+													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.lastName", "Apellido") }),
 													/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 														placeholder: "Pérez",
 														...field
@@ -75938,7 +75968,7 @@ function Login() {
 											control: registerForm.control,
 											name: "email",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.email") }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.email", "Correo electrónico") }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 													placeholder: "juan@ejemplo.com",
 													...field
@@ -75950,10 +75980,13 @@ function Login() {
 											control: registerForm.control,
 											name: "password",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.password") }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.password", "Contraseña") }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
 													type: "password",
-													placeholder: t$2("validation.minChar", { min: 6 }),
+													placeholder: t$2("validation.minChar", {
+														min: 6,
+														defaultValue: "Mínimo 6 caracteres"
+													}),
 													...field
 												}) }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
@@ -75963,26 +75996,26 @@ function Login() {
 											control: registerForm.control,
 											name: "role",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.role") }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.role", "Rol") }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
 													onValueChange: field.onChange,
 													defaultValue: field.value,
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: t$2("auth.selectRole") }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [
+													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: t$2("auth.selectRole", "Seleccione un rol") }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SelectContent, { children: [
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 															value: "consultor",
-															children: t$2("enums.roles.consultor")
+															children: t$2("enums.roles.consultor", "Consultor")
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 															value: "gerente",
-															children: t$2("enums.roles.gerente")
+															children: t$2("enums.roles.gerente", "Gerente")
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 															value: "director",
-															children: t$2("enums.roles.director")
+															children: t$2("enums.roles.director", "Director")
 														}),
 														/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 															value: "admin",
-															children: t$2("enums.roles.admin")
+															children: t$2("enums.roles.admin", "Admin")
 														})
 													] })]
 												}),
@@ -75993,14 +76026,23 @@ function Login() {
 											control: registerForm.control,
 											name: "projectId",
 											render: ({ field }) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(FormItem, { children: [
-												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.initialProject") }),
+												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormLabel, { children: t$2("auth.initialProject", "Proyecto Inicial") }),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
 													onValueChange: field.onChange,
 													defaultValue: field.value,
-													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: t$2("validation.selectProject") }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: projects$3.map((p$1) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+													disabled: !isProjectsLoaded || projects$3.length === 0,
+													children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormControl, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, { children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, { placeholder: !isProjectsLoaded ? t$2("common.loading", "Cargando...") : projects$3.length > 0 ? t$2("validation.selectProject", "Seleccione un proyecto") : t$2("common.unavailable", "No disponible") }) }) }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectContent, { children: projects$3.length > 0 ? projects$3.map((p$1) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
 														value: p$1.id,
 														children: p$1.nombre
-													}, p$1.id)) })]
+													}, p$1.id)) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectItem, {
+														value: "none",
+														disabled: true,
+														children: t$2("common.noProjects", "No hay proyectos")
+													}) })]
+												}),
+												isProjectsLoaded && projects$3.length === 0 && /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+													className: "text-xs text-muted-foreground mt-1",
+													children: t$2("auth.projectsUnavailable", "La lista de proyectos no está disponible en este momento.")
 												}),
 												/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FormMessage, {})
 											] })
@@ -76009,7 +76051,7 @@ function Login() {
 											type: "submit",
 											className: "w-full bg-emerald-600 hover:bg-emerald-700",
 											disabled: isLoading,
-											children: [isLoading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "mr-2 h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserPlus, { className: "mr-2 h-4 w-4" }), t$2("auth.createAccount")]
+											children: [isLoading ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(LoaderCircle, { className: "mr-2 h-4 w-4 animate-spin" }) : /* @__PURE__ */ (0, import_jsx_runtime.jsx)(UserPlus, { className: "mr-2 h-4 w-4" }), t$2("auth.createAccount", "Crear cuenta")]
 										})
 									]
 								})
@@ -76021,7 +76063,7 @@ function Login() {
 					className: "flex justify-center flex-col gap-2",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						className: "text-xs text-muted-foreground text-center",
-						children: t$2("auth.pendingMessage")
+						children: t$2("auth.pendingMessage", "Revisa tu bandeja de entrada después de registrarte.")
 					})
 				})
 			]
@@ -84568,4 +84610,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-BmvJCRdw.js.map
+//# sourceMappingURL=index-DvbZzYVy.js.map

@@ -41,6 +41,7 @@ export default function Login() {
   const { t } = useTranslation()
   const [isLoading, setIsLoading] = useState(false)
   const [projects, setProjects] = useState<Project[]>([])
+  const [isProjectsLoaded, setIsProjectsLoaded] = useState(false)
   const [unverifiedEmail, setUnverifiedEmail] = useState<string | null>(null)
   const navigate = useNavigate()
   const location = useLocation()
@@ -54,15 +55,47 @@ export default function Login() {
 
   // Schemas with translation
   const loginSchema = z.object({
-    email: z.string().email(t('validation.emailInvalid')),
-    password: z.string().min(6, t('validation.minChar', { min: 6 })),
+    email: z.string().email(t('validation.emailInvalid', 'Correo inválido')),
+    password: z
+      .string()
+      .min(
+        6,
+        t('validation.minChar', {
+          min: 6,
+          defaultValue: 'Mínimo 6 caracteres',
+        }),
+      ),
   })
 
   const registerSchema = z.object({
-    email: z.string().email(t('validation.emailInvalid')),
-    password: z.string().min(6, t('validation.minChar', { min: 6 })),
-    nombre: z.string().min(2, t('validation.minChar', { min: 2 })),
-    apellido: z.string().min(2, t('validation.minChar', { min: 2 })),
+    email: z.string().email(t('validation.emailInvalid', 'Correo inválido')),
+    password: z
+      .string()
+      .min(
+        6,
+        t('validation.minChar', {
+          min: 6,
+          defaultValue: 'Mínimo 6 caracteres',
+        }),
+      ),
+    nombre: z
+      .string()
+      .min(
+        2,
+        t('validation.minChar', {
+          min: 2,
+          defaultValue: 'Mínimo 2 caracteres',
+        }),
+      ),
+    apellido: z
+      .string()
+      .min(
+        2,
+        t('validation.minChar', {
+          min: 2,
+          defaultValue: 'Mínimo 2 caracteres',
+        }),
+      ),
     role: z.enum(['admin', 'director', 'gerente', 'consultor']),
     projectId: z.string().optional(),
   })
@@ -70,8 +103,10 @@ export default function Login() {
   type LoginFormValues = z.infer<typeof loginSchema>
   type RegisterFormValues = z.infer<typeof registerSchema>
 
-  // Fetch projects for registration demo
+  // Robust fetch projects for registration demo
   useEffect(() => {
+    let isMounted = true
+
     const fetchProjects = async () => {
       try {
         const { data, error } = await supabase
@@ -79,21 +114,50 @@ export default function Login() {
           .select('id, nombre')
           .eq('status', 'activo')
 
+        if (!isMounted) return
+
         if (error) {
-          // Use warn instead of error to prevent triggering unhandled runtime error alerts in monitoring
-          console.warn(
-            'Could not fetch projects for registration form:',
+          // Silently ignore to avoid runtime crash alerts
+          console.debug(
+            'Project fetch blocked or failed (RLS/Network):',
             error.message,
           )
+          setIsProjectsLoaded(true)
           return
         }
 
-        if (data) setProjects(data as Project[])
-      } catch (err) {
-        console.warn('Network exception while fetching projects:', err)
+        if (data && Array.isArray(data)) {
+          setProjects(data as Project[])
+        }
+      } catch (err: any) {
+        // Prevent "TypeError: Failed to fetch" from crashing the application
+        if (isMounted) {
+          console.debug(
+            'Network exception handled safely for projects:',
+            err?.message || err,
+          )
+        }
+      } finally {
+        if (isMounted) {
+          setIsProjectsLoaded(true)
+        }
       }
     }
-    fetchProjects()
+
+    try {
+      fetchProjects().catch((err) => {
+        if (isMounted) {
+          console.debug('Promise chain rejection caught:', err)
+          setIsProjectsLoaded(true)
+        }
+      })
+    } catch (err) {
+      if (isMounted) setIsProjectsLoaded(true)
+    }
+
+    return () => {
+      isMounted = false
+    }
   }, [])
 
   const loginForm = useForm<LoginFormValues>({
@@ -132,8 +196,11 @@ export default function Login() {
         ) {
           setUnverifiedEmail(data.email)
           toast({
-            title: t('auth.verifyEmail'),
-            description: t('auth.pendingMessage'),
+            title: t('auth.verifyEmail', 'Verifica tu correo'),
+            description: t(
+              'auth.pendingMessage',
+              'Revisa tu bandeja de entrada.',
+            ),
             variant: 'destructive',
           })
           return
@@ -145,8 +212,9 @@ export default function Login() {
       navigate(from, { replace: true })
     } catch (error: any) {
       toast({
-        title: t('auth.errorAuth'),
-        description: error.message || t('common.errorLoad'),
+        title: t('auth.errorAuth', 'Error de autenticación'),
+        description:
+          error.message || t('common.errorLoad', 'Ocurrió un error al cargar.'),
         variant: 'destructive',
       })
     } finally {
@@ -162,7 +230,11 @@ export default function Login() {
         apellido: data.apellido,
         role: data.role,
         projectId:
-          data.role === 'consultor' && data.projectId ? data.projectId : null,
+          data.role === 'consultor' &&
+          data.projectId &&
+          data.projectId !== 'none'
+            ? data.projectId
+            : null,
       }
 
       const { error } = await supabase.auth.signUp({
@@ -177,8 +249,11 @@ export default function Login() {
       if (error) throw error
 
       toast({
-        title: t('auth.successRegister'),
-        description: t('auth.pendingMessage'),
+        title: t('auth.successRegister', 'Registro exitoso'),
+        description: t(
+          'auth.pendingMessage',
+          'Revisa tu bandeja de entrada para verificar tu cuenta.',
+        ),
         className: 'bg-green-50 text-green-800 border-green-200',
       })
 
@@ -196,8 +271,10 @@ export default function Login() {
     } catch (error: any) {
       console.error('Registration Error:', error)
       toast({
-        title: t('auth.errorRegister'),
-        description: error.message || t('common.errorSave'),
+        title: t('auth.errorRegister', 'Error al registrarse'),
+        description:
+          error.message ||
+          t('common.errorSave', 'Error al guardar. Intenta nuevamente.'),
         variant: 'destructive',
       })
     } finally {
@@ -220,12 +297,12 @@ export default function Login() {
       if (error) throw error
 
       toast({
-        title: t('common.success'),
-        description: t('auth.resendEmail'),
+        title: t('common.success', 'Éxito'),
+        description: t('auth.resendEmail', 'Correo reenviado exitosamente.'),
       })
     } catch (error: any) {
       toast({
-        title: t('common.error'),
+        title: t('common.error', 'Error'),
         description: error.message,
         variant: 'destructive',
       })
@@ -242,10 +319,10 @@ export default function Login() {
       <Card className="w-full max-w-md shadow-lg">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center text-slate-900">
-            {t('auth.loginTitle')}
+            {t('auth.loginTitle', 'Registro Diario')}
           </CardTitle>
           <CardDescription className="text-center">
-            {t('auth.loginSubtitle')}
+            {t('auth.loginSubtitle', 'Inicia sesión en tu cuenta')}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -253,7 +330,9 @@ export default function Login() {
             <div className="space-y-4 animate-fade-in">
               <Alert variant="destructive">
                 <MailWarning className="h-4 w-4" />
-                <AlertTitle>{t('auth.verifyEmail')}</AlertTitle>
+                <AlertTitle>
+                  {t('auth.verifyEmail', 'Verifica tu correo')}
+                </AlertTitle>
                 <AlertDescription>{unverifiedEmail}</AlertDescription>
               </Alert>
               <Button
@@ -266,21 +345,25 @@ export default function Login() {
                 ) : (
                   <Send className="mr-2 h-4 w-4" />
                 )}
-                {t('auth.resendEmail')}
+                {t('auth.resendEmail', 'Reenviar correo')}
               </Button>
               <Button
                 variant="ghost"
                 className="w-full"
                 onClick={() => setUnverifiedEmail(null)}
               >
-                {t('auth.backToLogin')}
+                {t('auth.backToLogin', 'Volver al inicio')}
               </Button>
             </div>
           ) : (
             <Tabs defaultValue="login" className="w-full">
               <TabsList className="grid w-full grid-cols-2 mb-4">
-                <TabsTrigger value="login">{t('auth.login')}</TabsTrigger>
-                <TabsTrigger value="register">{t('auth.register')}</TabsTrigger>
+                <TabsTrigger value="login">
+                  {t('auth.login', 'Iniciar sesión')}
+                </TabsTrigger>
+                <TabsTrigger value="register">
+                  {t('auth.register', 'Registrarse')}
+                </TabsTrigger>
               </TabsList>
 
               <TabsContent value="login">
@@ -294,7 +377,9 @@ export default function Login() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('auth.email')}</FormLabel>
+                          <FormLabel>
+                            {t('auth.email', 'Correo electrónico')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               placeholder="usuario@empresa.com"
@@ -310,7 +395,9 @@ export default function Login() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('auth.password')}</FormLabel>
+                          <FormLabel>
+                            {t('auth.password', 'Contraseña')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               type="password"
@@ -332,7 +419,7 @@ export default function Login() {
                       ) : (
                         <LogIn className="mr-2 h-4 w-4" />
                       )}
-                      {t('auth.login')}
+                      {t('auth.login', 'Iniciar sesión')}
                     </Button>
                   </form>
                 </Form>
@@ -350,7 +437,7 @@ export default function Login() {
                         name="nombre"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('auth.name')}</FormLabel>
+                            <FormLabel>{t('auth.name', 'Nombre')}</FormLabel>
                             <FormControl>
                               <Input placeholder="Juan" {...field} />
                             </FormControl>
@@ -363,7 +450,9 @@ export default function Login() {
                         name="apellido"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('auth.lastName')}</FormLabel>
+                            <FormLabel>
+                              {t('auth.lastName', 'Apellido')}
+                            </FormLabel>
                             <FormControl>
                               <Input placeholder="Pérez" {...field} />
                             </FormControl>
@@ -378,7 +467,9 @@ export default function Login() {
                       name="email"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('auth.email')}</FormLabel>
+                          <FormLabel>
+                            {t('auth.email', 'Correo electrónico')}
+                          </FormLabel>
                           <FormControl>
                             <Input placeholder="juan@ejemplo.com" {...field} />
                           </FormControl>
@@ -392,11 +483,16 @@ export default function Login() {
                       name="password"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('auth.password')}</FormLabel>
+                          <FormLabel>
+                            {t('auth.password', 'Contraseña')}
+                          </FormLabel>
                           <FormControl>
                             <Input
                               type="password"
-                              placeholder={t('validation.minChar', { min: 6 })}
+                              placeholder={t('validation.minChar', {
+                                min: 6,
+                                defaultValue: 'Mínimo 6 caracteres',
+                              })}
                               {...field}
                             />
                           </FormControl>
@@ -410,7 +506,7 @@ export default function Login() {
                       name="role"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('auth.role')}</FormLabel>
+                          <FormLabel>{t('auth.role', 'Rol')}</FormLabel>
                           <Select
                             onValueChange={field.onChange}
                             defaultValue={field.value}
@@ -418,22 +514,25 @@ export default function Login() {
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue
-                                  placeholder={t('auth.selectRole')}
+                                  placeholder={t(
+                                    'auth.selectRole',
+                                    'Seleccione un rol',
+                                  )}
                                 />
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
                               <SelectItem value="consultor">
-                                {t('enums.roles.consultor')}
+                                {t('enums.roles.consultor', 'Consultor')}
                               </SelectItem>
                               <SelectItem value="gerente">
-                                {t('enums.roles.gerente')}
+                                {t('enums.roles.gerente', 'Gerente')}
                               </SelectItem>
                               <SelectItem value="director">
-                                {t('enums.roles.director')}
+                                {t('enums.roles.director', 'Director')}
                               </SelectItem>
                               <SelectItem value="admin">
-                                {t('enums.roles.admin')}
+                                {t('enums.roles.admin', 'Admin')}
                               </SelectItem>
                             </SelectContent>
                           </Select>
@@ -448,26 +547,57 @@ export default function Login() {
                         name="projectId"
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>{t('auth.initialProject')}</FormLabel>
+                            <FormLabel>
+                              {t('auth.initialProject', 'Proyecto Inicial')}
+                            </FormLabel>
                             <Select
                               onValueChange={field.onChange}
                               defaultValue={field.value}
+                              disabled={
+                                !isProjectsLoaded || projects.length === 0
+                              }
                             >
                               <FormControl>
                                 <SelectTrigger>
                                   <SelectValue
-                                    placeholder={t('validation.selectProject')}
+                                    placeholder={
+                                      !isProjectsLoaded
+                                        ? t('common.loading', 'Cargando...')
+                                        : projects.length > 0
+                                          ? t(
+                                              'validation.selectProject',
+                                              'Seleccione un proyecto',
+                                            )
+                                          : t(
+                                              'common.unavailable',
+                                              'No disponible',
+                                            )
+                                    }
                                   />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                {projects.map((p) => (
-                                  <SelectItem key={p.id} value={p.id}>
-                                    {p.nombre}
+                                {projects.length > 0 ? (
+                                  projects.map((p) => (
+                                    <SelectItem key={p.id} value={p.id}>
+                                      {p.nombre}
+                                    </SelectItem>
+                                  ))
+                                ) : (
+                                  <SelectItem value="none" disabled>
+                                    {t('common.noProjects', 'No hay proyectos')}
                                   </SelectItem>
-                                ))}
+                                )}
                               </SelectContent>
                             </Select>
+                            {isProjectsLoaded && projects.length === 0 && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                {t(
+                                  'auth.projectsUnavailable',
+                                  'La lista de proyectos no está disponible en este momento.',
+                                )}
+                              </p>
+                            )}
                             <FormMessage />
                           </FormItem>
                         )}
@@ -484,7 +614,7 @@ export default function Login() {
                       ) : (
                         <UserPlus className="mr-2 h-4 w-4" />
                       )}
-                      {t('auth.createAccount')}
+                      {t('auth.createAccount', 'Crear cuenta')}
                     </Button>
                   </form>
                 </Form>
@@ -494,7 +624,10 @@ export default function Login() {
         </CardContent>
         <CardFooter className="flex justify-center flex-col gap-2">
           <p className="text-xs text-muted-foreground text-center">
-            {t('auth.pendingMessage')}
+            {t(
+              'auth.pendingMessage',
+              'Revisa tu bandeja de entrada después de registrarte.',
+            )}
           </p>
         </CardFooter>
       </Card>
