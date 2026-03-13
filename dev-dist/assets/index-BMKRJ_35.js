@@ -75688,32 +75688,26 @@ function Login() {
 	});
 	(0, import_react.useEffect)(() => {
 		let isMounted = true;
-		const fetchProjects = async () => {
+		const loadProjects = async () => {
 			try {
-				const { data, error } = await supabase.from("projects").select("id, nombre").eq("status", "activo");
+				const { data: { session }, error: authError } = await supabase.auth.getSession();
+				if (authError) console.warn("Auth session check encountered an error:", authError.message);
+				const response = await supabase.from("projects").select("id, nombre").eq("status", "activo");
 				if (!isMounted) return;
-				if (error) {
-					console.debug("Project fetch blocked or failed (RLS/Network):", error.message);
-					setIsProjectsLoaded(true);
-					return;
-				}
-				if (data && Array.isArray(data)) setProjects(data);
+				if (response.error) {
+					console.warn("Projects fetch returned an error:", response.error.message);
+					setProjects([]);
+				} else if (response.data && Array.isArray(response.data)) setProjects(response.data);
 			} catch (err) {
-				if (isMounted) console.debug("Network exception handled safely for projects:", err?.message || err);
+				if (isMounted) {
+					console.warn("Network exception handled safely for projects fetch:", err instanceof Error ? err.message : err);
+					setProjects([]);
+				}
 			} finally {
 				if (isMounted) setIsProjectsLoaded(true);
 			}
 		};
-		try {
-			fetchProjects().catch((err) => {
-				if (isMounted) {
-					console.debug("Promise chain rejection caught:", err);
-					setIsProjectsLoaded(true);
-				}
-			});
-		} catch (err) {
-			if (isMounted) setIsProjectsLoaded(true);
-		}
+		loadProjects();
 		return () => {
 			isMounted = false;
 		};
@@ -84610,4 +84604,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-DvbZzYVy.js.map
+//# sourceMappingURL=index-BMKRJ_35.js.map

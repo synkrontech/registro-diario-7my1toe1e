@@ -56,46 +56,38 @@ export default function Login() {
   // Schemas with translation
   const loginSchema = z.object({
     email: z.string().email(t('validation.emailInvalid', 'Correo inválido')),
-    password: z
-      .string()
-      .min(
-        6,
-        t('validation.minChar', {
-          min: 6,
-          defaultValue: 'Mínimo 6 caracteres',
-        }),
-      ),
+    password: z.string().min(
+      6,
+      t('validation.minChar', {
+        min: 6,
+        defaultValue: 'Mínimo 6 caracteres',
+      }),
+    ),
   })
 
   const registerSchema = z.object({
     email: z.string().email(t('validation.emailInvalid', 'Correo inválido')),
-    password: z
-      .string()
-      .min(
-        6,
-        t('validation.minChar', {
-          min: 6,
-          defaultValue: 'Mínimo 6 caracteres',
-        }),
-      ),
-    nombre: z
-      .string()
-      .min(
-        2,
-        t('validation.minChar', {
-          min: 2,
-          defaultValue: 'Mínimo 2 caracteres',
-        }),
-      ),
-    apellido: z
-      .string()
-      .min(
-        2,
-        t('validation.minChar', {
-          min: 2,
-          defaultValue: 'Mínimo 2 caracteres',
-        }),
-      ),
+    password: z.string().min(
+      6,
+      t('validation.minChar', {
+        min: 6,
+        defaultValue: 'Mínimo 6 caracteres',
+      }),
+    ),
+    nombre: z.string().min(
+      2,
+      t('validation.minChar', {
+        min: 2,
+        defaultValue: 'Mínimo 2 caracteres',
+      }),
+    ),
+    apellido: z.string().min(
+      2,
+      t('validation.minChar', {
+        min: 2,
+        defaultValue: 'Mínimo 2 caracteres',
+      }),
+    ),
     role: z.enum(['admin', 'director', 'gerente', 'consultor']),
     projectId: z.string().optional(),
   })
@@ -103,39 +95,50 @@ export default function Login() {
   type LoginFormValues = z.infer<typeof loginSchema>
   type RegisterFormValues = z.infer<typeof registerSchema>
 
-  // Robust fetch projects for registration demo
+  // Robust fetch projects for registration demo with auth pre-check
   useEffect(() => {
     let isMounted = true
 
-    const fetchProjects = async () => {
+    const loadProjects = async () => {
       try {
-        const { data, error } = await supabase
+        // Pre-authentication check to ensure no unauthorized fetch exceptions bubble up
+        const {
+          data: { session },
+          error: authError,
+        } = await supabase.auth.getSession()
+
+        if (authError) {
+          console.warn(
+            'Auth session check encountered an error:',
+            authError.message,
+          )
+        }
+
+        // Proceed to fetch projects required for registration form dropdown
+        const response = await supabase
           .from('projects')
           .select('id, nombre')
           .eq('status', 'activo')
 
         if (!isMounted) return
 
-        if (error) {
-          // Silently ignore to avoid runtime crash alerts
-          console.debug(
-            'Project fetch blocked or failed (RLS/Network):',
-            error.message,
+        if (response.error) {
+          console.warn(
+            'Projects fetch returned an error:',
+            response.error.message,
           )
-          setIsProjectsLoaded(true)
-          return
+          setProjects([])
+        } else if (response.data && Array.isArray(response.data)) {
+          setProjects(response.data as Project[])
         }
-
-        if (data && Array.isArray(data)) {
-          setProjects(data as Project[])
-        }
-      } catch (err: any) {
-        // Prevent "TypeError: Failed to fetch" from crashing the application
+      } catch (err: unknown) {
+        // Safely catch TypeError: Failed to fetch and other network errors
         if (isMounted) {
-          console.debug(
-            'Network exception handled safely for projects:',
-            err?.message || err,
+          console.warn(
+            'Network exception handled safely for projects fetch:',
+            err instanceof Error ? err.message : err,
           )
+          setProjects([])
         }
       } finally {
         if (isMounted) {
@@ -144,16 +147,7 @@ export default function Login() {
       }
     }
 
-    try {
-      fetchProjects().catch((err) => {
-        if (isMounted) {
-          console.debug('Promise chain rejection caught:', err)
-          setIsProjectsLoaded(true)
-        }
-      })
-    } catch (err) {
-      if (isMounted) setIsProjectsLoaded(true)
-    }
+    loadProjects()
 
     return () => {
       isMounted = false
