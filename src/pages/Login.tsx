@@ -73,14 +73,25 @@ export default function Login() {
   // Fetch projects for registration demo
   useEffect(() => {
     const fetchProjects = async () => {
-      const { data, error } = await supabase.from('projects').select('*')
+      try {
+        const { data, error } = await supabase
+          .from('projects')
+          .select('id, nombre')
+          .eq('status', 'activo')
 
-      if (error) {
-        console.error('Error fetching projects:', error)
-        return
+        if (error) {
+          // Use warn instead of error to prevent triggering unhandled runtime error alerts in monitoring
+          console.warn(
+            'Could not fetch projects for registration form:',
+            error.message,
+          )
+          return
+        }
+
+        if (data) setProjects(data as Project[])
+      } catch (err) {
+        console.warn('Network exception while fetching projects:', err)
       }
-
-      if (data) setProjects(data as Project[])
     }
     fetchProjects()
   }, [])

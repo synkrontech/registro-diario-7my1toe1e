@@ -75675,12 +75675,16 @@ function Login() {
 	});
 	(0, import_react.useEffect)(() => {
 		const fetchProjects = async () => {
-			const { data, error } = await supabase.from("projects").select("*");
-			if (error) {
-				console.error("Error fetching projects:", error);
-				return;
+			try {
+				const { data, error } = await supabase.from("projects").select("id, nombre").eq("status", "activo");
+				if (error) {
+					console.warn("Could not fetch projects for registration form:", error.message);
+					return;
+				}
+				if (data) setProjects(data);
+			} catch (err) {
+				console.warn("Network exception while fetching projects:", err);
 			}
-			if (data) setProjects(data);
 		};
 		fetchProjects();
 	}, []);
@@ -84564,4 +84568,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 var App_default = App;
 (0, import_client.createRoot)(document.getElementById("root")).render(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(App_default, {}));
 
-//# sourceMappingURL=index-CrU1s3y7.js.map
+//# sourceMappingURL=index-BmvJCRdw.js.map
